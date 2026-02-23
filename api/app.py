@@ -318,19 +318,17 @@ def get_current_plan():
         
         week = get_week_number()
         
-        # Obtener plan con detalles de recetas
-        result = supabase.table('weekly_plans').select('''
-            *,
-            master_recipes!inner(
-                id, name, ingredients, instructions, supermarket, category
-            )
-        ''').eq('user_id', user_id).eq('week_number', week).eq('master_recipes.id', 'weekly_plans.selected_recipe_id').execute()
+        # Obtener plan semanal
+        result = supabase.table('weekly_plans').select('*').eq('user_id', user_id).eq('week_number', week).execute()
         
-        # Calcular totales diarios
+        # Calcular totales diarios y obtener recetas
         daily = {}
         meals = []
         for row in result.data:
-            recipe = row.get('master_recipes', {})
+            # Obtener detalles de la receta
+            recipe_result = supabase.table('master_recipes').select('id, name, ingredients, instructions, supermarket, category').eq('id', row['selected_recipe_id']).execute()
+            recipe = recipe_result.data[0] if recipe_result.data else {}
+            
             meal = {
                 'id': row['id'],
                 'day_of_week': row['day_of_week'],
@@ -367,12 +365,7 @@ def get_food_bank():
         if not user_id:
             return jsonify({'error': 'user_id requerido'}), 400
         
-        query = supabase.table('user_food_bank').select('''
-            *,
-            master_recipes!inner(
-                id, name, meal_type, calories, protein, carbs, fat, ingredients, supermarket
-            )
-        ''').eq('user_id', user_id)
+        query = supabase.table('user_food_bank').select('*').eq('user_id', user_id)
         
         if meal_type:
             query = query.eq('meal_type', meal_type)
@@ -381,7 +374,10 @@ def get_food_bank():
         
         options = []
         for row in result.data:
-            recipe = row.get('master_recipes', {})
+            # Obtener detalles de la receta
+            recipe_result = supabase.table('master_recipes').select('id, name, meal_type, calories, protein, carbs, fat, ingredients, supermarket').eq('id', row['recipe_id']).execute()
+            recipe = recipe_result.data[0] if recipe_result.data else {}
+            
             options.append({
                 'id': row['id'],
                 'recipe_id': row['recipe_id'],

@@ -119,127 +119,127 @@ def init_db():
 MASTER_RECIPES = [
     # DESAYUNOS
     {"name": "Tostada con aguacate y huevo", "meal_type": "desayuno", "calories": 350, "protein": 15, "carbs": 30, "fat": 18,
-     "ingredients": "Pan de molde integral (2 rebanadas), Aguacate (1/2 unidad), Huevo L (1 unidad), Aceite de oliva virgen extra",
+     "ingredients": "Pan de molde integral Hacendado/Lidl (2 rebanadas), Aguacate (1/2 unidad), Huevo L (1 unidad), Aceite de oliva virgen extra",
      "instructions": "Tostar el pan, machacar el aguacate con sal, hacer huevo poché o revuelto", "supermarket": "mixto", "category": "salado"},
     
     {"name": "Yogur con avena y frutas", "meal_type": "desayuno", "calories": 320, "protein": 18, "carbs": 45, "fat": 8,
-     "ingredients": "Queso fresco batido 0% (150g), Copos de avena (40g), Plátano (1 unidad), Miel (1 cucharada)",
+     "ingredients": "Queso fresco batido 0% Hacendado (150g), Copos de avena Lidl (40g), Plátano (1 unidad), Miel (1 cucharada)",
      "instructions": "Mezclar queso fresco con avena, añadir plátano troceado y miel", "supermarket": "mixto", "category": "dulce"},
     
     {"name": "Batido de proteínas casero", "meal_type": "desayuno", "calories": 280, "protein": 25, "carbs": 30, "fat": 6,
-     "ingredients": "Proteína de suero en polvo (30g), Leche desnatada (200ml), Plátano (1/2 unidad)",
+     "ingredients": "Proteína whey Powerbar/Lidl (30g), Leche desnatada Hacendado (200ml), Plátano (1/2 unidad)",
      "instructions": "Batir todo hasta que quede homogéneo", "supermarket": "mixto", "category": "batido"},
     
     {"name": "Tortilla francesa con pan tostado", "meal_type": "desayuno", "calories": 340, "protein": 20, "carbs": 25, "fat": 16,
-     "ingredients": "Huevos L (2 unidades), Pan integral de centeno (1 rebanada), Aceite de oliva (1 cucharadita)",
+     "ingredients": "Huevos L Hacendado/Lidl (2 unidades), Pan integral de centeno Lidl (1 rebanada), Aceite de oliva virgen extra",
      "instructions": "Batir huevos con sal, hacer tortilla francesa con poco aceite", "supermarket": "mixto", "category": "salado"},
     
     {"name": "Porridge de avena con manzana", "meal_type": "desayuno", "calories": 310, "protein": 12, "carbs": 52, "fat": 7,
-     "ingredients": "Copos de avena finos (50g), Leche semidesnatada (200ml), Canela molida, Manzana Fuji (1 unidad)",
+     "ingredients": "Copos de avena finos Lidl (50g), Leche semidesnatada Hacendado (200ml), Canela molida, Manzana Fuji",
      "instructions": "Cocer avena con leche 5 minutos, añadir canela y manzana troceada", "supermarket": "mixto", "category": "dulce"},
     
     {"name": "Requesón con frutos rojos y nueces", "meal_type": "desayuno", "calories": 290, "protein": 22, "carbs": 28, "fat": 9,
-     "ingredients": "Requesón light (150g), Fresas congeladas (100g), Nueces peladas (20g), Edulcorante",
+     "ingredients": "Requesón light Hacendado (150g), Fresas congeladas Lidl (100g), Nueces peladas (20g), Edulcorante",
      "instructions": "Mezclar requesón con frutos rojos y nueces troceadas", "supermarket": "mixto", "category": "dulce"},
     
     # ALMUERZOS
     {"name": "Manzana con almendras", "meal_type": "almuerzo", "calories": 180, "protein": 5, "carbs": 25, "fat": 8,
-     "ingredients": "Manzana Golden (1 unidad), Almendras crudas sin sal (20g)",
+     "ingredients": "Manzana Golden (1 unidad), Almendras crudas sin sal Lidl (20g)",
      "instructions": "Lavar manzana y comer con las almendras", "supermarket": "mixto", "category": "snack"},
     
     {"name": "Yogur griego natural", "meal_type": "almuerzo", "calories": 120, "protein": 15, "carbs": 8, "fat": 3,
-     "ingredients": "Yogur griego natural sin azúcar (125g)",
-     "instructions": "Consumir directamente", "supermarket": "mixto", "category": "lácteo"},
+     "ingredients": "Yogur griego natural sin azúcar Hacendado (125g)",
+     "instructions": "Consumir directamente", "supermarket": "mercadona", "category": "lácteo"},
     
     {"name": "Zanahoria con hummus", "meal_type": "almuerzo", "calories": 150, "protein": 6, "carbs": 18, "fat": 7,
-     "ingredients": "Zanahorias frescas (100g), Hummus clásico (50g)",
+     "ingredients": "Zanahorias frescas (100g), Hummus clásico Hacendado (50g)",
      "instructions": "Cortar zanahorias en bastones y acompañar con hummus", "supermarket": "mixto", "category": "salado"},
     
     {"name": "Barrita proteica", "meal_type": "almuerzo", "calories": 200, "protein": 20, "carbs": 15, "fat": 6,
-     "ingredients": "Barrita proteica chocolate/vainilla (45g)",
+     "ingredients": "Barrita proteica Powerbar/Lidl (45g)",
      "instructions": "Consumir directamente", "supermarket": "mixto", "category": "snack"},
     
     {"name": "Queso fresco con nueces", "meal_type": "almuerzo", "calories": 160, "protein": 12, "carbs": 5, "fat": 11,
-     "ingredients": "Queso fresco 0% (100g), Nueces peladas (15g)",
+     "ingredients": "Queso fresco 0% Hacendado (100g), Nueces peladas Lidl (15g)",
      "instructions": "Acompañar queso con nueces troceadas", "supermarket": "mixto", "category": "lácteo"},
     
     {"name": "Pan con tomate", "meal_type": "almuerzo", "calories": 140, "protein": 5, "carbs": 22, "fat": 4,
-     "ingredients": "Pan de pueblo integral (1 rebanada), Tomate de ensalada (1/2), Aceite de oliva virgen extra, Sal",
+     "ingredients": "Pan de pueblo integral Lidl (1 rebanada), Tomate de ensalada (1/2), Aceite de oliva virgen extra Hacendado, Sal",
      "instructions": "Tostar pan, rallar tomate, añadir aceite y sal", "supermarket": "mixto", "category": "salado"},
     
     # COMIDAS
     {"name": "Pollo al horno con verduras", "meal_type": "comida", "calories": 450, "protein": 40, "carbs": 35, "fat": 15,
-     "ingredients": "Pechuga de pollo fresca (150g), Patata mediana (150g), Brócoli fresco (100g), Aceite de oliva, Sal, Pimienta",
+     "ingredients": "Pechuga de pollo fresca Hacendado/Lidl (150g), Patata mediana (150g), Brócoli fresco (100g), Aceite de oliva virgen extra, Sal, Pimienta",
      "instructions": "Hornear a 200°C durante 25-30 minutos con verduras cortadas", "supermarket": "mixto", "category": "proteina"},
     
     {"name": "Salmón con arroz integral", "meal_type": "comida", "calories": 480, "protein": 35, "carbs": 45, "fat": 18,
-     "ingredients": "Filete de salmón fresco (150g), Arroz integral (60g en crudo), Espárragos trigueros (100g), Limón",
+     "ingredients": "Filete de salmón fresco Lidl (150g), Arroz integral Hacendado (60g en crudo), Espárragos trigueros (100g), Limón",
      "instructions": "Cocer arroz 25 min. Hacer salmón a la plancha 4 min por lado. Saltear espárragos.", "supermarket": "mixto", "category": "pescado"},
     
     {"name": "Lentejas estofadas con verduras", "meal_type": "comida", "calories": 420, "protein": 18, "carbs": 55, "fat": 12,
-     "ingredients": "Lentejas pardinas (70g en crudo), Zanahoria (1 unidad), Cebolla (1/2), Pimiento verde (1/2), Laurel",
-     "instructions": "Sofreír verduras, añadir lentejas y cubrir con agua. Cocer 25-30 min.", "supermarket": "mixto", "category": "legumbre"},
+     "ingredients": "Lentejas pardinas Lidl (70g en crudo), Zanahoria (1 unidad), Cebolla (1/2), Pimiento verde (1/2), Laurel",
+     "instructions": "Sofreír verduras, añadir lentejas y cubrir con agua. Cocer 25-30 min.", "supermarket": "lidl", "category": "legumbre"},
     
     {"name": "Pasta integral con atún", "meal_type": "comida", "calories": 440, "protein": 30, "carbs": 50, "fat": 12,
-     "ingredients": "Espaguetis integrales (80g en crudo), Atún al natural (2 latas), Tomate triturado (50g), Orégano",
+     "ingredients": "Espaguetis integrales Lidl (80g en crudo), Atún al natural Hacendado (2 latas de 52g), Tomate triturado Hacendado (50g), Orégano",
      "instructions": "Cocer pasta. Mezclar con atún escurrido y tomate. Calentar 2 min.", "supermarket": "mixto", "category": "pasta"},
     
     {"name": "Ternera con boniato asado", "meal_type": "comida", "calories": 470, "protein": 38, "carbs": 40, "fat": 16,
-     "ingredients": "Filete de ternera magra (150g), Boniato mediano (200g), Judías verdes (100g), Aceite de oliva",
+     "ingredients": "Filete de ternera magra Hacendado (150g), Boniato mediano (200g), Judías verdes (100g), Aceite de oliva virgen extra",
      "instructions": "Hornear boniato 40-45 min a 200°C. Hacer ternera a la plancha. Cocer judías 10 min.", "supermarket": "mixto", "category": "proteina"},
     
     {"name": "Ensalada de garbanzos", "meal_type": "comida", "calories": 400, "protein": 20, "carbs": 48, "fat": 14,
-     "ingredients": "Garbanzos cocidos (200g), Tomates cherry (100g), Pepino (1/2), Atún al natural (1 lata), Aceitunas negras, Aceite de oliva",
+     "ingredients": "Garbanzos cocidos Lidl (200g), Tomates cherry (100g), Pepino (1/2), Atún al natural Hacendado (1 lata), Aceitunas negras, Aceite de oliva",
      "instructions": "Mezclar todos los ingredientes en un bol y aliñar", "supermarket": "mixto", "category": "ensalada"},
     
     # MERIENDAS
     {"name": "Yogur con kiwi", "meal_type": "merienda", "calories": 150, "protein": 10, "carbs": 22, "fat": 3,
-     "ingredients": "Yogur natural sin azúcar (125g), Kiwi maduro (1 unidad)",
+     "ingredients": "Yogur natural sin azúcar Hacendado (125g), Kiwi maduro (1 unidad)",
      "instructions": "Pelar y trocear kiwi, mezclar con yogur", "supermarket": "mixto", "category": "lácteo"},
     
     {"name": "Tostada con jamón cocido", "meal_type": "merienda", "calories": 180, "protein": 15, "carbs": 18, "fat": 5,
-     "ingredients": "Pan de molde integral (1 rebanada), Jamón cocido extra (2 lonchas, 60g)",
+     "ingredients": "Pan de molde integral Lidl (1 rebanada), Jamón cocido extra Hacendado (2 lonchas, 60g)",
      "instructions": "Tostar pan y colocar jamón", "supermarket": "mixto", "category": "salado"},
     
     {"name": "Batido verde", "meal_type": "merienda", "calories": 140, "protein": 3, "carbs": 32, "fat": 1,
-     "ingredients": "Plátano (1/2), Fresas (100g), Agua (200ml)",
+     "ingredients": "Plátano (1/2), Fresas Lidl (100g), Agua (200ml)",
      "instructions": "Batir todo hasta textura suave", "supermarket": "mixto", "category": "batido"},
     
     {"name": "Huevos cocidos", "meal_type": "merienda", "calories": 140, "protein": 12, "carbs": 1, "fat": 10,
-     "ingredients": "Huevos L (2 unidades), Sal",
+     "ingredients": "Huevos L Hacendado/Lidl (2 unidades), Sal",
      "instructions": "Cocer 10 minutos desde que hierve el agua", "supermarket": "mixto", "category": "proteina"},
     
     {"name": "Requesón con canela", "meal_type": "merienda", "calories": 120, "protein": 14, "carbs": 8, "fat": 4,
-     "ingredients": "Requesón light (100g), Canela molida, Edulcorante líquido",
+     "ingredients": "Requesón light Hacendado (100g), Canela molida Lidl, Edulcorante líquido",
      "instructions": "Mezclar requesón con canela y edulcorante", "supermarket": "mixto", "category": "lácteo"},
     
     {"name": "Surimi con pepino", "meal_type": "merienda", "calories": 100, "protein": 12, "carbs": 10, "fat": 1,
-     "ingredients": "Palitos de cangrejo/surimi (80g), Pepino (1/2 unidad)",
+     "ingredients": "Palitos de cangrejo/surimi Lidl (80g), Pepino (1/2 unidad)",
      "instructions": "Cortar pepino en bastones y acompañar con surimi", "supermarket": "mixto", "category": "snack"},
     
     # CENAS
     {"name": "Merluza al horno con verduras", "meal_type": "cena", "calories": 320, "protein": 30, "carbs": 20, "fat": 12,
-     "ingredients": "Filete de merluza (150g), Calabacín mediano (1 unidad), Cebolla (1/2), Aceite de oliva",
+     "ingredients": "Filete de merluza Lidl (150g), Calabacín mediano (1 unidad), Cebolla (1/2), Aceite de oliva virgen extra Hacendado",
      "instructions": "Hornear 20 min a 180°C con verduras en rodajas", "supermarket": "mixto", "category": "pescado"},
     
     {"name": "Tortilla de espinacas", "meal_type": "cena", "calories": 280, "protein": 18, "carbs": 8, "fat": 20,
-     "ingredients": "Huevos L (2 unidades), Espinacas frescas o congeladas (100g), Queso light (1 loncha)",
+     "ingredients": "Huevos L Hacendado (2 unidades), Espinacas congeladas Lidl (100g), Queso light Hacendado (1 loncha)",
      "instructions": "Hacer tortilla con espinacas salteadas y queso", "supermarket": "mixto", "category": "huevos"},
     
     {"name": "Ensalada de atún", "meal_type": "cena", "calories": 300, "protein": 28, "carbs": 15, "fat": 14,
-     "ingredients": "Atún al natural (2 latas), Lechuga iceberg (100g), Tomate (1 unidad), Maíz dulce (30g)",
+     "ingredients": "Atún al natural Hacendado (2 latas de 52g), Lechuga iceberg (100g), Tomate (1 unidad), Maíz dulce Lidl (30g)",
      "instructions": "Mezclar todos los ingredientes y aliñar", "supermarket": "mixto", "category": "ensalada"},
     
     {"name": "Sepia a la plancha", "meal_type": "cena", "calories": 260, "protein": 32, "carbs": 10, "fat": 8,
-     "ingredients": "Sepia fresca (200g), Ajo (2 dientes), Perejil fresco, Aceite de oliva",
+     "ingredients": "Sepia fresca Lidl (200g), Ajo (2 dientes), Perejil fresco, Aceite de oliva virgen extra",
      "instructions": "Hacer sepia a la plancha con ajo y perejil picado", "supermarket": "mixto", "category": "pescado"},
     
     {"name": "Pavo a la plancha con espárragos", "meal_type": "cena", "calories": 290, "protein": 35, "carbs": 12, "fat": 10,
-     "ingredients": "Filete de pechuga de pavo (150g), Espárragos trigueros (150g), Limón",
+     "ingredients": "Filete de pechuga de pavo Hacendado (150g), Espárragos trigueros Lidl (150g), Limón",
      "instructions": "Hacer pavo y espárragos a la plancha, servir con limón", "supermarket": "mixto", "category": "proteina"},
     
     {"name": "Crema de calabacín", "meal_type": "cena", "calories": 240, "protein": 12, "carbs": 25, "fat": 10,
-     "ingredients": "Calabacín mediano (2 unidades), Puerro (1 unidad), Queso fresco (50g), Aceite de oliva",
+     "ingredients": "Calabacín mediano (2 unidades), Puerro (1 unidad), Queso fresco Hacendado (50g), Aceite de oliva virgen extra",
      "instructions": "Cocer verduras 15 min, triturar y añadir queso", "supermarket": "mixto", "category": "crema"},
 ]
 

@@ -330,7 +330,8 @@ def save_profile():
             'meals_per_day': data['meals_per_day'],
             'allergies': data.get('allergies', ''),
             'disliked_foods': data.get('disliked_foods', ''),
-            'goal_type': data['goal_type']
+            'goal_type': data['goal_type'],
+            'target_calories': data.get('target_calories_override')  # Opcional: override manual
         }).execute()
         
         # Guardar peso inicial
@@ -351,11 +352,76 @@ def save_profile():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/profile/update', methods=['POST'])
+def update_profile():
+    """Permite EDITAR el perfil después de creado."""
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'user_id requerido'}), 400
+        
+        # Obtener perfil actual
+        current = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+        if not current.data:
+            return jsonify({'error': 'Perfil no encontrado'}), 404
+        
+        current_profile = current.data[0]
+        
+        # Actualizar solo los campos proporcionados
+        update_data = {'user_id': user_id}
+        for field in ['age', 'gender', 'height_cm', 'current_weight_kg', 'goal_weight_kg', 
+                      'activity_level', 'meals_per_day', 'allergies', 'disliked_foods', 'goal_type']:
+            if field in data and data[field] is not None:
+                update_data[field] = data[field]
+        
+        supabase.table('user_profiles').upsert(update_data).execute()
+        
+        # Si cambian datos de peso/actividad, recalcular calorías
+        if any(k in data for k in ['current_weight_kg', 'activity_level', 'goal_weight_kg', 'goal_type', 'age', 'height_cm', 'gender']):
+            profile = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute().data[0]
+            tmb, tdee = calculate_tmb(profile['age'], profile['gender'], profile['height_cm'], 
+                                      profile['current_weight_kg'], profile['activity_level'])
+            target = calculate_deficit(tdee, profile['goal_type'], profile['current_weight_kg'], profile['goal_weight_kg'])
+            
+            return jsonify({'success': True, 'recalculated': True, 'tmb': tmb, 'tdee': tdee, 'target_calories': int(target)})
+        
+        return jsonify({'success': True, 'recalculated': False})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/profile/get', methods=['GET'])
+def get_profile():
+    """Obtiene el perfil del usuario."""
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'user_id requerido'}), 400
+        
+        profile = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+        if not profile.data:
+            return jsonify({'error': 'Perfil no encontrado'}), 404
+        
+        return jsonify({'profile': profile.data[0]})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def get_meal_types_for_count(meals_per_day):
+    """Devuelve los tipos de comida correctos según el número seleccionado."""
+    if meals_per_day == 3:
+        return ['desayuno', 'comida', 'cena']  # 3 principales
+    elif meals_per_day == 4:
+        return ['desayuno', 'comida', 'merienda', 'cena']  # añade merienda
+    elif meals_per_day == 5:
+        return ['desayuno', 'almuerzo', 'comida', 'merienda', 'cena']  # todas
+    else:
+        return ['desayuno', 'comida', 'cena']  # default
+
 def generate_first_week_varied(user_id, target_calories, meals_per_day):
     """Genera la primera semana CON VARIEDAD - cada día diferente."""
     import random
     week = get_week_number()
-    meal_types = ['desayuno', 'almuerzo', 'comida', 'merienda', 'cena'][:meals_per_day]
+    meal_types = get_meal_types_for_count(meals_per_day)
     
     # Obtener todas las recetas por tipo de comida
     recipes_by_type = {}
@@ -587,8 +653,8 @@ def weight_checkin():
         
         profile = profile.data[0]
         
-        # Añadir NUEVAS opciones (hasta 6 por tipo)
-        meal_types = ['desayuno', 'almuerzo', 'comida', 'merienda', 'cena'][:profile['meals_per_day']]
+        # Añadir NUEVAS opciones (hasta 6 por tipo) - USAR LÓGICA CORRECTA
+        meal_types = get_meal_types_for_count(profile['meals_per_day'])
         
         for meal_type in meal_types:
             existing = supabase.table('user_food_bank').select('recipe_id').eq('user_id', data['user_id']).eq('meal_type', meal_type).execute()

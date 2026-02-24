@@ -997,3 +997,71 @@
   </script>
 </body>
 </html>
+
+    // ============================================================
+    // EDITAR PERFIL
+    // ============================================================
+    async function showEditProfile() {
+      try {
+        const res = await fetch(`${API_URL}/profile/get?user_id=${currentUser.id}`);
+        const data = await res.json();
+        
+        if (data.profile) {
+          const p = data.profile;
+          document.getElementById('edit-age').value = p.age;
+          document.getElementById('edit-gender').value = p.gender;
+          document.getElementById('edit-height').value = p.height_cm;
+          document.getElementById('edit-current-weight').value = p.current_weight_kg;
+          document.getElementById('edit-goal-weight').value = p.goal_weight_kg;
+          document.getElementById('edit-goal-type').value = p.goal_type;
+          document.getElementById('edit-activity').value = p.activity_level;
+          document.getElementById('edit-meals').value = p.meals_per_day;
+          
+          document.getElementById('edit-profile-modal').classList.remove('hidden');
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    function closeEditProfile() {
+      document.getElementById('edit-profile-modal').classList.add('hidden');
+    }
+
+    async function handleEditProfile(e) {
+      e.preventDefault();
+      
+      const updateData = {
+        user_id: currentUser.id,
+        age: parseInt(document.getElementById('edit-age').value),
+        gender: document.getElementById('edit-gender').value,
+        height: parseFloat(document.getElementById('edit-height').value),
+        current_weight: parseFloat(document.getElementById('edit-current-weight').value),
+        goal_weight: parseFloat(document.getElementById('edit-goal-weight').value),
+        goal_type: document.getElementById('edit-goal-type').value,
+        activity_level: document.getElementById('edit-activity').value,
+        meals_per_day: parseInt(document.getElementById('edit-meals').value)
+      };
+      
+      try {
+        const res = await fetch(`${API_URL}/profile/update`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(updateData)
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          if (data.recalculated) {
+            alert(`✅ ¡Perfil actualizado!\n\n🔥 Nuevas calorías: ${data.target_calories} kcal/día\n📊 TMB: ${data.tmb} kcal\n⚡ TDEE: ${data.tdee} kcal`);
+          } else {
+            alert('✅ ¡Perfil actualizado!');
+          }
+          closeEditProfile();
+          loadDashboard();
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }

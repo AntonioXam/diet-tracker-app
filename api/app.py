@@ -236,10 +236,17 @@ def calculate_tmb(age, gender, height, weight, activity_level):
     return round(tmb), round(tmb * multipliers.get(activity_level, 1.2))
 
 def calculate_deficit(tdee, goal_type, current_weight, goal_weight):
+    """Calcula calorías objetivo de forma segura y realista."""
     if goal_type == 'lose':
-        return tdee - min(500, 300 + (current_weight - goal_weight) * 20)
+        # Déficit seguro: 300-500 kcal menos del TDEE
+        # Nunca menos de 1200 kcal (mínimo saludable)
+        deficit = min(500, max(300, (current_weight - goal_weight) * 15))
+        target = max(1200, tdee - deficit)
+        return target
     elif goal_type == 'gain':
-        return tdee + 300
+        # Superávit moderado: +250-300 kcal
+        return min(tdee + 300, 3500)  # Máximo 3500 kcal
+    # Mantenimiento
     return tdee
 
 def get_week_number():

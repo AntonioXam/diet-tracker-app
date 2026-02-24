@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Diet Tracker API - Backend con Supabase
-Ingredientes Mercadona/Lidl - Sistema progresivo 6 opciones
+Productos FIT + Variedad diaria + Mercadona/Lidl
 """
 
 import os
@@ -24,134 +24,198 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ============================================================
-# RECETAS MAESTRAS - Productos Hacendado/Lidl
+# RECETAS MAESTRAS FIT - Productos saludables Mercadona/Lidl
 # ============================================================
 
 MASTER_RECIPES = [
-    # DESAYUNOS (6 opciones)
-    {"name": "Tostada con aguacate y huevo", "meal_type": "desayuno", "calories": 350, "protein": 15, "carbs": 30, "fat": 18,
-     "ingredients": "Pan de molde integral Hacendado/Lidl (2 rebanadas), Aguacate (1/2 unidad), Huevo L Hacendado (1 unidad), Aceite de oliva virgen extra",
-     "instructions": "Tostar el pan, machacar el aguacate con sal, hacer huevo poché o revuelto", "supermarket": "mixto", "category": "salado"},
+    # ==================== DESAYUNOS (10 opciones FIT) ====================
+    {"name": "Tostada de espelta con aguacate y huevo poché", "meal_type": "desayuno", "calories": 340, "protein": 16, "carbs": 28, "fat": 18,
+     "ingredients": "Pan de espelta Lidl (2 rebanadas), Aguacate maduro (1/2), Huevo campero L Hacendado (1), Aceite de oliva virgen extra, Pimienta negra",
+     "instructions": "Tostar pan de espelta, machacar aguacate con limón y sal, hacer huevo poché 3 min", "supermarket": "mixto", "category": "salado"},
     
-    {"name": "Yogur con avena y frutas", "meal_type": "desayuno", "calories": 320, "protein": 18, "carbs": 45, "fat": 8,
-     "ingredients": "Queso fresco batido 0% Hacendado (150g), Copos de avena Lidl (40g), Plátano (1 unidad), Miel (1 cucharada)",
-     "instructions": "Mezclar queso fresco con avena, añadir plátano troceado y miel", "supermarket": "mixto", "category": "dulce"},
+    {"name": "Bowl de quinoa con yogur griego y frutos rojos", "meal_type": "desayuno", "calories": 320, "protein": 20, "carbs": 42, "fat": 8,
+     "ingredients": "Quinoa cocida Lidl (80g), Yogur griego 0% Hacendado (150g), Arándanos congelados Lidl (80g), Nueces pecan (15g), Miel de abeja",
+     "instructions": "Mezclar quinoa fría con yogur, añadir frutos rojos y nueces troceadas", "supermarket": "mixto", "category": "dulce"},
     
-    {"name": "Batido de proteínas casero", "meal_type": "desayuno", "calories": 280, "protein": 25, "carbs": 30, "fat": 6,
-     "ingredients": "Proteína whey Powerbar/Lidl (30g), Leche desnatada Hacendado (200ml), Plátano (1/2 unidad)",
-     "instructions": "Batir todo hasta que quede homogéneo", "supermarket": "mixto", "category": "batido"},
+    {"name": "Porridge de avena con proteína y plátano", "meal_type": "desayuno", "calories": 310, "protein": 24, "carbs": 45, "fat": 6,
+     "ingredients": "Copos de avena finos Lidl (50g), Proteína whey vainilla Lidl (25g), Leche de almendras sin azúcar Hacendado (200ml), Plátano pequeño (1)",
+     "instructions": "Cocer avena 5 min con leche, mezclar proteína con poco líquido, añadir plátano en rodajas", "supermarket": "mixto", "category": "dulce"},
     
-    {"name": "Tortilla francesa con pan tostado", "meal_type": "desayuno", "calories": 340, "protein": 20, "carbs": 25, "fat": 16,
-     "ingredients": "Huevos L Hacendado/Lidl (2 unidades), Pan integral de centeno Lidl (1 rebanada), Aceite de oliva (1 cucharadita)",
-     "instructions": "Batir huevos con sal, hacer tortilla francesa con poco aceite", "supermarket": "mixto", "category": "salado"},
+    {"name": "Revuelto de claras con espinacas y champiñones", "meal_type": "desayuno", "calories": 280, "protein": 28, "carbs": 12, "fat": 10,
+     "ingredients": "Claras de huevo Hacendado (200ml), Espinacas baby Lidl (80g), Champiñones laminados (100g), Ajo (1 diente), Aceite de oliva",
+     "instructions": "Saltear champiñones con ajo, añadir espinacas 2 min, agregar claras y remover hasta cuajar", "supermarket": "mixto", "category": "salado"},
     
-    {"name": "Porridge de avena con manzana", "meal_type": "desayuno", "calories": 310, "protein": 12, "carbs": 52, "fat": 7,
-     "ingredients": "Copos de avena finos Lidl (50g), Leche semidesnatada Hacendado (200ml), Canela molida, Manzana Fuji",
-     "instructions": "Cocer avena con leche 5 minutos, añadir canela y manzana troceada", "supermarket": "mixto", "category": "dulce"},
+    {"name": "Pudín de chía con mango y coco", "meal_type": "desayuno", "calories": 295, "protein": 12, "carbs": 38, "fat": 14,
+     "ingredients": "Semillas de chía Lidl (35g), Leche de coco sin azúcar Hacendado (200ml), Mango fresco (100g), Coco rallado sin azúcar (10g)",
+     "instructions": "Mezclar chía con leche de coco, refrigerar 4h mínimo, añadir mango troceado", "supermarket": "mixto", "category": "dulce"},
     
-    {"name": "Requesón con frutos rojos y nueces", "meal_type": "desayuno", "calories": 290, "protein": 22, "carbs": 28, "fat": 9,
-     "ingredients": "Requesón light Hacendado (150g), Fresas congeladas Lidl (100g), Nueces peladas (20g), Edulcorante",
-     "instructions": "Mezclar requesón con frutos rojos y nueces troceadas", "supermarket": "mixto", "category": "dulce"},
+    {"name": "Tortitas de avena y proteína sin azúcar", "meal_type": "desayuno", "calories": 330, "protein": 26, "carbs": 35, "fat": 9,
+     "ingredients": "Avena molida Lidl (50g), Proteína whey chocolate Lidl (25g), Clara de huevo (100ml), Levadura química, Edulcorante stevia",
+     "instructions": "Mezclar ingredientes, hacer tortitas en sartén antiadherente 2 min por lado", "supermarket": "mixto", "category": "dulce"},
     
-    # ALMUERZOS (6 opciones)
-    {"name": "Manzana con almendras", "meal_type": "almuerzo", "calories": 180, "protein": 5, "carbs": 25, "fat": 8,
-     "ingredients": "Manzana Golden (1 unidad), Almendras crudas sin sal Lidl (20g)",
-     "instructions": "Lavar manzana y comer con las almendras", "supermarket": "mixto", "category": "snack"},
+    {"name": "Tostada de centeno con salmón ahumado y eneldo", "meal_type": "desayuno", "calories": 350, "protein": 22, "carbs": 24, "fat": 16,
+     "ingredients": "Pan de centeno Lidl (2 rebanadas), Salmón ahumado Lidl (80g), Queso crema light Hacendado (30g), Eneldo fresco, Limón",
+     "instructions": "Tostar pan, untar queso crema, colocar salmón y espolvorear eneldo", "supermarket": "lidl", "category": "salado"},
     
-    {"name": "Yogur griego natural", "meal_type": "almuerzo", "calories": 120, "protein": 15, "carbs": 8, "fat": 3,
-     "ingredients": "Yogur griego natural sin azúcar Hacendado (125g)",
-     "instructions": "Consumir directamente", "supermarket": "mercadona", "category": "lácteo"},
+    {"name": "Batido verde detox con espirulina", "meal_type": "desayuno", "calories": 270, "protein": 18, "carbs": 35, "fat": 8,
+     "ingredients": "Espinacas frescas (60g), Plátano verde (1/2), Manzana green (1), Proteína vegetal Lidl (20g), Espirulina en polvo Lidl (5g), Agua (250ml)",
+     "instructions": "Batir todo hasta textura suave, servir inmediatamente", "supermarket": "mixto", "category": "batido"},
     
-    {"name": "Zanahoria con hummus", "meal_type": "almuerzo", "calories": 150, "protein": 6, "carbs": 18, "fat": 7,
-     "ingredients": "Zanahorias frescas (100g), Hummus clásico Hacendado (50g)",
-     "instructions": "Cortar zanahorias en bastones y acompañar con hummus", "supermarket": "mixto", "category": "salado"},
+    {"name": "Bowl de requesón con granola casera y kiwi", "meal_type": "desayuno", "calories": 315, "protein": 20, "carbs": 40, "fat": 10,
+     "ingredients": "Requesón batido 0% Hacendado (150g), Granola sin azúcar Lidl (40g), Kiwi maduro (2 unidades), Semillas de calabaza (10g)",
+     "instructions": "Colocar requesón en bowl, añadir granola y kiwi en rodajas", "supermarket": "mixto", "category": "dulce"},
     
-    {"name": "Barrita proteica", "meal_type": "almuerzo", "calories": 200, "protein": 20, "carbs": 15, "fat": 6,
-     "ingredients": "Barrita proteica Powerbar/Lidl (45g)",
-     "instructions": "Consumir directamente", "supermarket": "mixto", "category": "snack"},
+    {"name": "Huevos benedictinos fit con pan de kamut", "meal_type": "desayuno", "calories": 360, "protein": 24, "carbs": 26, "fat": 18,
+     "ingredients": "Pan de kamut Lidl (2 rebanadas), Huevos camperos L Hacendado (2), Jamón york 97% carne Hacendado (2 lonchas), Yogur griego (50g), Mostaza Dijon",
+     "instructions": "Tostar pan, colocar jamón, huevo poché, salsa de yogur con mostaza", "supermarket": "mixto", "category": "salado"},
     
-    {"name": "Queso fresco con nueces", "meal_type": "almuerzo", "calories": 160, "protein": 12, "carbs": 5, "fat": 11,
-     "ingredients": "Queso fresco 0% Hacendado (100g), Nueces peladas Lidl (15g)",
-     "instructions": "Acompañar queso con nueces troceadas", "supermarket": "mixto", "category": "lácteo"},
+    # ==================== ALMUERZOS (8 opciones FIT) ====================
+    {"name": "Manzana Fuji con mantequilla de almendras", "meal_type": "almuerzo", "calories": 185, "protein": 6, "carbs": 24, "fat": 9,
+     "ingredients": "Manzana Fuji (1 mediana), Mantequilla de almendras 100% Lidl (20g), Canela en polvo",
+     "instructions": "Cortar manzana en gajos, untar con mantequilla de almendras y espolvorear canela", "supermarket": "lidl", "category": "snack"},
     
-    {"name": "Pan con tomate", "meal_type": "almuerzo", "calories": 140, "protein": 5, "carbs": 22, "fat": 4,
-     "ingredients": "Pan de pueblo integral Lidl (1 rebanada), Tomate de ensalada (1/2), Aceite de oliva virgen extra Hacendado, Sal",
-     "instructions": "Tostar pan, rallar tomate, añadir aceite y sal", "supermarket": "mixto", "category": "salado"},
+    {"name": "Yogur skyr con semillas de cáñamo", "meal_type": "almuerzo", "calories": 145, "protein": 18, "carbs": 10, "fat": 4,
+     "ingredients": "Skyr natural Hacendado (175g), Semillas de cáñamo peladas Lidl (15g), Edulcorante eritritol",
+     "instructions": "Mezclar skyr con semillas y edulcorante al gusto", "supermarket": "mixto", "category": "lácteo"},
     
-    # COMIDAS (6 opciones)
-    {"name": "Pollo al horno con verduras", "meal_type": "comida", "calories": 450, "protein": 40, "carbs": 35, "fat": 15,
-     "ingredients": "Pechuga de pollo fresca Hacendado/Lidl (150g), Patata mediana (150g), Brócoli fresco (100g), Aceite de oliva virgen extra, Sal, Pimienta",
-     "instructions": "Hornear a 200°C durante 25-30 minutos con verduras cortadas", "supermarket": "mixto", "category": "proteina"},
+    {"name": "Palitos de zanahoria con guacamole casero", "meal_type": "almuerzo", "calories": 160, "protein": 4, "carbs": 16, "fat": 10,
+     "ingredients": "Zanahorias baby Lidl (150g), Aguacate maduro (1/2), Limón, Cilantro fresco, Sal marina",
+     "instructions": "Cortar zanahorias, machacar aguacate con limón y cilantro, servir como dip", "supermarket": "mixto", "category": "salado"},
     
-    {"name": "Salmón con arroz integral", "meal_type": "comida", "calories": 480, "protein": 35, "carbs": 45, "fat": 18,
-     "ingredients": "Filete de salmón fresco Lidl (150g), Arroz integral Hacendado (60g en crudo), Espárragos trigueros (100g), Limón",
-     "instructions": "Cocer arroz 25 min. Hacer salmón a la plancha 4 min por lado. Saltear espárragos.", "supermarket": "mixto", "category": "pescado"},
+    {"name": "Barrita proteica Low Carb de chocolate", "meal_type": "almuerzo", "calories": 190, "protein": 22, "carbs": 8, "fat": 8,
+     "ingredients": "Barrita protein fit Lidl (1 unidad de 45g)",
+     "instructions": "Consumir directamente", "supermarket": "lidl", "category": "snack"},
     
-    {"name": "Lentejas estofadas con verduras", "meal_type": "comida", "calories": 420, "protein": 18, "carbs": 55, "fat": 12,
-     "ingredients": "Lentejas pardinas Lidl (70g en crudo), Zanahoria (1 unidad), Cebolla (1/2), Pimiento verde (1/2), Laurel",
-     "instructions": "Sofreír verduras, añadir lentejas y cubrir con agua. Cocer 25-30 min.", "supermarket": "lidl", "category": "legumbre"},
+    {"name": "Rollitos de pavo con queso fresco y pepino", "meal_type": "almuerzo", "calories": 135, "protein": 16, "carbs": 6, "fat": 5,
+     "ingredients": "Pechuga de pavo en lonchas Hacendado (80g), Queso fresco 0% Hacendado (60g), Pepino (1/2), Eneldo",
+     "instructions": "Extender lonchas de pavo, colocar queso y tiras de pepino, enrollar", "supermarket": "mixto", "category": "salado"},
     
-    {"name": "Pasta integral con atún", "meal_type": "comida", "calories": 440, "protein": 30, "carbs": 50, "fat": 12,
-     "ingredients": "Espaguetis integrales Lidl (80g en crudo), Atún al natural Hacendado (2 latas de 52g), Tomate triturado Hacendado (50g), Orégano",
-     "instructions": "Cocer pasta. Mezclar con atún escurrido y tomate. Calentar 2 min.", "supermarket": "mixto", "category": "pasta"},
+    {"name": "Puñado de frutos secos mix sin tostar", "meal_type": "almuerzo", "calories": 175, "protein": 7, "carbs": 8, "fat": 14,
+     "ingredients": "Mix frutos secos crudos Lidl (nueces, almendras, anacardos) (25g)",
+     "instructions": "Consumir directamente", "supermarket": "lidl", "category": "snack"},
     
-    {"name": "Ternera con boniato asado", "meal_type": "comida", "calories": 470, "protein": 38, "carbs": 40, "fat": 16,
-     "ingredients": "Filete de ternera magra Hacendado (150g), Boniato mediano (200g), Judías verdes (100g), Aceite de oliva virgen extra",
-     "instructions": "Hornear boniato 40-45 min a 200°C. Hacer ternera a la plancha. Cocer judías 10 min.", "supermarket": "mixto", "category": "proteina"},
+    {"name": "Tostada crujiente con hummus de remolacha", "meal_type": "almuerzo", "calories": 155, "protein": 7, "carbs": 20, "fat": 6,
+     "ingredients": "Crispbread multicereales Lidl (2 unidades), Hummus de remolacha Hacendado (50g), Rúcula fresca",
+     "instructions": "Untar hummus en crispbread, añadir rúcula fresca", "supermarket": "mixto", "category": "salado"},
     
-    {"name": "Ensalada de garbanzos", "meal_type": "comida", "calories": 400, "protein": 20, "carbs": 48, "fat": 14,
-     "ingredients": "Garbanzos cocidos Lidl (200g), Tomates cherry (100g), Pepino (1/2), Atún al natural Hacendado (1 lata), Aceitunas negras, Aceite de oliva",
-     "instructions": "Mezclar todos los ingredientes en un bol y aliñar", "supermarket": "mixto", "category": "ensalada"},
+    {"name": "Batido de proteínas con fresas y plátano", "meal_type": "almuerzo", "calories": 180, "protein": 24, "carbs": 18, "fat": 3,
+     "ingredients": "Proteína whey fresa Lidl (25g), Fresas congeladas Lidl (100g), Plátano pequeño (1/2), Agua (200ml)",
+     "instructions": "Batir todo hasta textura cremosa", "supermarket": "lidl", "category": "batido"},
     
-    # MERIENDAS (6 opciones)
-    {"name": "Yogur con kiwi", "meal_type": "merienda", "calories": 150, "protein": 10, "carbs": 22, "fat": 3,
-     "ingredients": "Yogur natural sin azúcar Hacendado (125g), Kiwi maduro (1 unidad)",
-     "instructions": "Pelar y trocear kiwi, mezclar con yogur", "supermarket": "mixto", "category": "lácteo"},
+    # ==================== COMIDAS (10 opciones FIT) ====================
+    {"name": "Pechuga de pollo a la plancha con quinoa y brócoli", "meal_type": "comida", "calories": 445, "protein": 42, "carbs": 38, "fat": 12,
+     "ingredients": "Pechuga de pollo ecológico Hacendado (160g), Quinoa tricolor Lidl (70g en crudo), Brócoli fresco (150g), Aceite de oliva virgen extra, Ajo en polvo",
+     "instructions": "Cocer quinoa 12 min, hacer pollo a la plancha con especias, vapor brócoli 8 min", "supermarket": "mixto", "category": "proteina"},
     
-    {"name": "Tostada con jamón cocido", "meal_type": "merienda", "calories": 180, "protein": 15, "carbs": 18, "fat": 5,
-     "ingredients": "Pan de molde integral Lidl (1 rebanada), Jamón cocido extra Hacendado (2 lonchas, 60g)",
-     "instructions": "Tostar pan y colocar jamón", "supermarket": "mixto", "category": "salado"},
+    {"name": "Salmón al horno con boniato y espárragos", "meal_type": "comida", "calories": 485, "protein": 38, "carbs": 42, "fat": 20,
+     "ingredients": "Salmón fresco Lidl (170g), Boniato mediano (180g), Espárragos verdes Lidl (150g), Limón, Romero fresco, Aceite de oliva",
+     "instructions": "Hornear boniato 40 min a 200°C, salmón 12 min, espárragos 8 min con limón", "supermarket": "lidl", "category": "pescado"},
     
-    {"name": "Batido verde", "meal_type": "merienda", "calories": 140, "protein": 3, "carbs": 32, "fat": 1,
-     "ingredients": "Plátano (1/2), Fresas Lidl (100g), Agua (200ml)",
-     "instructions": "Batir todo hasta textura suave", "supermarket": "mixto", "category": "batido"},
+    {"name": "Lentejas pardinas con verduras y arroz integral", "meal_type": "comida", "calories": 425, "protein": 20, "carbs": 58, "fat": 10,
+     "ingredients": "Lentejas pardinas Lidl (75g en crudo), Arroz integral Hacendado (40g), Zanahoria, Cebolla, Pimiento rojo, Laurel, Comino",
+     "instructions": "Sofreír verduras, añadir lentejas y arroz, cubrir con agua, cocer 30 min", "supermarket": "mixto", "category": "legumbre"},
     
-    {"name": "Huevos cocidos", "meal_type": "merienda", "calories": 140, "protein": 12, "carbs": 1, "fat": 10,
-     "ingredients": "Huevos L Hacendado/Lidl (2 unidades), Sal",
-     "instructions": "Cocer 10 minutos desde que hierve el agua", "supermarket": "mixto", "category": "proteina"},
+    {"name": "Pasta de garbanzos con gambas y calabacín", "meal_type": "comida", "calories": 455, "protein": 34, "carbs": 48, "fat": 14,
+     "ingredients": "Pasta de garbanzos Lidl (90g en crudo), Gambas peladas Lidl (120g), Calabacín mediano (1), Ajo, Guindilla, Aceite de oliva",
+     "instructions": "Cocer pasta 8 min, saltear gambas con ajo y calabacín en espiral", "supermarket": "lidl", "category": "pasta"},
     
-    {"name": "Requesón con canela", "meal_type": "merienda", "calories": 120, "protein": 14, "carbs": 8, "fat": 4,
-     "ingredients": "Requesón light Hacendado (100g), Canela molida Lidl, Edulcorante líquido",
-     "instructions": "Mezclar requesón con canela y edulcorante", "supermarket": "mixto", "category": "lácteo"},
+    {"name": "Ternera magra al wok con verduras thai", "meal_type": "comida", "calories": 470, "protein": 40, "carbs": 36, "fat": 16,
+     "ingredients": "Ternera magra en tiras Hacendado (160g), Mix verduras thai Lidl (200g), Salsa de soja baja en sal, Jengibre fresco, Sésamo tostado",
+     "instructions": "Wok muy caliente, carne 4 min, verduras 5 min, salsa de soja y sésamo", "supermarket": "mixto", "category": "proteina"},
     
-    {"name": "Surimi con pepino", "meal_type": "merienda", "calories": 100, "protein": 12, "carbs": 10, "fat": 1,
-     "ingredients": "Palitos de cangrejo/surimi Lidl (80g), Pepino (1/2 unidad)",
-     "instructions": "Cortar pepino en bastones y acompañar con surimi", "supermarket": "mixto", "category": "snack"},
+    {"name": "Bowl de garbanzos con atún y aguacate", "meal_type": "comida", "calories": 420, "protein": 28, "carbs": 42, "fat": 16,
+     "ingredients": "Garbanzos cocidos Lidl (200g), Atún claro al natural Hacendado (2 latas de 52g), Aguacate (1/4), Tomates cherry, Pepino, Limón",
+     "instructions": "Mezclar garbanzos con atún escurrido, añadir verduras troceadas y aguacate", "supermarket": "mixto", "category": "ensalada"},
     
-    # CENAS (6 opciones)
-    {"name": "Merluza al horno con verduras", "meal_type": "cena", "calories": 320, "protein": 30, "carbs": 20, "fat": 12,
-     "ingredients": "Filete de merluza Lidl (150g), Calabacín mediano (1 unidad), Cebolla (1/2), Aceite de oliva virgen extra Hacendado",
-     "instructions": "Hornear 20 min a 180°C con verduras en rodajas", "supermarket": "mixto", "category": "pescado"},
+    {"name": "Merluza en papillote con patata y pimientos", "meal_type": "comida", "calories": 395, "protein": 36, "carbs": 38, "fat": 10,
+     "ingredients": "Merluza fresca Lidl (180g), Patata mediana (150g), Pimiento rojo y verde (1/2 cada), Cebolla, Aceite de oliva, Perejil",
+     "instructions": "Papel de horno, pescado con verduras en juliana, hornear 20 min a 180°C", "supermarket": "lidl", "category": "pescado"},
     
-    {"name": "Tortilla de espinacas", "meal_type": "cena", "calories": 280, "protein": 18, "carbs": 8, "fat": 20,
-     "ingredients": "Huevos L Hacendado (2 unidades), Espinacas congeladas Lidl (100g), Queso light Hacendado (1 loncha)",
-     "instructions": "Hacer tortilla con espinacas salteadas y queso", "supermarket": "mixto", "category": "huevos"},
+    {"name": "Wrap integral de pollo con hummus y rúcula", "meal_type": "comida", "calories": 440, "protein": 32, "carbs": 44, "fat": 14,
+     "ingredients": "Tortilla integral Lidl (1 grande de 60g), Pechuga de pollo (120g), Hummus clásico Hacendado (60g), Rúcula fresca, Tomate",
+     "instructions": "Hacer pollo a la plancha, calentar tortilla, rellenar y enrollar", "supermarket": "mixto", "category": "wrap"},
     
-    {"name": "Ensalada de atún", "meal_type": "cena", "calories": 300, "protein": 28, "carbs": 15, "fat": 14,
-     "ingredients": "Atún al natural Hacendado (2 latas de 52g), Lechuga iceberg (100g), Tomate (1 unidad), Maíz dulce Lidl (30g)",
-     "instructions": "Mezclar todos los ingredientes y aliñar", "supermarket": "mixto", "category": "ensalada"},
+    {"name": "Hamburguesa de pavo casera con ensalada y batata", "meal_type": "comida", "calories": 465, "protein": 38, "carbs": 40, "fat": 14,
+     "ingredients": "Carne de pavo picada Hacendado (150g), Batata mediana (180g), Lechuga iceberg, Tomate, Cebolla morada, Mostaza antigua",
+     "instructions": "Formar hamburguesa, plancha 5 min por lado, batata al horno 35 min", "supermarket": "mixto", "category": "proteina"},
     
-    {"name": "Sepia a la plancha", "meal_type": "cena", "calories": 260, "protein": 32, "carbs": 10, "fat": 8,
-     "ingredients": "Sepia fresca Lidl (200g), Ajo (2 dientes), Perejil fresco, Aceite de oliva virgen extra",
-     "instructions": "Hacer sepia a la plancha con ajo y perejil picado", "supermarket": "mixto", "category": "pescado"},
+    {"name": "Ensalada de espinacas con nueces y queso de cabra", "meal_type": "comida", "calories": 410, "protein": 22, "carbs": 28, "fat": 24,
+     "ingredients": "Espinacas baby Lidl (100g), Queso de cabra rulo Hacendado (80g), Nueces peladas Lidl (30g), Pera conference (1/2), Vinagre de Módena",
+     "instructions": "Mezclar espinacas con queso troceado, nueces y pera en gajos, aliñar", "supermarket": "mixto", "category": "ensalada"},
     
-    {"name": "Pavo a la plancha con espárragos", "meal_type": "cena", "calories": 290, "protein": 35, "carbs": 12, "fat": 10,
-     "ingredients": "Filete de pechuga de pavo Hacendado (150g), Espárragos trigueros Lidl (150g), Limón",
-     "instructions": "Hacer pavo y espárragos a la plancha, servir con limón", "supermarket": "mixto", "category": "proteina"},
+    # ==================== MERIENDAS (8 opciones FIT) ====================
+    {"name": "Yogur skyr con arándanos y linaza", "meal_type": "merienda", "calories": 145, "protein": 17, "carbs": 16, "fat": 4,
+     "ingredients": "Skyr natural Hacendado (175g), Arándanos frescos Lidl (80g), Semillas de linaza dorada (10g)",
+     "instructions": "Mezclar skyr con arándanos y espolvorear linaza", "supermarket": "mixto", "category": "lácteo"},
     
-    {"name": "Crema de calabacín", "meal_type": "cena", "calories": 240, "protein": 12, "carbs": 25, "fat": 10,
-     "ingredients": "Calabacín mediano (2 unidades), Puerro (1 unidad), Queso fresco Hacendado (50g), Aceite de oliva virgen extra",
-     "instructions": "Cocer verduras 15 min, triturar y añadir queso", "supermarket": "mixto", "category": "crema"},
+    {"name": "Tostada de espelta con jamón serrano", "meal_type": "merienda", "calories": 175, "protein": 14, "carbs": 18, "fat": 6,
+     "ingredients": "Pan de espelta Lidl (1 rebanada), Jamón serrano reserva (1 loncha de 40g), Tomate rallado",
+     "instructions": "Tostar pan, rallar tomate, colocar jamón", "supermarket": "mixto", "category": "salado"},
+    
+    {"name": "Batido de proteínas con cacao y avellanas", "meal_type": "merienda", "calories": 165, "protein": 22, "carbs": 12, "fat": 5,
+     "ingredients": "Proteína whey chocolate Lidl (25g), Cacao puro en polvo Hacendado (5g), Leche de almendras sin azúcar (200ml)",
+     "instructions": "Batir todo hasta que no queden grumos", "supermarket": "mixto", "category": "batido"},
+    
+    {"name": "Huevos duros con pimentón y sal marina", "meal_type": "merienda", "calories": 140, "protein": 13, "carbs": 1, "fat": 9,
+     "ingredients": "Huevos camperos L Hacendado (2 unidades), Pimentón de la Vera dulce, Sal marina, Orégano",
+     "instructions": "Cocer huevos 10 min, enfriar, pelar y espolvorear especias", "supermarket": "mixto", "category": "proteina"},
+    
+    {"name": "Requesón con canela y stevia", "meal_type": "merienda", "calories": 115, "protein": 15, "carbs": 7, "fat": 3,
+     "ingredients": "Requesón batido 0% Hacendado (120g), Canela de Ceilán Lidl, Stevia líquida (3-4 gotas)",
+     "instructions": "Mezclar requesón con canela abundante y stevia", "supermarket": "mixto", "category": "lácteo"},
+    
+    {"name": "Palitos de cangrejo con bastones de pepino", "meal_type": "merienda", "calories": 95, "protein": 11, "carbs": 9, "fat": 1,
+     "ingredients": "Palitos de cangrejo Lidl (100g), Pepino (1/2 mediano), Zumo de limón",
+     "instructions": "Cortar pepino en bastones, acompañar con surimi desmenuzado", "supermarket": "lidl", "category": "snack"},
+    
+    {"name": "Onigiri de atún con alga nori", "meal_type": "merienda", "calories": 155, "protein": 12, "carbs": 24, "fat": 2,
+     "ingredients": "Arroz sushi Lidl (60g cocido), Atún al natural Hacendado (1 lata pequeña), Alga nori Lidl (1 hoja), Sésamo",
+     "instructions": "Formar bola de arroz con atún en el centro, envolver con nori", "supermarket": "mixto", "category": "snack"},
+    
+    {"name": "Taza de caldo de huesos con jengibre", "meal_type": "merienda", "calories": 85, "protein": 10, "carbs": 4, "fat": 3,
+     "ingredients": "Caldo de huesos Hacendado (250ml), Jengibre fresco rallado, Cúrcuma molida, Pimienta negra",
+     "instructions": "Calentar caldo, añadir jengibre y especias, servir caliente", "supermarket": "mercadona", "category": "bebida"},
+    
+    # ==================== CENAS (10 opciones FIT) ====================
+    {"name": "Lubina al horno con menestras de verduras", "meal_type": "cena", "calories": 315, "protein": 34, "carbs": 18, "fat": 12,
+     "ingredients": "Lubina fresca Lidl (200g), Menestra de verduras congelada Lidl (250g), Aceite de oliva virgen extra, Tomillo fresco, Limón",
+     "instructions": "Hornear pescado 15 min a 180°C con verduras, aliñar con limón", "supermarket": "lidl", "category": "pescado"},
+    
+    {"name": "Tortilla de espinacas y queso feta light", "meal_type": "cena", "calories": 285, "protein": 22, "carbs": 8, "fat": 18,
+     "ingredients": "Huevos camperos L Hacendado (2 grandes), Espinacas congeladas Lidl (120g), Queso feta light Hacendado (50g), Cebollino fresco",
+     "instructions": "Saltear espinacas descongeladas, batir huevos con queso, hacer tortilla", "supermarket": "mixto", "category": "huevos"},
+    
+    {"name": "Ensalada tibia de atún rojo con judías verdes", "meal_type": "cena", "calories": 325, "protein": 32, "carbs": 14, "fat": 16,
+     "ingredients": "Atún rojo fresco Lidl (140g), Judías verdes extrafinas Hacendado (150g), Tomate cherry, Aceitunas negras, Aceite de oliva",
+     "instructions": "Hacer atún sellado 2 min por lado, judías al vapor 8 min, mezclar tibio", "supermarket": "mixto", "category": "ensalada"},
+    
+    {"name": "Sepia a la plancha con ajitos tiernos", "meal_type": "cena", "calories": 265, "protein": 34, "carbs": 10, "fat": 9,
+     "ingredients": "Sepia limpia Lidl (220g), Ajitos tiernos Lidl (150g), Ajo (2 dientes), Perejil fresco, Aceite de oliva",
+     "instructions": "Planchar sepia 4 min por lado, saltear ajitos con ajo laminado", "supermarket": "lidl", "category": "pescado"},
+    
+    {"name": "Pechuga de pavo al vapor con espárragos blancos", "meal_type": "cena", "calories": 280, "protein": 38, "carbs": 10, "fat": 8,
+     "ingredients": "Pechuga de pavo Hacendado (170g), Espárragos blancos Lidl (200g), Limón, Pimienta blanca, Sal marina",
+     "instructions": "Vapor pavo 15 min, espárragos 12 min, servir con limón", "supermarket": "mixto", "category": "proteina"},
+    
+    {"name": "Crema de calabacín y aguacate con semillas", "meal_type": "cena", "calories": 245, "protein": 10, "carbs": 18, "fat": 16,
+     "ingredients": "Calabacín mediano (2), Aguacate (1/4), Puerro (1), Caldo de verduras Hacendado (300ml), Semillas de girasol (10g)",
+     "instructions": "Cocer verduras 15 min, triturar con aguacate, decorar con semillas", "supermarket": "mixto", "category": "crema"},
+    
+    {"name": "Gambas al ajillo con champiñones portobello", "meal_type": "cena", "calories": 275, "protein": 28, "carbs": 12, "fat": 12,
+     "ingredients": "Gambas peladas Lidl (150g), Champiñones portobello Hacendado (150g), Ajo (4 dientes), Guindilla, Aceite de oliva, Perejil",
+     "instructions": "Saltear gambas con ajo y guindilla 3 min, añadir champiñones laminados", "supermarket": "mixto", "category": "pescado"},
+    
+    {"name": "Rollitos de lechuga con carne picada de ternera", "meal_type": "cena", "calories": 295, "protein": 30, "carbs": 14, "fat": 14,
+     "ingredients": "Carne de ternera picada Hacendado (140g), Lechuga iceberg (4 hojas grandes), Zanahoria rallada, Cebollino, Salsa de soja",
+     "instructions": "Saltear carne 6 min, rellenar hojas de lechuga como tacos", "supermarket": "mixto", "category": "proteina"},
+    
+    {"name": "Bacalao desalado con pisto de verduras", "meal_type": "cena", "calories": 305, "protein": 32, "carbs": 16, "fat": 12,
+     "ingredients": "Bacalao desalado Lidl (160g), Calabacín (1/2), Berenjena pequeña (1/2), Pimiento rojo (1/2), Tomate triturado Hacendado (100g)",
+     "instructions": "Hacer pisto 15 min, bacalao a la plancha 4 min por lado", "supermarket": "mixto", "category": "pescado"},
+    
+    {"name": "Sopa miso con tofu sedoso y wakame", "meal_type": "cena", "calories": 220, "protein": 14, "carbs": 18, "fat": 10,
+     "ingredients": "Pasta miso Lidl (30g), Tofu sedoso Hacendado (120g), Alga wakame Lidl (5g), Cebollino, Sésamo tostado",
+     "instructions": "Disolver miso en agua caliente sin hervir, añadir tofu en cubos y wakame", "supermarket": "mixto", "category": "sopa"},
 ]
 
 # ============================================================
@@ -188,7 +252,9 @@ def seed_recipes():
         if not existing.data:
             for recipe in MASTER_RECIPES:
                 supabase.table('master_recipes').insert(recipe).execute()
-        print(f"✅ Recetas cargadas: {len(MASTER_RECIPES)}")
+            print(f"✅ {len(MASTER_RECIPES)} recetas FIT cargadas")
+        else:
+            print(f"✅ {len(existing.data)} recetas ya existen")
     except Exception as e:
         print(f"⚠️ Error seed recipes: {e}")
 
@@ -207,12 +273,10 @@ def register():
         if not all(k in data for k in ('email', 'password', 'name')):
             return jsonify({'error': 'Datos incompletos'}), 400
         
-        # Verificar si existe
         existing = supabase.table('users').select('id').eq('email', data['email']).execute()
         if existing.data:
             return jsonify({'error': 'Email ya registrado'}), 400
         
-        # Crear usuario
         result = supabase.table('users').insert({
             'email': data['email'],
             'password_hash': hash_password(data['password']),
@@ -269,45 +333,60 @@ def save_profile():
         tmb, tdee = calculate_tmb(data['age'], data['gender'], data['height'], data['current_weight'], data['activity_level'])
         target = calculate_deficit(tdee, data['goal_type'], data['current_weight'], data['goal_weight'])
         
-        # Generar primera semana
-        generate_first_week(user_id, target, data['meals_per_day'])
+        # Generar primera semana CON VARIEDAD DIARIA
+        generate_first_week_varied(user_id, target, data['meals_per_day'])
         
         return jsonify({'success': True, 'tmb': tmb, 'tdee': tdee, 'target_calories': int(target)})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def generate_first_week(user_id, target_calories, meals_per_day):
-    """Genera la primera semana con 1 opción por comida."""
+def generate_first_week_varied(user_id, target_calories, meals_per_day):
+    """Genera la primera semana CON VARIEDAD - cada día diferente."""
+    import random
     week = get_week_number()
     meal_types = ['desayuno', 'almuerzo', 'comida', 'merienda', 'cena'][:meals_per_day]
     
-    for day in range(1, 8):
+    # Obtener todas las recetas por tipo de comida
+    recipes_by_type = {}
+    for meal_type in meal_types:
+        result = supabase.table('master_recipes').select('*').eq('meal_type', meal_type).execute()
+        recipes_by_type[meal_type] = result.data or []
+    
+    used_recipes = {mt: [] for mt in meal_types}  # Tracking de recetas usadas esta semana
+    
+    for day in range(1, 8):  # 7 días
         for meal_type in meal_types:
-            # Obtener receta aleatoria
-            recipe_result = supabase.table('master_recipes').select('*').eq('meal_type', meal_type).order('id', desc=False).limit(1).execute()
-            if recipe_result.data:
-                recipe = recipe_result.data[0]
-                
-                # Insertar en plan semanal
-                supabase.table('weekly_plans').insert({
-                    'user_id': user_id,
-                    'week_number': week,
-                    'day_of_week': day,
-                    'meal_type': meal_type,
-                    'selected_recipe_id': recipe['id'],
-                    'calories': recipe['calories'],
-                    'protein': recipe['protein'],
-                    'carbs': recipe['carbs'],
-                    'fat': recipe['fat']
-                }).execute()
-                
-                # Añadir al banco de comidas
-                supabase.table('user_food_bank').insert({
-                    'user_id': user_id,
-                    'meal_type': meal_type,
-                    'recipe_id': recipe['id'],
-                    'added_week': week
-                }).execute()
+            available = [r for r in recipes_by_type[meal_type] if r['id'] not in used_recipes[meal_type]]
+            
+            # Si se agotan, resetear y permitir repetir
+            if not available:
+                available = recipes_by_type[meal_type]
+                used_recipes[meal_type] = []
+            
+            # Seleccionar aleatoria
+            recipe = random.choice(available)
+            used_recipes[meal_type].append(recipe['id'])
+            
+            # Insertar en plan semanal
+            supabase.table('weekly_plans').insert({
+                'user_id': user_id,
+                'week_number': week,
+                'day_of_week': day,
+                'meal_type': meal_type,
+                'selected_recipe_id': recipe['id'],
+                'calories': recipe['calories'],
+                'protein': recipe['protein'],
+                'carbs': recipe['carbs'],
+                'fat': recipe['fat']
+            }).execute()
+            
+            # Añadir al banco de comidas
+            supabase.table('user_food_bank').insert({
+                'user_id': user_id,
+                'meal_type': meal_type,
+                'recipe_id': recipe['id'],
+                'added_week': week
+            }).execute()
 
 @app.route('/api/plan/current', methods=['GET'])
 def get_current_plan():
@@ -319,7 +398,7 @@ def get_current_plan():
         week = get_week_number()
         
         # Obtener plan semanal
-        result = supabase.table('weekly_plans').select('*').eq('user_id', user_id).eq('week_number', week).execute()
+        result = supabase.table('weekly_plans').select('*').eq('user_id', user_id).eq('week_number', week).order('day_of_week').execute()
         
         # Calcular totales diarios y obtener recetas
         daily = {}
@@ -374,7 +453,6 @@ def get_food_bank():
         
         options = []
         for row in result.data:
-            # Obtener detalles de la receta
             recipe_result = supabase.table('master_recipes').select('id, name, meal_type, calories, protein, carbs, fat, ingredients, supermarket').eq('id', row['recipe_id']).execute()
             recipe = recipe_result.data[0] if recipe_result.data else {}
             
@@ -408,7 +486,6 @@ def swap_meal():
         recipe = recipe.data[0]
         week = get_week_number()
         
-        # Actualizar plan
         supabase.table('weekly_plans').update({
             'selected_recipe_id': data['new_recipe_id'],
             'calories': recipe['calories'],
@@ -416,9 +493,6 @@ def swap_meal():
             'carbs': recipe['carbs'],
             'fat': recipe['fat']
         }).eq('user_id', data['user_id']).eq('week_number', week).eq('day_of_week', data['day']).eq('meal_type', data['meal_type']).execute()
-        
-        # Actualizar contador de uso
-        supabase.rpc('increment_recipe_usage', {'p_user_id': data['user_id'], 'p_recipe_id': data['new_recipe_id']}).execute()
         
         return jsonify({'success': True})
     except Exception as e:
@@ -430,30 +504,28 @@ def weight_checkin():
         data = request.json
         week = get_week_number()
         
-        # Guardar peso
         supabase.table('weight_history').insert({
             'user_id': data['user_id'],
             'weight_kg': data['weight'],
             'week_number': week
         }).execute()
         
-        # Obtener perfil
         profile = supabase.table('user_profiles').select('*').eq('user_id', data['user_id']).execute()
         if not profile.data:
             return jsonify({'error': 'Perfil no encontrado'}), 404
         
         profile = profile.data[0]
         
-        # Añadir nueva opción por cada tipo de comida (máximo 6)
+        # Añadir NUEVAS opciones (hasta 6 por tipo)
         meal_types = ['desayuno', 'almuerzo', 'comida', 'merienda', 'cena'][:profile['meals_per_day']]
         
         for meal_type in meal_types:
-            # Contar opciones existentes
-            existing = supabase.table('user_food_bank').select('id').eq('user_id', data['user_id']).eq('meal_type', meal_type).execute()
+            existing = supabase.table('user_food_bank').select('recipe_id').eq('user_id', data['user_id']).eq('meal_type', meal_type).execute()
+            existing_ids = [r['recipe_id'] for r in existing.data]
             
-            if len(existing.data) < 6:
-                # Obtener receta no usada de este tipo
-                new_recipe = supabase.table('master_recipes').select('*').eq('meal_type', meal_type).not_.in_('id', [r['recipe_id'] for r in supabase.table('user_food_bank').select('recipe_id').eq('user_id', data['user_id']).eq('meal_type', meal_type).execute().data]).limit(1).execute()
+            if len(existing_ids) < 6:
+                # Obtener receta NO usada de este tipo
+                new_recipe = supabase.table('master_recipes').select('*').eq('meal_type', meal_type).not_.in_('id', existing_ids).limit(1).execute()
                 
                 if new_recipe.data:
                     supabase.table('user_food_bank').insert({
@@ -530,7 +602,6 @@ def stats():
 # INIT
 # ============================================================
 
-# Seed recipes al iniciar
 try:
     seed_recipes()
 except Exception as e:

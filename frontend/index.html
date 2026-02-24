@@ -278,15 +278,25 @@
           </button>
         </div>
         
-        <!-- Day Tabs -->
-        <div class="flex flex-wrap gap-2 mb-6" id="day-tabs">
-          <button class="day-tab active px-5 py-2.5 rounded-xl font-semibold transition" data-day="1">Lunes</button>
-          <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="2">Martes</button>
-          <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="3">Miércoles</button>
-          <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="4">Jueves</button>
-          <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="5">Viernes</button>
-          <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="6">Sábado</button>
-          <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="7">Domingo</button>
+        <!-- Day Tabs + Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div class="flex flex-wrap gap-2" id="day-tabs">
+            <button class="day-tab active px-5 py-2.5 rounded-xl font-semibold transition" data-day="1">Lun</button>
+            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="2">Mar</button>
+            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="3">Mié</button>
+            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="4">Jue</button>
+            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="5">Vie</button>
+            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="6">Sáb</button>
+            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="7">Dom</button>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="exportPlan()" class="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-200 transition font-semibold text-sm flex items-center gap-2" title="Exportar plan en texto">
+              📋 Exportar
+            </button>
+            <button onclick="regeneratePlan()" class="bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl hover:bg-orange-200 transition font-semibold text-sm flex items-center gap-2" title="Generar nuevo plan con otras recetas">
+              🔄 Regenerar
+            </button>
+          </div>
         </div>
         
         <!-- Meals Container -->
@@ -821,6 +831,52 @@
     function closeOptionsModal() {
       document.getElementById('options-modal').classList.add('hidden');
       currentMealTypeToSwap = null;
+    }
+
+    // ============================================================
+    // REGENERAR PLAN
+    // ============================================================
+    async function regeneratePlan() {
+      if (!confirm('⚠️ ¿Seguro que quieres regenerar el plan?\n\nSe crearán nuevas recetas aleatorias para esta semana. Tus opciones guardadas se mantendrán.')) return;
+      
+      try {
+        const res = await fetch(`${API_URL}/plan/regenerate`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({user_id: currentUser.id})
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ ¡Plan regenerado!\n\nSe han seleccionado nuevas recetas para esta semana.');
+          loadDashboard();
+        } else {
+          alert('⚠️ ' + (data.error || 'Error al regenerar'));
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    // ============================================================
+    // EXPORTAR PLAN
+    // ============================================================
+    async function exportPlan() {
+      try {
+        const res = await fetch(`${API_URL}/plan/export?user_id=${currentUser.id}`);
+        const data = await res.json();
+        
+        if (data.export) {
+          // Copiar al portapapeles
+          await navigator.clipboard.writeText(data.export);
+          alert('✅ ¡Plan exportado!\n\nSe ha copiado al portapapeles. Puedes pegarlo en WhatsApp, notas, etc.');
+        } else {
+          alert('⚠️ ' + (data.error || 'Error al exportar'));
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
     }
 
     async function swapMeal(recipeId) {

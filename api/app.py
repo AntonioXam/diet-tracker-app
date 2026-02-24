@@ -28,10 +28,14 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ============================================================
 
 MASTER_RECIPES = [
-    # ==================== DESAYUNOS (10 opciones FIT) ====================
+    # ==================== DESAYUNOS (15 opciones FIT) ====================
     {"name": "Tostada de espelta con aguacate y huevo poché", "meal_type": "desayuno", "calories": 340, "protein": 16, "carbs": 28, "fat": 18,
      "ingredients": "Pan de espelta Lidl (2 rebanadas), Aguacate maduro (1/2), Huevo campero L Hacendado (1), Aceite de oliva virgen extra, Pimienta negra",
      "instructions": "Tostar pan de espelta, machacar aguacate con limón y sal, hacer huevo poché 3 min", "supermarket": "mixto", "category": "salado"},
+    
+    {"name": "Bowl de açaí con granola y plátano", "meal_type": "desayuno", "calories": 335, "protein": 14, "carbs": 52, "fat": 10,
+     "ingredients": "Puré de açaí Lidl (100g), Leche de almendras Hacendado (150ml), Granola sin azúcar Lidl (40g), Plátano (1), Fresas (50g)",
+     "instructions": "Mezclar açaí con leche, congelar 30 min, topped con granola y fruta", "supermarket": "mixto", "category": "dulce"},
     
     {"name": "Bowl de quinoa con yogur griego y frutos rojos", "meal_type": "desayuno", "calories": 320, "protein": 20, "carbs": 42, "fat": 8,
      "ingredients": "Quinoa cocida Lidl (80g), Yogur griego 0% Hacendado (150g), Arándanos congelados Lidl (80g), Nueces pecan (15g), Miel de abeja",
@@ -502,6 +506,66 @@ def swap_meal():
         }).eq('user_id', data['user_id']).eq('week_number', week).eq('day_of_week', data['day']).eq('meal_type', data['meal_type']).execute()
         
         return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/plan/regenerate', methods=['POST'])
+def regenerate_plan():
+    """Genera un NUEVO plan semanal con recetas diferentes."""
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'user_id requerido'}), 400
+        
+        week = get_week_number()
+        
+        # Obtener perfil del usuario
+        profile = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+        if not profile.data:
+            return jsonify({'error': 'Perfil no encontrado'}), 404
+        
+        profile = profile.data[0]
+        meals_per_day = profile['meals_per_day']
+        
+        # Eliminar plan actual de esta semana
+        supabase.table('weekly_plans').delete().eq('user_id', user_id).eq('week_number', week).execute()
+        
+        # Generar nuevo plan con variedad
+        generate_first_week_varied(user_id, 2000, meals_per_day)  # Las calorías ya están en cada receta
+        
+        return jsonify({'success': True, 'message': 'Plan regenerado con nuevas recetas'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/plan/export', methods=['GET'])
+def export_plan():
+    """Exporta el plan semanal en formato texto para copiar."""
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'user_id requerido'}), 400
+        
+        week = get_week_number()
+        result = supabase.table('weekly_plans').select('*').eq('user_id', user_id).eq('week_number', week).order('day_of_week').execute()
+        
+        days = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'}
+        meal_types = {'desayuno': 'Desayuno', 'almuerzo': 'Almuerzo', 'comida': 'Comida', 'merienda': 'Merienda', 'cena': 'Cena'}
+        
+        output = f"📅 PLAN SEMANAL - Semana {week}\n\n"
+        
+        for day in range(1, 8):
+            day_meals = [m for m in result.data if m['day_of_week'] == day]
+            output += f"--- {days.get(day, f'Día {day}')} ---\n"
+            
+            for meal in day_meals:
+                recipe = supabase.table('master_recipes').select('name').eq('id', meal['selected_recipe_id']).execute()
+                recipe_name = recipe.data[0]['name'] if recipe.data else 'Sin nombre'
+                output += f"  {meal_types.get(meal['meal_type'], meal['meal_type'])}: {recipe_name}\n"
+            
+            output += "\n"
+        
+        return jsonify({'export': output})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

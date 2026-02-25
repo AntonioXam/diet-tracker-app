@@ -1,1002 +1,628 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Diet Tracker FIT - Tu plan semanal saludable</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            dark: { bg: '#0f172a', card: '#1e293b', text: '#f1f5f9', muted: '#94a3b8' }
+          }
+        }
+      }
+    }
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Inter', sans-serif; }
     .fade-in { animation: fadeIn 0.5s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
     .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .card-hover:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }
-    .macro-bar { height: 10px; border-radius: 5px; overflow: hidden; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
     .day-tab { transition: all 0.3s ease; }
     .day-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
-    .glass-effect { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-    .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 1000px 100%; animation: shimmer 2s infinite; }
-    .pulse-ring { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .glass-light { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); }
+    .glass-dark { background: rgba(30,41,59,0.85); backdrop-filter: blur(12px); }
     .floating { animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #764ba2, #667eea); }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    @media (max-width: 640px) {
+      .mobile-p { padding-left: 12px; padding-right: 12px; }
+      .mobile-text { font-size: 14px; }
+      .mobile-card { padding: 12px; }
+    }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-dark-bg dark:via-slate-900 dark:to-dark-bg transition-colors duration-300">
   
   <!-- Navbar -->
-  <nav class="glass-effect shadow-lg border-b border-gray-100 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-2xl shadow-lg floating">🥗</div>
-        <div>
-          <h1 class="text-xl font-extrabold gradient-text tracking-tight">Diet Tracker FIT</h1>
-          <p class="text-xs text-gray-500 font-medium">🛒 Mercadona & Lidl • 180+ recetas</p>
+  <nav class="glass-light dark:glass-dark shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 gradient-bg rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-lg floating">🥗</div>
+        <div class="hidden sm:block">
+          <h1 class="text-lg sm:text-xl font-extrabold gradient-text tracking-tight">Diet Tracker FIT</h1>
+          <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">🛒 Mercadona & Lidl • 250+ recetas</p>
+        </div>
+        <div class="sm:hidden">
+          <h1 class="text-sm font-extrabold gradient-text">Diet FIT</h1>
         </div>
       </div>
-      <div id="nav-auth" class="flex gap-3">
-        <button onclick="showLogin()" class="text-gray-600 hover:text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition">Entrar</button>
-        <button onclick="showRegister()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-105">Registrarse</button>
-      </div>
-      <div id="nav-user" class="hidden flex items-center gap-4">
-        <div class="text-right">
-          <p id="user-name" class="font-semibold text-gray-800"></p>
-          <p class="text-xs text-gray-500">Usuario</p>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Modo oscuro">🌙</button>
+        <div id="nav-auth" class="flex gap-2">
+          <button onclick="showLogin()" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm">Entrar</button>
+          <button onclick="showRegister()" class="gradient-bg text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-105 text-sm">Registrarse</button>
         </div>
-        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg"></div>
-        <button onclick="showEditProfile()" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">⚙️ Editar perfil</button>
-        <button onclick="logout()" class="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition">Salir</button>
+        <div id="nav-user" class="hidden flex items-center gap-2 sm:gap-4">
+          <div class="text-right hidden sm:block">
+            <p id="user-name" class="font-semibold text-gray-800 dark:text-gray-200 text-sm"></p>
+          </div>
+          <div class="w-8 h-8 sm:w-10 sm:h-10 gradient-bg rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm sm:text-base"></div>
+          <button onclick="showEditProfile()" class="bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-800 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1 sm:gap-2">⚙️</button>
+          <button onclick="logout()" class="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900 transition">🚪</button>
+        </div>
       </div>
     </div>
   </nav>
 
   <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 py-8">
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8 mobile-p">
     
     <!-- Welcome Screen -->
-    <div id="welcome-screen" class="text-center py-16 fade-in">
-      <div class="mb-10">
-        <div class="inline-block mb-6">
-          <div class="w-24 h-24 gradient-bg rounded-3xl flex items-center justify-center text-5xl shadow-2xl floating">🎯</div>
+    <div id="welcome-screen" class="text-center py-8 sm:py-16 fade-in">
+      <div class="mb-6 sm:mb-10">
+        <div class="inline-block mb-4 sm:mb-6">
+          <div class="w-16 h-16 sm:w-24 sm:h-24 gradient-bg rounded-2xl sm:rounded-3xl flex items-center justify-center text-3xl sm:text-5xl shadow-2xl floating">🎯</div>
         </div>
-        <h2 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">Transforma tu <span class="gradient-text">alimentación</span></h2>
-        <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Plan nutricional personalizado con productos <span class="font-bold text-red-600 bg-red-50 px-3 py-1 rounded-lg">🛒 Mercadona</span> y <span class="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">🛒 Lidl</span>. Sistema progresivo que evoluciona contigo.</p>
+        <h2 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 sm:mb-6 tracking-tight">Transforma tu <span class="gradient-text">alimentación</span></h2>
+        <p class="text-base sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mobile-text">Plan nutricional personalizado con productos <span class="font-bold text-red-600 bg-red-50 dark:bg-red-900/30 px-2 sm:px-3 py-1 rounded-lg">🛒 Mercadona</span> y <span class="font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 sm:px-3 py-1 rounded-lg">🛒 Lidl</span>.</p>
       </div>
       
-      <div class="flex justify-center gap-4 mb-12">
-        <button onclick="showRegister()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition transform hover:scale-105">Comenzar gratis →</button>
-        <button onclick="showLogin()" class="bg-white text-indigo-600 px-10 py-4 rounded-xl font-bold text-lg border-2 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 transition">Ya tengo cuenta</button>
+      <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
+        <button onclick="showRegister()" class="gradient-bg text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:shadow-2xl transition transform hover:scale-105 w-full sm:w-auto">Comenzar gratis →</button>
+        <button onclick="showLogin()" class="bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg border-2 border-indigo-200 dark:border-indigo-700 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition w-full sm:w-auto">Ya tengo cuenta</button>
       </div>
       
       <!-- Features -->
-      <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        <div class="bg-white/60 backdrop-blur-sm p-8 rounded-2xl shadow-lg card-hover border border-gray-100">
-          <div class="text-5xl mb-4">📊</div>
-          <h3 class="font-bold text-xl mb-3 text-gray-800">Macros calculados</h3>
-          <p class="text-gray-600 leading-relaxed">Proteínas, carbohidratos y grasas equilibrados para tu objetivo. Nada de números raros.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
+        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg card-hover border border-gray-100 dark:border-gray-700">
+          <div class="text-3xl sm:text-4xl mb-3">📊</div>
+          <h3 class="font-bold text-base sm:text-xl mb-2 text-gray-800 dark:text-white">Macros calculados</h3>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">Proteínas, carbohidratos y grasas equilibrados.</p>
         </div>
-        <div class="bg-white/60 backdrop-blur-sm p-8 rounded-2xl shadow-lg card-hover border border-gray-100">
-          <div class="text-5xl mb-4">🔄</div>
-          <h3 class="font-bold text-xl mb-3 text-gray-800">Variedad semanal</h3>
-          <p class="text-gray-600 leading-relaxed">Cada día menús diferentes. Cada semana nuevas opciones hasta tener 6 alternativas.</p>
+        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg card-hover border border-gray-100 dark:border-gray-700">
+          <div class="text-3xl sm:text-4xl mb-3">🔄</div>
+          <h3 class="font-bold text-base sm:text-xl mb-2 text-gray-800 dark:text-white">Variedad semanal</h3>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">Cada día menús diferentes. 250+ recetas.</p>
         </div>
-        <div class="bg-white/60 backdrop-blur-sm p-8 rounded-2xl shadow-lg card-hover border border-gray-100">
-          <div class="text-5xl mb-4">🛒</div>
-          <h3 class="font-bold text-xl mb-3 text-gray-800">Lista automática</h3>
-          <p class="text-gray-600 leading-relaxed">Generada por supermercado. Solo copia y compra. Sin pensar.</p>
+        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg card-hover border border-gray-100 dark:border-gray-700">
+          <div class="text-3xl sm:text-4xl mb-3">🛒</div>
+          <h3 class="font-bold text-base sm:text-xl mb-2 text-gray-800 dark:text-white">Lista automática</h3>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">Generada por supermercado. Solo copia y compra.</p>
         </div>
-      </div>
-
-      <!-- Trust badges -->
-      <div class="mt-12 flex justify-center gap-8 text-sm text-gray-500">
-        <span class="flex items-center gap-2">✅ 100% Gratis</span>
-        <span class="flex items-center gap-2">✅ Sin publicidad</span>
-        <span class="flex items-center gap-2">✅ Productos reales</span>
       </div>
     </div>
 
-    <!-- Login Form -->
-    <div id="login-form" class="hidden max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-8 fade-in border border-gray-100">
-      <div class="text-center mb-6">
-        <span class="text-5xl block mb-3">👋</span>
-        <h2 class="text-3xl font-bold text-gray-900">¡Bienvenido de nuevo!</h2>
-        <p class="text-gray-600 mt-2">Accede a tu plan nutricional</p>
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden fade-in">
+      <!-- Stats Overview -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
+          <div class="flex items-center gap-2 sm:gap-3 mb-2">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 gradient-bg rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">🔥</div>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Calorías/día</p>
+          </div>
+          <p id="dash-calories" class="text-xl sm:text-3xl font-extrabold gradient-text">--</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Objetivo</p>
+        </div>
+        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
+          <div class="flex items-center gap-2 sm:gap-3 mb-2">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">⚖️</div>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Peso</p>
+          </div>
+          <p id="dash-weight" class="text-xl sm:text-3xl font-extrabold text-green-600 dark:text-green-400">--</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">kg actual</p>
+        </div>
+        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
+          <div class="flex items-center gap-2 sm:gap-3 mb-2">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">📈</div>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Progreso</p>
+          </div>
+          <p id="dash-progress" class="text-xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">--%</p>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+            <div id="progress-bar" class="gradient-bg h-2 rounded-full transition-all" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
+          <div class="flex items-center gap-2 sm:gap-3 mb-2">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">📅</div>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Semana</p>
+          </div>
+          <p id="dash-week" class="text-xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400">#<span id="week-number">--</span></p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">En curso</p>
+        </div>
       </div>
-      <form onsubmit="handleLogin(event)" class="space-y-5">
-        <div>
-          <label class="block text-gray-700 font-semibold mb-2">Email</label>
-          <input type="email" id="login-email" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+
+      <!-- Day Tabs - Mobile Optimized -->
+      <div class="mb-4 sm:mb-6">
+        <div class="flex gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide" id="day-tabs">
+          <button class="day-tab active flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base transition shadow-md" data-day="1">Lun</button>
+          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="2">Mar</button>
+          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="3">Mié</button>
+          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="4">Jue</button>
+          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="5">Vie</button>
+          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="6">Sáb</button>
+          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="7">Dom</button>
         </div>
-        <div>
-          <label class="block text-gray-700 font-semibold mb-2">Contraseña</label>
-          <input type="password" id="login-password" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+      </div>
+
+      <!-- Meals Container -->
+      <div class="space-y-3 sm:space-y-4 mb-6" id="meals-container"></div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-2 sm:gap-3 mb-6">
+        <button onclick="showShoppingList()" class="flex-1 sm:flex-none gradient-bg text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:shadow-xl transition flex items-center justify-center gap-2">🛒 Lista compra</button>
+        <button onclick="exportPlan()" class="flex-1 sm:flex-none bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:bg-gray-200 dark:hover:bg-gray-700 transition flex items-center justify-center gap-2">📋 Exportar</button>
+        <button onclick="regeneratePlan()" class="flex-1 sm:flex-none bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:bg-orange-200 dark:hover:bg-orange-900/50 transition flex items-center justify-center gap-2">🔄 Regenerar</button>
+        <button onclick="resetAll()" class="flex-1 sm:flex-none bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center justify-center gap-2">🗑️ Reset</button>
+      </div>
+
+      <!-- Weight Check-in -->
+      <div class="glass-light dark:glass-dark p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 class="font-bold text-lg sm:text-xl text-gray-800 dark:text-white mb-4 flex items-center gap-2">⚖️ Registro semanal de peso</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Pésate una vez por semana (mismo día y hora). El sistema añadirá automáticamente nuevas recetas.</p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="number" id="weight-input" step="0.1" placeholder="Tu peso (kg)" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none transition">
+          <button onclick="checkinWeight()" class="gradient-bg text-white px-6 sm:px-8 py-3 rounded-xl font-bold hover:shadow-xl transition transform hover:scale-105 whitespace-nowrap">✅ Registrar</button>
         </div>
-        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition transform hover:scale-[1.02]">Entrar</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modals (Login, Register, Edit Profile, Options, Shopping) - Same structure, dark mode compatible -->
+  <div id="login-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-6 text-center">👋 Bienvenido de nuevo</h2>
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <input type="text" id="login-username" placeholder="Usuario" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none">
+        <button type="submit" class="w-full gradient-bg text-white py-3 rounded-xl font-bold hover:shadow-xl transition">Entrar</button>
       </form>
-      <p class="text-center mt-6 text-gray-600">
-        ¿No tienes cuenta? <button onclick="showRegister()" class="text-indigo-600 font-bold hover:underline">Regístrate gratis</button>
-      </p>
+      <button onclick="closeLogin()" class="mt-4 w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm font-medium">Cancelar</button>
     </div>
+  </div>
 
-    <!-- Register Form -->
-    <div id="register-form" class="hidden max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-8 fade-in border border-gray-100">
-      <div class="text-center mb-6">
-        <span class="text-5xl block mb-3">🎉</span>
-        <h2 class="text-3xl font-bold text-gray-900">Crea tu cuenta</h2>
-        <p class="text-gray-600 mt-2">Empieza tu transformación hoy</p>
-      </div>
-      <form onsubmit="handleRegister(event)" class="space-y-5">
-        <div>
-          <label class="block text-gray-700 font-semibold mb-2">Nombre</label>
-          <input type="text" id="register-name" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+  <div id="register-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-4 text-center">🎯 Crea tu cuenta</h2>
+      <form onsubmit="handleRegister(event)" class="space-y-3">
+        <input type="text" id="reg-username" placeholder="Usuario" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+        <div class="grid grid-cols-2 gap-3">
+          <input type="number" id="reg-age" placeholder="Edad" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+          <select id="reg-gender" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+            <option value="">Género</option>
+            <option value="male">Hombre</option>
+            <option value="female">Mujer</option>
+          </select>
         </div>
-        <div>
-          <label class="block text-gray-700 font-semibold mb-2">Email</label>
-          <input type="email" id="register-email" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+        <div class="grid grid-cols-2 gap-3">
+          <input type="number" id="reg-height" placeholder="Altura (cm)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+          <input type="number" id="reg-weight" placeholder="Peso (kg)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
         </div>
-        <div>
-          <label class="block text-gray-700 font-semibold mb-2">Contraseña</label>
-          <input type="password" id="register-password" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-        </div>
-        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition transform hover:scale-[1.02]">Crear cuenta</button>
+        <input type="number" id="reg-goal-weight" placeholder="Peso objetivo (kg)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+        <select id="reg-goal-type" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+          <option value="">Objetivo</option>
+          <option value="lose">Perder peso</option>
+          <option value="maintain">Mantener</option>
+          <option value="gain">Ganar masa</option>
+        </select>
+        <select id="reg-activity" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+          <option value="">Actividad física</option>
+          <option value="sedentary">Sedentario (poco ejercicio)</option>
+          <option value="light">Ligero (1-3 días)</option>
+          <option value="moderate">Moderado (3-5 días)</option>
+          <option value="active">Activo (6-7 días)</option>
+          <option value="very_active">Muy activo (trabajo físico)</option>
+        </select>
+        <select id="reg-meals" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm sm:text-base">
+          <option value="">Comidas por día</option>
+          <option value="3">3 comidas</option>
+          <option value="4">4 comidas</option>
+          <option value="5">5 comidas</option>
+        </select>
+        <button type="submit" class="w-full gradient-bg text-white py-3 rounded-xl font-bold hover:shadow-xl transition">Crear cuenta</button>
       </form>
-      <p class="text-center mt-6 text-gray-600">
-        ¿Ya tienes cuenta? <button onclick="showLogin()" class="text-indigo-600 font-bold hover:underline">Inicia sesión</button>
-      </p>
+      <button onclick="closeRegister()" class="mt-4 w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm font-medium">Cancelar</button>
     </div>
+  </div>
 
-    <!-- Onboarding Questionnaire -->
-    <div id="onboarding-form" class="hidden max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl p-8 fade-in border border-gray-100">
-      <div class="text-center mb-8">
-        <span class="text-5xl block mb-3">📋</span>
-        <h2 class="text-3xl font-bold text-gray-900">Tu perfil nutricional</h2>
-        <p class="text-gray-600 mt-2">Completa estos datos para calcular tus calorías y macros personalizados</p>
-      </div>
-      
-      <form onsubmit="handleOnboarding(event)" class="space-y-6">
-        <div class="grid md:grid-cols-2 gap-5">
+  <div id="edit-profile-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-4 text-center">⚙️ Editar perfil</h2>
+      <form onsubmit="handleEditProfile(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-gray-700 font-semibold mb-2">🎂 Edad</label>
-            <input type="number" id="ob-age" required placeholder="Ej: 30" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Edad</label>
+            <input type="number" id="edit-age" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
           </div>
           <div>
-            <label class="block text-gray-700 font-semibold mb-2">👤 Género</label>
-            <select id="ob-gender" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Género</label>
+            <select id="edit-gender" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
               <option value="male">Hombre</option>
               <option value="female">Mujer</option>
             </select>
           </div>
         </div>
-        
-        <div class="grid md:grid-cols-2 gap-5">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-gray-700 font-semibold mb-2">📏 Altura (cm)</label>
-            <input type="number" id="ob-height" required placeholder="Ej: 175" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Altura (cm)</label>
+            <input type="number" id="edit-height" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
           </div>
           <div>
-            <label class="block text-gray-700 font-semibold mb-2">⚖️ Peso actual (kg)</label>
-            <input type="number" id="ob-current-weight" required step="0.1" placeholder="Ej: 80.5" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-          </div>
-        </div>
-        
-        <div class="grid md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">🎯 Peso objetivo (kg)</label>
-            <input type="number" id="ob-goal-weight" required step="0.1" placeholder="Ej: 72" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-          </div>
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">🎯 Objetivo</label>
-            <select id="ob-goal-type" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-              <option value="lose">🔥 Perder grasa</option>
-              <option value="maintain">⚖️ Mantener peso</option>
-              <option value="gain">💪 Ganar músculo</option>
-            </select>
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Peso actual (kg)</label>
+            <input type="number" id="edit-current-weight" step="0.1" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
           </div>
         </div>
-        
         <div>
-          <label class="block text-gray-700 font-semibold mb-2">🏃 Nivel de actividad</label>
-          <select id="ob-activity" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-            <option value="sedentary">🪑 Sedentario (poco o nada de ejercicio)</option>
-            <option value="light">🚶 Ligero (1-3 días/semana)</option>
-            <option value="moderate">🏋️ Moderado (3-5 días/semana)</option>
-            <option value="active">🔥 Activo (6-7 días/semana)</option>
-            <option value="very_active">⚡ Muy activo (trabajo físico o 2x día)</option>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Peso objetivo (kg)</label>
+          <input type="number" id="edit-goal-weight" step="0.1" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Objetivo</label>
+          <select id="edit-goal-type" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
+            <option value="lose">Perder peso</option>
+            <option value="maintain">Mantener</option>
+            <option value="gain">Ganar masa</option>
           </select>
         </div>
-        
         <div>
-          <label class="block text-gray-700 font-semibold mb-2">🍽 Comidas al día</label>
-          <select id="ob-meals" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-            <option value="3">3 comidas (desayuno, comida, cena)</option>
-            <option value="4">4 comidas (con almuerzo)</option>
-            <option value="5" selected>5 comidas (desayuno, almuerzo, comida, merienda, cena) ⭐ Recomendado</option>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Actividad física</label>
+          <select id="edit-activity" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
+            <option value="sedentary">Sedentario</option>
+            <option value="light">Ligero (1-3 días)</option>
+            <option value="moderate">Moderado (3-5 días)</option>
+            <option value="active">Activo (6-7 días)</option>
+            <option value="very_active">Muy activo</option>
           </select>
         </div>
-        
-        <div class="grid md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">⚠️ Alergias (opcional)</label>
-            <input type="text" id="ob-allergies" placeholder="Ej: gluten, lactosa..." class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-          </div>
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">❌ Alimentos que no te gustan</label>
-            <input type="text" id="ob-disliked" placeholder="Ej: pescado, brócoli..." class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-          </div>
+        <div>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Comidas por día</label>
+          <select id="edit-meals" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none text-sm">
+            <option value="3">3 comidas</option>
+            <option value="4">4 comidas</option>
+            <option value="5">5 comidas</option>
+          </select>
         </div>
-        
-        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <p class="text-sm text-blue-800">💡 <strong>Nota:</strong> El cálculo de calorías usa la fórmula Mifflin-St Jeor (la más precisa). Nunca bajaremos de 1200 kcal/día por seguridad.</p>
-        </div>
-        
-        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition transform hover:scale-[1.02]">✨ Crear mi plan personalizado</button>
+        <button type="submit" class="w-full gradient-bg text-white py-3 rounded-xl font-bold hover:shadow-xl transition mt-2">Guardar cambios</button>
       </form>
+      <button onclick="closeEditProfile()" class="mt-4 w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm font-medium">Cancelar</button>
     </div>
+  </div>
 
-    <!-- Dashboard -->
-    <div id="dashboard" class="hidden fade-in">
-      
-      <!-- Stats Overview -->
-      <div class="grid md:grid-cols-4 gap-5 mb-8">
-        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 gradient-bg opacity-5 rounded-full -mr-8 -mt-8"></div>
-          <div class="flex items-center gap-3 mb-3 relative">
-            <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-2xl shadow-lg">🔥</div>
-            <p class="text-gray-600 text-sm font-semibold">Calorías/día</p>
-          </div>
-          <p id="dash-calories" class="text-4xl font-extrabold gradient-text relative">--</p>
-          <p class="text-xs text-gray-500 mt-2 font-medium relative">Objetivo diario</p>
-        </div>
-        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-green-500 opacity-5 rounded-full -mr-8 -mt-8"></div>
-          <div class="flex items-center gap-3 mb-3 relative">
-            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">⚖️</div>
-            <p class="text-gray-600 text-sm font-semibold">Peso actual</p>
-          </div>
-          <p id="dash-weight" class="text-4xl font-extrabold text-green-600 relative">-- kg</p>
-          <p class="text-xs text-gray-500 mt-2 font-medium relative">Último registro</p>
-        </div>
-        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500 opacity-5 rounded-full -mr-8 -mt-8"></div>
-          <div class="flex items-center gap-3 mb-3 relative">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">📈</div>
-            <p class="text-gray-600 text-sm font-semibold">Progreso</p>
-          </div>
-          <p id="dash-progress" class="text-4xl font-extrabold text-blue-600 relative">--%</p>
-          <div class="w-full bg-gray-200 rounded-full h-3 mt-3 relative overflow-hidden">
-            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all shadow-lg" style="width: 0%"></div>
-          </div>
-        </div>
-        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500 opacity-5 rounded-full -mr-8 -mt-8"></div>
-          <div class="flex items-center gap-3 mb-3 relative">
-            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">📅</div>
-            <p class="text-gray-600 text-sm font-semibold">Semana</p>
-          </div>
-          <p id="dash-week" class="text-4xl font-extrabold text-purple-600 relative">#<span id="week-number">--</span></p>
-          <p class="text-xs text-gray-500 mt-2 font-medium relative">En curso</p>
-        </div>
-      </div>
-      
-      <!-- Weekly Plan -->
-      <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
-        <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">📅 Tu plan semanal</h2>
-            <p class="text-gray-600 text-sm mt-1">Cada día tiene menús diferentes. ¡Variedad asegurada!</p>
-          </div>
-          <button onclick="loadShoppingList()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-3 rounded-xl hover:shadow-lg transition flex items-center gap-2 font-semibold">
-            🛒 Lista de la compra
-          </button>
-        </div>
-        
-        <!-- Day Tabs + Actions -->
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div class="flex flex-wrap gap-2" id="day-tabs">
-            <button class="day-tab active px-6 py-3 rounded-2xl font-bold transition shadow-lg" data-day="1">Lun</button>
-            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="2">Mar</button>
-            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="3">Mié</button>
-            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="4">Jue</button>
-            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="5">Vie</button>
-            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="6">Sáb</button>
-            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="7">Dom</button>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="exportPlan()" class="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-200 transition font-semibold text-sm flex items-center gap-2" title="Exportar plan en texto">
-              📋 Exportar
-            </button>
-            <button onclick="regeneratePlan()" class="bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl hover:bg-orange-200 transition font-semibold text-sm flex items-center gap-2" title="Generar nuevo plan con otras recetas">
-              🔄 Regenerar
-            </button>
-            <button onclick="resetAll()" class="bg-red-100 text-red-700 px-4 py-2.5 rounded-xl hover:bg-red-200 transition font-semibold text-sm flex items-center gap-2" title="Borrar todo y empezar de cero">
-              🗑️ Reset
-            </button>
-          </div>
-        </div>
-        
-        <!-- Meals Container -->
-        <div id="meals-container" class="space-y-4">
-          <!-- Se llena dinámicamente -->
-        </div>
-        
-        <!-- Daily Macros -->
-        <div class="mt-8 pt-6 border-t-2 border-gray-100">
-          <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-            <span>📊</span> Macros del día seleccionado
-          </h3>
-          <div class="grid md:grid-cols-4 gap-4" id="daily-macros">
-            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl text-center border border-indigo-100">
-              <p class="text-3xl font-extrabold gradient-text" id="macro-calories">0</p>
-              <p class="text-sm text-gray-600 font-medium mt-1">🔥 Calorías</p>
-              <div class="macro-bar mt-2 w-full bg-gray-200">
-                <div id="bar-calories" class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600" style="width: 0%"></div>
-              </div>
-            </div>
-            <div class="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-xl text-center border border-red-100">
-              <p class="text-3xl font-extrabold text-red-600" id="macro-protein">0g</p>
-              <p class="text-sm text-gray-600 font-medium mt-1">🥩 Proteínas</p>
-              <div class="macro-bar mt-2 w-full bg-gray-200">
-                <div id="bar-protein" class="h-full rounded-full bg-gradient-to-r from-red-400 to-pink-600" style="width: 0%"></div>
-              </div>
-            </div>
-            <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-xl text-center border border-yellow-100">
-              <p class="text-3xl font-extrabold text-yellow-600" id="macro-carbs">0g</p>
-              <p class="text-sm text-gray-600 font-medium mt-1">🍞 Carbohidratos</p>
-              <div class="macro-bar mt-2 w-full bg-gray-200">
-                <div id="bar-carbs" class="h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-600" style="width: 0%"></div>
-              </div>
-            </div>
-            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-xl text-center border border-blue-100">
-              <p class="text-3xl font-extrabold text-blue-600" id="macro-fat">0g</p>
-              <p class="text-sm text-gray-600 font-medium mt-1">🥑 Grasas</p>
-              <div class="macro-bar mt-2 w-full bg-gray-200">
-                <div id="bar-fat" class="h-full rounded-full bg-gradient-to-r from-blue-400 to-cyan-600" style="width: 0%"></div>
-              </div>
-            </div>
-          </div>
-          <p class="text-xs text-gray-500 mt-4 text-center">* Los porcentajes son aproximados según tu objetivo diario</p>
-        </div>
-      </div>
-      
-      <!-- Weight Check-in -->
-      <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
-        <div class="flex items-start gap-4 mb-4">
-          <span class="text-4xl">⚖️</span>
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">Registro semanal de peso</h2>
-            <p class="text-gray-600 mt-1">Pesate una vez por semana (mismo día y hora). El sistema añadirá automáticamente nuevas recetas a tu banco de opciones.</p>
-          </div>
-        </div>
-        <form onsubmit="handleWeightCheckin(event)" class="flex flex-col md:flex-row gap-4 items-end">
-          <div class="flex-1 w-full">
-            <label class="block text-gray-700 font-semibold mb-2">Tu peso actual (kg)</label>
-            <input type="number" id="checkin-weight" required step="0.1" placeholder="Ej: 78.5" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-          </div>
-          <button type="submit" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:shadow-lg transition transform hover:scale-105 whitespace-nowrap">✅ Registrar peso</button>
-        </form>
-      </div>
+  <div id="options-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-6 text-center">🔄 Cambiar receta</h2>
+      <div id="options-content" class="space-y-4"></div>
+      <button onclick="closeOptionsModal()" class="mt-6 w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cerrar</button>
     </div>
+  </div>
 
-    <!-- Shopping List Modal -->
-    <div id="shopping-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
-        <div class="p-6 sticky top-0 bg-white border-b border-gray-100">
-          <div class="flex justify-between items-center">
-            <h2 class="text-2xl font-bold flex items-center gap-2">🛒 Lista de la compra</h2>
-            <button onclick="closeShoppingModal()" class="text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
-          </div>
-        </div>
-        <div id="shopping-content" class="p-6 space-y-6">
-          <!-- Se llena dinámicamente -->
-        </div>
-      </div>
+  <div id="shopping-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-6 text-center">🛒 Lista de la compra</h2>
+      <div id="shopping-content" class="space-y-4"></div>
+      <button onclick="closeShoppingModal()" class="mt-6 w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cerrar</button>
     </div>
-
-    <!-- Meal Options Modal -->
-    <div id="options-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
-        <div class="p-6 sticky top-0 bg-white border-b border-gray-100">
-          <div class="flex justify-between items-center">
-            <h2 class="text-2xl font-bold flex items-center gap-2">🔄 Cambiar opción</h2>
-            <button onclick="closeOptionsModal()" class="text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
-          </div>
-          <p class="text-gray-600 text-sm mt-2">Selecciona una alternativa de tu banco de comidas</p>
-        </div>
-        <div id="options-content" class="p-6 space-y-4">
-          <!-- Se llena dinámicamente -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div id="edit-profile-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="p-6 sticky top-0 bg-white border-b border-gray-100">
-          <div class="flex justify-between items-center">
-            <h2 class="text-2xl font-bold flex items-center gap-2">⚙️ Editar perfil</h2>
-            <button onclick="closeEditProfile()" class="text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
-          </div>
-          <p class="text-gray-600 text-sm mt-2">Modifica tus datos para recalcular el plan</p>
-        </div>
-        <form onsubmit="handleEditProfile(event)" class="p-6 space-y-5">
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-gray-700 font-semibold mb-2">🎂 Edad</label>
-              <input type="number" id="edit-age" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-              <label class="block text-gray-700 font-semibold mb-2">👤 Género</label>
-              <select id="edit-gender" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-                <option value="male">Hombre</option>
-                <option value="female">Mujer</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-gray-700 font-semibold mb-2">📏 Altura (cm)</label>
-              <input type="number" id="edit-height" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-              <label class="block text-gray-700 font-semibold mb-2">⚖️ Peso actual (kg)</label>
-              <input type="number" id="edit-current-weight" required step="0.1" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-            </div>
-          </div>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-gray-700 font-semibold mb-2">🎯 Peso objetivo (kg)</label>
-              <input type="number" id="edit-goal-weight" required step="0.1" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-              <label class="block text-gray-700 font-semibold mb-2">🎯 Objetivo</label>
-              <select id="edit-goal-type" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-                <option value="lose">🔥 Perder grasa</option>
-                <option value="maintain">⚖️ Mantener peso</option>
-                <option value="gain">💪 Ganar músculo</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">🏃 Nivel de actividad</label>
-            <select id="edit-activity" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-              <option value="sedentary">🪑 Sedentario</option>
-              <option value="light">🚶 Ligero (1-3 días/semana)</option>
-              <option value="moderate">🏋️ Moderado (3-5 días/semana)</option>
-              <option value="active">🔥 Activo (6-7 días/semana)</option>
-              <option value="very_active">⚡ Muy activo (trabajo físico o 2x día)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">🍽 Comidas al día</label>
-            <select id="edit-meals" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-              <option value="3">3 comidas (desayuno, comida, cena)</option>
-              <option value="4">4 comidas (desayuno, comida, merienda, cena)</option>
-              <option value="5">5 comidas (todas: desayuno, almuerzo, comida, merienda, cena)</option>
-            </select>
-          </div>
-          <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-            <p class="text-sm text-yellow-800">⚠️ <strong>Nota:</strong> Al cambiar los datos, se recalcularán tus calorías objetivo. El plan semanal se mantendrá hasta que lo regeneres.</p>
-          </div>
-          <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition transform hover:scale-[1.02]">💾 Guardar cambios</button>
-        </form>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-white/80 backdrop-blur-sm border-t border-gray-100 mt-16">
-    <div class="max-w-7xl mx-auto px-4 py-8 text-center">
-      <p class="text-gray-700 font-medium">🥗 <strong>Diet Tracker FIT</strong> - Planes personalizados con productos Mercadona y Lidl</p>
-      <p class="text-sm text-gray-500 mt-3">Sistema progresivo: cada semana nuevas opciones hasta tener 6 alternativas por comida • Cálculos basados en fórmula Mifflin-St Jeor</p>
-      <p class="text-xs text-gray-400 mt-4">Hecho con ❤️ para una vida más saludable</p>
-    </div>
-  </footer>
+  </div>
 
   <script>
-    // ============================================================
-    // ESTADO GLOBAL
-    // ============================================================
+    const API_URL = 'https://diet-tracker-app-ten.vercel.app/api';
     let currentUser = null;
-    let currentPlan = null;
     let selectedDay = 1;
     let targetCalories = 0;
-    const API_URL = '/api';
+    let isDarkMode = false;
 
-    // ============================================================
-    // NAVEGACIÓN
-    // ============================================================
-    function hideAll() {
-      ['welcome-screen', 'login-form', 'register-form', 'onboarding-form', 'dashboard'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-      });
+    const mealIcons = {
+      desayuno: {icon: '🌅', label: 'Desayuno', color: 'from-orange-500 to-amber-500'},
+      almuerzo: {icon: '🍎', label: 'Almuerzo', color: 'from-green-500 to-emerald-500'},
+      comida: {icon: '🍽️', label: 'Comida', color: 'from-red-500 to-rose-500'},
+      merienda: {icon: '🍪', label: 'Merienda', color: 'from-purple-500 to-pink-500'},
+      cena: {icon: '🌙', label: 'Cena', color: 'from-blue-500 to-indigo-500'}
+    };
+
+    // Toggle Dark Mode
+    function toggleDarkMode() {
+      isDarkMode = !isDarkMode;
+      document.documentElement.classList.toggle('dark', isDarkMode);
+      localStorage.setItem('darkMode', isDarkMode);
     }
 
-    function showWelcome() {
-      hideAll();
-      document.getElementById('welcome-screen').classList.remove('hidden');
-      updateNav();
+    // Load dark mode preference
+    if (localStorage.getItem('darkMode') === 'true') {
+      isDarkMode = true;
+      document.documentElement.classList.add('dark');
     }
 
-    function showLogin() {
-      hideAll();
-      document.getElementById('login-form').classList.remove('hidden');
-    }
-
-    function showRegister() {
-      hideAll();
-      document.getElementById('register-form').classList.remove('hidden');
-    }
-
-    function showOnboarding() {
-      hideAll();
-      document.getElementById('onboarding-form').classList.remove('hidden');
-    }
-
-    function showDashboard() {
-      hideAll();
-      document.getElementById('dashboard').classList.remove('hidden');
-      updateNav();
-      loadDashboard();
-    }
-
-    function updateNav() {
-      const authDiv = document.getElementById('nav-auth');
-      const userDiv = document.getElementById('nav-user');
-      
-      if (currentUser) {
-        authDiv.classList.add('hidden');
-        userDiv.classList.remove('hidden');
-        document.getElementById('user-name').textContent = currentUser.name;
-        document.querySelector('#nav-user .rounded-full').textContent = currentUser.name.charAt(0).toUpperCase();
-      } else {
-        authDiv.classList.remove('hidden');
-        userDiv.classList.add('hidden');
-      }
-    }
-
-    // ============================================================
-    // AUTENTICACIÓN
-    // ============================================================
-    async function handleRegister(e) {
-      e.preventDefault();
-      
-      const name = document.getElementById('register-name').value;
-      const email = document.getElementById('register-email').value;
-      const password = document.getElementById('register-password').value;
-      
-      try {
-        const res = await fetch(`${API_URL}/register`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name, email, password})
-        });
-        
-        const data = await res.json();
-        
-        if (data.success) {
-          currentUser = {id: data.user_id, name, email};
-          localStorage.setItem('user', JSON.stringify(currentUser));
-          showOnboarding();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error al registrar'));
-        }
-      } catch (err) {
-        alert('❌ Error de conexión: ' + err.message);
-      }
-    }
+    // Auth functions
+    function showLogin() { document.getElementById('login-modal').classList.remove('hidden'); }
+    function closeLogin() { document.getElementById('login-modal').classList.add('hidden'); }
+    function showRegister() { document.getElementById('register-modal').classList.remove('hidden'); }
+    function closeRegister() { document.getElementById('register-modal').classList.add('hidden'); }
 
     async function handleLogin(e) {
       e.preventDefault();
-      
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      
+      const username = document.getElementById('login-username').value.trim();
       try {
-        const res = await fetch(`${API_URL}/login`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({email, password})
-        });
-        
+        const res = await fetch(`${API_URL}/user/get?username=${encodeURIComponent(username)}`);
         const data = await res.json();
-        
-        if (data.success) {
-          currentUser = {id: data.user_id, name: data.name, email};
+        if (data.user) {
+          currentUser = data.user;
           localStorage.setItem('user', JSON.stringify(currentUser));
+          closeLogin();
           showDashboard();
         } else {
-          alert('⚠️ ' + (data.error || 'Credenciales inválidas'));
+          alert('❌ Usuario no encontrado');
         }
       } catch (err) {
-        alert('❌ Error de conexión: ' + err.message);
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const userData = {
+        username: document.getElementById('reg-username').value.trim(),
+        age: parseInt(document.getElementById('reg-age').value),
+        gender: document.getElementById('reg-gender').value,
+        height: parseFloat(document.getElementById('reg-height').value),
+        current_weight: parseFloat(document.getElementById('reg-weight').value),
+        goal_weight: parseFloat(document.getElementById('reg-goal-weight').value),
+        goal_type: document.getElementById('reg-goal-type').value,
+        activity_level: document.getElementById('reg-activity').value,
+        meals_per_day: parseInt(document.getElementById('reg-meals').value)
+      };
+      try {
+        const res = await fetch(`${API_URL}/user/create`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(userData)
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentUser = data.user;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+          alert(`✅ ¡Cuenta creada!\n\n🔥 Tus calorías: ${data.target_calories} kcal/día`);
+          closeRegister();
+          showDashboard();
+        } else {
+          alert('⚠️ ' + (data.error || 'Error al crear cuenta'));
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
       }
     }
 
     function logout() {
-      currentUser = null;
       localStorage.removeItem('user');
-      showWelcome();
+      currentUser = null;
+      document.getElementById('nav-auth').classList.remove('hidden');
+      document.getElementById('nav-user').classList.add('hidden');
+      document.getElementById('welcome-screen').classList.remove('hidden');
+      document.getElementById('dashboard').classList.add('hidden');
     }
 
-    // ============================================================
-    // ONBOARDING
-    // ============================================================
-    async function handleOnboarding(e) {
-      e.preventDefault();
-      
-      const profile = {
-        user_id: currentUser.id,
-        age: parseInt(document.getElementById('ob-age').value),
-        gender: document.getElementById('ob-gender').value,
-        height: parseFloat(document.getElementById('ob-height').value),
-        current_weight: parseFloat(document.getElementById('ob-current-weight').value),
-        goal_weight: parseFloat(document.getElementById('ob-goal-weight').value),
-        goal_type: document.getElementById('ob-goal-type').value,
-        activity_level: document.getElementById('ob-activity').value,
-        meals_per_day: parseInt(document.getElementById('ob-meals').value),
-        allergies: document.getElementById('ob-allergies').value,
-        disliked_foods: document.getElementById('ob-disliked').value
-      };
-      
+    function showWelcome() {
+      document.getElementById('welcome-screen').classList.remove('hidden');
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('nav-auth').classList.remove('hidden');
+      document.getElementById('nav-user').classList.add('hidden');
+    }
+
+    async function showDashboard() {
+      document.getElementById('welcome-screen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('nav-auth').classList.add('hidden');
+      document.getElementById('nav-user').classList.remove('hidden');
+      document.getElementById('user-name').textContent = currentUser.username;
+      await loadDashboard();
+    }
+
+    async function loadDashboard() {
       try {
-        const res = await fetch(`${API_URL}/profile`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(profile)
-        });
+        const [planRes, profileRes] = await Promise.all([
+          fetch(`${API_URL}/plan/current?user_id=${currentUser.id}`),
+          fetch(`${API_URL}/profile/get?user_id=${currentUser.id}`)
+        ]);
+        const planData = await planRes.json();
+        const profileData = await profileRes.json();
         
-        const data = await res.json();
+        if (profileData.profile) {
+          targetCalories = profileData.profile.target_calories || 2000;
+          document.getElementById('dash-calories').textContent = `${targetCalories} kcal`;
+          document.getElementById('dash-weight').textContent = `${profileData.profile.current_weight_kg} kg`;
+          
+          const startWeight = profileData.profile.starting_weight_kg || profileData.profile.current_weight_kg;
+          const progress = startWeight > 0 ? Math.round(((startWeight - profileData.profile.current_weight_kg) / (startWeight - profileData.profile.goal_weight_kg)) * 100) : 0;
+          document.getElementById('dash-progress').textContent = `${Math.max(0, Math.min(100, progress))}%`;
+          document.getElementById('progress-bar').style.width = `${Math.max(0, Math.min(100, progress))}%`;
+          
+          const weeksPassed = Math.abs(startWeight - profileData.profile.current_weight_kg) / 0.5;
+          document.getElementById('week-number').textContent = Math.floor(weeksPassed) + 1;
+        }
         
-        if (data.success) {
-          targetCalories = data.target_calories;
-          alert(`✅ ¡Plan creado!\n\n🔥 Calorías objetivo: ${data.target_calories} kcal/día\n📊 TMB: ${data.tmb} kcal\n⚡ TDEE: ${data.tdee} kcal\n\n¡Vamos a por ello!`);
-          showDashboard();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error al crear perfil'));
+        if (planData.plan?.length) {
+          selectedDay = 1;
+          renderDayTabs();
+          showDay(1);
         }
       } catch (err) {
-        alert('❌ Error de conexión: ' + err.message);
+        alert('❌ Error: ' + err.message);
       }
     }
 
-    // ============================================================
-    // DASHBOARD
-    // ============================================================
-    async function loadDashboard() {
-      if (!currentUser) return;
-      
-      try {
-        const planRes = await fetch(`${API_URL}/plan/current?user_id=${currentUser.id}`);
-        currentPlan = await planRes.json();
-        
-        const statsRes = await fetch(`${API_URL}/stats?user_id=${currentUser.id}`);
-        const stats = await statsRes.json();
-        
-        document.getElementById('week-number').textContent = currentPlan.week || 1;
-        document.getElementById('dash-weight').textContent = `${stats.current_weight || '--'} kg`;
-        document.getElementById('dash-progress').textContent = `${stats.progress_percent || 0}%`;
-        document.getElementById('progress-bar').style.width = `${stats.progress_percent || 0}%`;
-        
-        // Calcular calorías objetivo del usuario (usar promedio de la semana)
-        const weekCalories = Object.values(currentPlan.daily_totals || {}).map(d => d.calories).filter(Boolean);
-        targetCalories = weekCalories.length ? Math.round(weekCalories.reduce((a,b) => a+b, 0) / weekCalories.length) : 2000;
-        document.getElementById('dash-calories').textContent = `${targetCalories} kcal`;
-        
-        document.querySelectorAll('.day-tab').forEach(tab => {
-          tab.onclick = () => selectDay(parseInt(tab.dataset.day));
-        });
-        
-        selectDay(1);
-        
-      } catch (err) {
-        console.error('Error loading dashboard:', err);
-        alert('⚠️ Error al cargar datos: ' + err.message);
-      }
-    }
-
-    function selectDay(day) {
-      selectedDay = day;
-      
+    function renderDayTabs() {
       document.querySelectorAll('.day-tab').forEach(tab => {
-        const isSelected = parseInt(tab.dataset.day) === day;
-        tab.className = `day-tab px-5 py-2.5 rounded-xl font-semibold transition ${
-          isSelected ? 'active text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        }`;
+        tab.classList.remove('active', 'gradient-bg', 'text-white', 'shadow-lg');
+        tab.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300', 'shadow-md');
+        if (parseInt(tab.dataset.day) === selectedDay) {
+          tab.classList.add('active', 'gradient-bg', 'text-white', 'shadow-lg');
+          tab.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300', 'shadow-md');
+        }
       });
-      
+    }
+
+    function showDay(day) {
+      selectedDay = day;
+      renderDayTabs();
       loadDayMeals(day);
     }
 
-    function loadDayMeals(day) {
-      const container = document.getElementById('meals-container');
-      const meals = currentPlan.meals?.filter(m => m.day_of_week === day) || [];
-      
-      if (meals.length === 0) {
-        container.innerHTML = '<div class="text-center py-12 bg-gray-50 rounded-2xl"><p class="text-gray-500 text-lg">📭 No hay comidas registradas para este día</p><p class="text-sm text-gray-400 mt-2">Completa tu perfil para generar el plan</p></div>';
-        updateMacros({});
-        return;
-      }
-      
-      const mealIcons = {
-        desayuno: {icon: '🌅', label: 'Desayuno', color: 'from-orange-500 to-amber-500'},
-        almuerzo: {icon: '🍎', label: 'Almuerzo', color: 'from-green-500 to-emerald-500'},
-        comida: {icon: '🍽️', label: 'Comida', color: 'from-red-500 to-rose-500'},
-        merienda: {icon: '🍪', label: 'Merienda', color: 'from-purple-500 to-pink-500'},
-        cena: {icon: '🌙', label: 'Cena', color: 'from-indigo-500 to-blue-500'}
-      };
-      
-      container.innerHTML = meals.map(meal => {
-        const mealInfo = mealIcons[meal.meal_type] || {icon: '🍽️', label: meal.meal_type, color: 'from-gray-500 to-gray-600'};
-        return `
-        <div class="glass-effect border-2 border-gray-100 rounded-3xl p-6 hover:border-indigo-300 hover:shadow-2xl transition-all card-hover relative overflow-hidden">
-          <div class="absolute top-0 left-0 w-1 h-full gradient-bg"></div>
-          <div class="flex justify-between items-start gap-5 pl-3">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-2xl shadow-lg">${mealInfo.icon}</div>
-                <span class="gradient-bg text-white text-xs font-bold px-4 py-2 rounded-full shadow-md">${mealInfo.label}</span>
+    async function loadDayMeals(day) {
+      try {
+        const res = await fetch(`${API_URL}/plan/current?user_id=${currentUser.id}`);
+        const data = await res.json();
+        const meals = data.plan?.filter(m => m.day === day) || [];
+        const container = document.getElementById('meals-container');
+        
+        if (!meals.length) {
+          container.innerHTML = '<div class="text-center py-12 text-gray-500 dark:text-gray-400">📭 No hay plan para este día</div>';
+          return;
+        }
+        
+        container.innerHTML = meals.map(meal => {
+          const mealInfo = mealIcons[meal.meal_type] || {icon: '🍽️', label: meal.meal_type, color: 'from-gray-500 to-gray-600'};
+          return `
+          <div class="glass-light dark:glass-dark border-2 border-gray-100 dark:border-gray-700 rounded-xl sm:rounded-2xl p-4 sm:p-5 card-hover relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full gradient-bg"></div>
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-4 pl-3">
+              <div class="flex-1 w-full">
+                <div class="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center text-xl shadow">${mealInfo.icon}</div>
+                  <span class="gradient-bg text-white text-xs font-bold px-3 py-1 rounded-full shadow">${mealInfo.label}</span>
+                </div>
+                <h3 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white mb-2 leading-tight">${meal.recipe_name || 'Sin nombre'}</h3>
+                ${meal.image_url ? `<img src="${meal.image_url}" alt="${meal.recipe_name}" class="w-full h-32 sm:h-48 object-cover rounded-xl mb-3 shadow-lg">` : ''}
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">${meal.ingredients || 'Sin ingredientes'}</p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="gradient-bg text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">${meal.calories || 0} kcal</span>
+                  <span class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🥩 ${Math.round(meal.protein || 0)}g</span>
+                  <span class="bg-yellow-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🍞 ${Math.round(meal.carbs || 0)}g</span>
+                  <span class="bg-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🥑 ${Math.round(meal.fat || 0)}g</span>
+                </div>
               </div>
-              <h3 class="font-extrabold text-xl text-gray-900 mb-3 leading-tight">${meal.recipe_name || 'Sin nombre'}</h3>
-              <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">${meal.ingredients || 'Sin ingredientes'}</p>
-              <div class="flex flex-wrap gap-2">
-                <span class="bg-gradient-to-r from-red-500 to-rose-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🔥 ${meal.calories || 0} kcal</span>
-                <span class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🥩 ${Math.round(meal.protein || 0)}g</span>
-                <span class="bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🍞 ${Math.round(meal.carbs || 0)}g</span>
-                <span class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🥑 ${Math.round(meal.fat || 0)}g</span>
-              </div>
+              <button onclick="showOptionsModal('${meal.meal_type}')" class="gradient-bg text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold whitespace-nowrap shadow-lg transform hover:scale-105 transition text-sm">🔄 Cambiar</button>
             </div>
-            <button onclick="showOptionsModal('${meal.meal_type}')" class="gradient-bg text-white px-6 py-3 rounded-2xl hover:shadow-xl transition font-bold whitespace-nowrap shadow-lg transform hover:scale-105">
-              🔄 Cambiar
-            </button>
           </div>
-        </div>
-      `}).join('');
-      
-      const dayTotals = currentPlan.daily_totals?.[day] || {};
-      updateMacros(dayTotals);
+        `}).join('');
+      } catch (err) {
+        document.getElementById('meals-container').innerHTML = `<div class="text-center py-8 text-red-500">❌ Error: ${err.message}</div>`;
+      }
     }
 
-    function updateMacros(totals) {
-      const cals = Math.round(totals.calories || 0);
-      const prot = Math.round(totals.protein || 0);
-      const carbs = Math.round(totals.carbs || 0);
-      const fat = Math.round(totals.fat || 0);
-      
-      document.getElementById('macro-calories').textContent = cals;
-      document.getElementById('macro-protein').textContent = `${prot}g`;
-      document.getElementById('macro-carbs').textContent = `${carbs}g`;
-      document.getElementById('macro-fat').textContent = `${fat}g`;
-      
-      // Calcular porcentajes según objetivo diario
-      const maxCals = targetCalories || 2000;
-      const calsPct = Math.min(100, (cals / maxCals) * 100);
-      const protPct = Math.min(100, (prot / (maxCals * 0.3 / 4)) * 100); // 30% proteína
-      const carbsPct = Math.min(100, (carbs / (maxCals * 0.45 / 4)) * 100); // 45% carbs
-      const fatPct = Math.min(100, (fat / (maxCals * 0.25 / 9)) * 100); // 25% grasa
-      
-      document.getElementById('bar-calories').style.width = `${calsPct}%`;
-      document.getElementById('bar-protein').style.width = `${protPct}%`;
-      document.getElementById('bar-carbs').style.width = `${carbsPct}%`;
-      document.getElementById('bar-fat').style.width = `${fatPct}%`;
-      
-      // Actualizar texto de calorías del día
-      document.getElementById('dash-calories').textContent = `${targetCalories} kcal`;
-    }
+    document.querySelectorAll('.day-tab').forEach(tab => {
+      tab.addEventListener('click', () => showDay(parseInt(tab.dataset.day)));
+    });
 
-    // ============================================================
-    // WEIGHT CHECK-IN
-    // ============================================================
-    async function handleWeightCheckin(e) {
-      e.preventDefault();
-      
-      const weight = parseFloat(document.getElementById('checkin-weight').value);
-      
+    async function checkinWeight() {
+      const weight = parseFloat(document.getElementById('weight-input').value);
+      if (!weight || weight <= 0) { alert('⚠️ Introduce un peso válido'); return; }
       try {
         const res = await fetch(`${API_URL}/weight/checkin`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({user_id: currentUser.id, weight})
         });
-        
         const data = await res.json();
-        
         if (data.success) {
-          alert(`✅ ¡Peso registrado!\n\n⚖️ ${weight} kg guardado\n🎉 Nuevas opciones desbloqueadas\n\nSigue así!`);
-          document.getElementById('checkin-weight').value = '';
+          alert(`✅ ¡Peso registrado!\n\n📊 Nuevo peso: ${weight} kg\n${data.new_recipes ? '🎉 ¡Nuevas recetas desbloqueadas!' : ''}`);
+          document.getElementById('weight-input').value = '';
           loadDashboard();
         } else {
           alert('⚠️ ' + (data.error || 'Error al registrar'));
         }
       } catch (err) {
-        alert('❌ Error de conexión: ' + err.message);
+        alert('❌ Error: ' + err.message);
       }
     }
 
-    // ============================================================
-    // SHOPPING LIST
-    // ============================================================
-    async function loadShoppingList() {
+    async function showShoppingList() {
       try {
-        const res = await fetch(`${API_URL}/shopping-list?user_id=${currentUser.id}`);
+        const res = await fetch(`${API_URL}/plan/shopping-list?user_id=${currentUser.id}`);
         const data = await res.json();
-        
         const content = document.getElementById('shopping-content');
-        const list = data.shopping_list;
+        const list = data.list || {};
         
-        let html = '<div class="grid md:grid-cols-2 gap-6">';
-        
+        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
         if (list.mercadona?.length) {
-          html += `
-            <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-5">
-              <h3 class="font-bold text-lg mb-4 text-red-700 flex items-center gap-2">
-                <span class="text-2xl">🛒</span> Mercadona
-              </h3>
-              <ul class="space-y-2">
-                ${list.mercadona.map(item => `<li class="flex items-start gap-3"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700">${item}</span></li>`).join('')}
-              </ul>
-            </div>
-          `;
+          html += `<div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-4"><h3 class="font-bold text-lg mb-3 text-red-700 dark:text-red-400 flex items-center gap-2">🛒 Mercadona</h3><ul class="space-y-2 text-sm">${list.mercadona.map(item => `<li class="flex items-start gap-2"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700 dark:text-gray-300">${item}</span></li>`).join('')}</ul></div>`;
         }
         if (list.lidl?.length) {
-          html += `
-            <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-5">
-              <h3 class="font-bold text-lg mb-4 text-blue-700 flex items-center gap-2">
-                <span class="text-2xl">🛒</span> Lidl
-              </h3>
-              <ul class="space-y-2">
-                ${list.lidl.map(item => `<li class="flex items-start gap-3"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700">${item}</span></li>`).join('')}
-              </ul>
-            </div>
-          `;
+          html += `<div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4"><h3 class="font-bold text-lg mb-3 text-blue-700 dark:text-blue-400 flex items-center gap-2">🛒 Lidl</h3><ul class="space-y-2 text-sm">${list.lidl.map(item => `<li class="flex items-start gap-2"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700 dark:text-gray-300">${item}</span></li>`).join('')}</ul></div>`;
         }
         if (list.mixto?.length) {
-          html += `
-            <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-5 md:col-span-2">
-              <h3 class="font-bold text-lg mb-4 text-purple-700 flex items-center gap-2">
-                <span class="text-2xl">🛒</span> Disponible en ambos
-              </h3>
-              <ul class="space-y-2">
-                ${list.mixto.map(item => `<li class="flex items-start gap-3"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700">${item}</span></li>`).join('')}
-              </ul>
-            </div>
-          `;
+          html += `<div class="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-4 md:col-span-2"><h3 class="font-bold text-lg mb-3 text-purple-700 dark:text-purple-400 flex items-center gap-2">🛒 Ambos supermercados</h3><ul class="space-y-2 text-sm">${list.mixto.map(item => `<li class="flex items-start gap-2"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700 dark:text-gray-300">${item}</span></li>`).join('')}</ul></div>`;
         }
-        
         html += '</div>';
         content.innerHTML = html;
-        
         document.getElementById('shopping-modal').classList.remove('hidden');
       } catch (err) {
         alert('❌ Error: ' + err.message);
       }
     }
 
-    function closeShoppingModal() {
-      document.getElementById('shopping-modal').classList.add('hidden');
-    }
-
-    // ============================================================
-    // OPTIONS MODAL
-    // ============================================================
-    let currentMealTypeToSwap = null;
+    function closeShoppingModal() { document.getElementById('shopping-modal').classList.add('hidden'); }
 
     async function showOptionsModal(mealType) {
-      currentMealTypeToSwap = mealType;
-      
       try {
         const res = await fetch(`${API_URL}/food-bank/options?user_id=${currentUser.id}&meal_type=${mealType}`);
         const data = await res.json();
-        
         const content = document.getElementById('options-content');
         
         if (!data.options?.length) {
-          content.innerHTML = '<div class="text-center py-12"><p class="text-gray-500 text-lg">📭 No hay más opciones disponibles</p><p class="text-sm text-gray-400 mt-2">Registra tu peso para desbloquear nuevas recetas</p></div>';
+          content.innerHTML = '<div class="text-center py-12 text-gray-500 dark:text-gray-400"><p class="text-lg">📭 No hay más opciones</p><p class="text-sm mt-2">Registra tu peso para desbloquear recetas</p></div>';
         } else {
-          content.innerHTML = data.options.map((opt, idx) => `
-            <div class="border-2 border-gray-100 rounded-2xl p-5 hover:border-indigo-200 hover:shadow-lg transition-all card-hover">
-              <div class="flex justify-between items-start gap-4">
+          content.innerHTML = data.options.map(opt => `
+            <div class="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg transition-all card-hover">
+              <div class="flex flex-col sm:flex-row justify-between gap-4">
                 <div class="flex-1">
-                  <h3 class="font-bold text-lg text-gray-900 mb-2">${opt.name}</h3>
-                  <p class="text-gray-600 text-sm mb-3">${opt.ingredients}</p>
+                  <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-2">${opt.name}</h3>
+                  ${opt.image_url ? `<img src="${opt.image_url}" alt="${opt.name}" class="w-full h-32 object-cover rounded-lg mb-3">` : ''}
+                  <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">${opt.ingredients}</p>
                   <div class="flex flex-wrap gap-2">
-                    <span class="bg-red-50 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold">🔥 ${opt.calories} kcal</span>
-                    <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold">🥩 ${Math.round(opt.protein)}g</span>
-                    <span class="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-lg text-xs font-semibold">🍞 ${Math.round(opt.carbs)}g</span>
-                    <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-lg text-xs font-semibold">🥑 ${Math.round(opt.fat)}g</span>
+                    <span class="gradient-bg text-white px-3 py-1 rounded-lg text-xs font-bold">${opt.calories} kcal</span>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🥩 ${Math.round(opt.protein)}g</span>
+                    <span class="bg-yellow-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🍞 ${Math.round(opt.carbs)}g</span>
+                    <span class="bg-purple-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🥑 ${Math.round(opt.fat)}g</span>
                   </div>
-                  <p class="text-xs text-gray-400 mt-3">📊 Usada ${opt.times_used || 0} veces</p>
                 </div>
-                <button onclick="swapMeal(${opt.recipe_id})" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2.5 rounded-xl hover:shadow-lg transition font-semibold whitespace-nowrap">
-                  Seleccionar
-                </button>
+                <button onclick="swapMeal(${opt.recipe_id})" class="gradient-bg text-white px-5 py-2.5 rounded-xl font-bold whitespace-nowrap shadow-lg hover:shadow-xl transition self-start">Seleccionar</button>
               </div>
             </div>
           `).join('');
         }
-        
         document.getElementById('options-modal').classList.remove('hidden');
       } catch (err) {
         alert('❌ Error: ' + err.message);
       }
     }
 
-    function closeOptionsModal() {
-      document.getElementById('options-modal').classList.add('hidden');
-      currentMealTypeToSwap = null;
-    }
-
-    // ============================================================
-    // REGENERAR PLAN
-    // ============================================================
-    async function regeneratePlan() {
-      if (!confirm('⚠️ ¿Seguro que quieres regenerar el plan?\n\nSe crearán nuevas recetas aleatorias para esta semana. Tus opciones guardadas se mantendrán.')) return;
-      
-      try {
-        const res = await fetch(`${API_URL}/plan/regenerate`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({user_id: currentUser.id})
-        });
-        
-        const data = await res.json();
-        
-        if (data.success) {
-          alert('✅ ¡Plan regenerado!\n\nSe han seleccionado nuevas recetas para esta semana.');
-          loadDashboard();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error al regenerar'));
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
-    }
-
-    // ============================================================
-    // EXPORTAR PLAN
-    // ============================================================
-    async function exportPlan() {
-      try {
-        const res = await fetch(`${API_URL}/plan/export?user_id=${currentUser.id}`);
-        const data = await res.json();
-        
-        if (data.export) {
-          // Copiar al portapapeles
-          await navigator.clipboard.writeText(data.export);
-          alert('✅ ¡Plan exportado!\n\nSe ha copiado al portapapeles. Puedes pegarlo en WhatsApp, notas, etc.');
-        } else {
-          alert('⚠️ ' + (data.error || 'Error al exportar'));
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
-    }
+    function closeOptionsModal() { document.getElementById('options-modal').classList.add('hidden'); }
 
     async function swapMeal(recipeId) {
-      if (!currentMealTypeToSwap) return;
-      
       try {
         const res = await fetch(`${API_URL}/plan/swap`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            user_id: currentUser.id,
-            day: selectedDay,
-            meal_type: currentMealTypeToSwap,
-            new_recipe_id: recipeId
-          })
+          body: JSON.stringify({user_id: currentUser.id, day: selectedDay, meal_type: currentMealTypeToSwap, new_recipe_id: recipeId})
         });
-        
         const data = await res.json();
-        
         if (data.success) {
           closeOptionsModal();
           loadDashboard();
@@ -1008,27 +634,43 @@
       }
     }
 
-    // ============================================================
-    // INICIALIZACIÓN
-    // ============================================================
-    window.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('user');
-      if (saved) {
-        currentUser = JSON.parse(saved);
-        showDashboard();
-      } else {
-        showWelcome();
+    async function regeneratePlan() {
+      if (!confirm('⚠️ ¿Regenerar el plan?\n\nSe crearán nuevas recetas para esta semana.')) return;
+      try {
+        const res = await fetch(`${API_URL}/plan/regenerate`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({user_id: currentUser.id})
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ ¡Plan regenerado!');
+          loadDashboard();
+        } else {
+          alert('⚠️ ' + (data.error || 'Error'));
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
       }
-    });
+    }
 
-    // ============================================================
-    // EDITAR PERFIL
-    // ============================================================
+    async function exportPlan() {
+      try {
+        const res = await fetch(`${API_URL}/plan/export?user_id=${currentUser.id}`);
+        const data = await res.json();
+        if (data.export) {
+          await navigator.clipboard.writeText(data.export);
+          alert('✅ ¡Plan copiado al portapapeles!');
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
     async function showEditProfile() {
       try {
         const res = await fetch(`${API_URL}/profile/get?user_id=${currentUser.id}`);
         const data = await res.json();
-        
         if (data.profile) {
           const p = data.profile;
           document.getElementById('edit-age').value = p.age;
@@ -1039,7 +681,6 @@
           document.getElementById('edit-goal-type').value = p.goal_type;
           document.getElementById('edit-activity').value = p.activity_level;
           document.getElementById('edit-meals').value = p.meals_per_day;
-          
           document.getElementById('edit-profile-modal').classList.remove('hidden');
         }
       } catch (err) {
@@ -1047,13 +688,10 @@
       }
     }
 
-    function closeEditProfile() {
-      document.getElementById('edit-profile-modal').classList.add('hidden');
-    }
+    function closeEditProfile() { document.getElementById('edit-profile-modal').classList.add('hidden'); }
 
     async function handleEditProfile(e) {
       e.preventDefault();
-      
       const updateData = {
         user_id: currentUser.id,
         age: parseInt(document.getElementById('edit-age').value),
@@ -1065,17 +703,18 @@
         activity_level: document.getElementById('edit-activity').value,
         meals_per_day: parseInt(document.getElementById('edit-meals').value)
       };
-      
       try {
         const res = await fetch(`${API_URL}/profile/update`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(updateData)
         });
-        
         const data = await res.json();
-        
         if (data.success) {
+          // ACTUALIZAR LOCALSTORAGE CON LOS NUEVOS DATOS
+          currentUser = { ...currentUser, ...updateData };
+          localStorage.setItem('user', JSON.stringify(currentUser));
+          
           if (data.recalculated) {
             alert(`✅ ¡Perfil actualizado!\n\n🔥 Nuevas calorías: ${data.target_calories} kcal/día\n📊 TMB: ${data.tmb} kcal\n⚡ TDEE: ${data.tdee} kcal`);
           } else {
@@ -1083,6 +722,8 @@
           }
           closeEditProfile();
           loadDashboard();
+        } else {
+          alert('⚠️ ' + (data.error || 'Error'));
         }
       } catch (err) {
         alert('❌ Error: ' + err.message);
@@ -1090,20 +731,25 @@
     }
 
     async function resetAll() {
-      if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará:\n- Tu perfil\n- Tu historial de peso\n- Tu plan semanal\n- Tus opciones guardadas\n\n¡Esta acción NO se puede deshacer!')) return;
-      
+      if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará todo tu progreso.')) return;
       if (!confirm('⚠️ ÚLTIMA ADVERTENCIA\n\n¿Realmente quieres borrar TODO?')) return;
-      
       try {
-        // Borrar todo de localStorage
         localStorage.removeItem('user');
-        
-        // Recargar página
         window.location.reload();
       } catch (err) {
         alert('❌ Error: ' + err.message);
       }
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('user');
+      if (saved) {
+        currentUser = JSON.parse(saved);
+        showDashboard();
+      } else {
+        showWelcome();
+      }
+    });
   </script>
 </body>
 </html>

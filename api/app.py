@@ -482,7 +482,7 @@ def get_current_plan():
         meals = []
         for row in result.data:
             # Obtener detalles de la receta
-            recipe_result = supabase.table('master_recipes').select('id, name, ingredients, instructions, supermarket, category').eq('id', row['selected_recipe_id']).execute()
+            recipe_result = supabase.table('master_recipes').select('id, name, ingredients, instructions, supermarket, category, image_url').eq('id', row['selected_recipe_id']).execute()
             recipe = recipe_result.data[0] if recipe_result.data else {}
             
             meal = {
@@ -494,6 +494,7 @@ def get_current_plan():
                 'ingredients': recipe.get('ingredients', ''),
                 'instructions': recipe.get('instructions', ''),
                 'supermarket': recipe.get('supermarket', ''),
+                'image_url': recipe.get('image_url', None),
                 'calories': row['calories'],
                 'protein': row['protein'],
                 'carbs': row['carbs'],
@@ -530,7 +531,7 @@ def get_food_bank():
         
         options = []
         for row in result.data:
-            recipe_result = supabase.table('master_recipes').select('id, name, meal_type, calories, protein, carbs, fat, ingredients, supermarket').eq('id', row['recipe_id']).execute()
+            recipe_result = supabase.table('master_recipes').select('id, name, meal_type, calories, protein, carbs, fat, ingredients, supermarket, image_url').eq('id', row['recipe_id']).execute()
             recipe = recipe_result.data[0] if recipe_result.data else {}
             
             options.append({
@@ -545,7 +546,8 @@ def get_food_bank():
                 'carbs': recipe.get('carbs', 0),
                 'fat': recipe.get('fat', 0),
                 'ingredients': recipe.get('ingredients', ''),
-                'supermarket': recipe.get('supermarket', '')
+                'supermarket': recipe.get('supermarket', ''),
+                'image_url': recipe.get('image_url', None)
             })
         
         return jsonify({'options': options})

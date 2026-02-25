@@ -8,25 +8,38 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Inter', sans-serif; }
-    .fade-in { animation: fadeIn 0.4s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .card-hover { transition: all 0.3s ease; }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-    .macro-bar { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #667eea, #764ba2); }
-    .day-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+    .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }
+    .macro-bar { height: 10px; border-radius: 5px; overflow: hidden; }
+    .day-tab { transition: all 0.3s ease; }
+    .day-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+    .glass-effect { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 1000px 100%; animation: shimmer 2s infinite; }
+    .pulse-ring { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .floating { animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #764ba2, #667eea); }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
   
   <!-- Navbar -->
-  <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+  <nav class="glass-effect shadow-lg border-b border-gray-100 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <span class="text-3xl">🥗</span>
+        <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-2xl shadow-lg floating">🥗</div>
         <div>
-          <h1 class="text-xl font-bold gradient-text">Diet Tracker FIT</h1>
-          <p class="text-xs text-gray-500">Productos saludables Mercadona & Lidl</p>
+          <h1 class="text-xl font-extrabold gradient-text tracking-tight">Diet Tracker FIT</h1>
+          <p class="text-xs text-gray-500 font-medium">🛒 Mercadona & Lidl • 180+ recetas</p>
         </div>
       </div>
       <div id="nav-auth" class="flex gap-3">
@@ -49,11 +62,13 @@
   <main class="max-w-7xl mx-auto px-4 py-8">
     
     <!-- Welcome Screen -->
-    <div id="welcome-screen" class="text-center py-12 fade-in">
-      <div class="mb-8">
-        <span class="text-6xl mb-4 block">🎯</span>
-        <h2 class="text-5xl font-extrabold text-gray-900 mb-4">Transforma tu alimentación</h2>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto">Plan nutricional personalizado con productos <span class="font-semibold text-red-600">Mercadona</span> y <span class="font-semibold text-blue-600">Lidl</span>. Sistema progresivo que evoluciona contigo.</p>
+    <div id="welcome-screen" class="text-center py-16 fade-in">
+      <div class="mb-10">
+        <div class="inline-block mb-6">
+          <div class="w-24 h-24 gradient-bg rounded-3xl flex items-center justify-center text-5xl shadow-2xl floating">🎯</div>
+        </div>
+        <h2 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">Transforma tu <span class="gradient-text">alimentación</span></h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Plan nutricional personalizado con productos <span class="font-bold text-red-600 bg-red-50 px-3 py-1 rounded-lg">🛒 Mercadona</span> y <span class="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">🛒 Lidl</span>. Sistema progresivo que evoluciona contigo.</p>
       </div>
       
       <div class="flex justify-center gap-4 mb-12">
@@ -230,40 +245,44 @@
     <div id="dashboard" class="hidden fade-in">
       
       <!-- Stats Overview -->
-      <div class="grid md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-lg border border-gray-100">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-2xl">🔥</span>
-            <p class="text-gray-600 text-sm font-medium">Calorías/día</p>
+      <div class="grid md:grid-cols-4 gap-5 mb-8">
+        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 gradient-bg opacity-5 rounded-full -mr-8 -mt-8"></div>
+          <div class="flex items-center gap-3 mb-3 relative">
+            <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-2xl shadow-lg">🔥</div>
+            <p class="text-gray-600 text-sm font-semibold">Calorías/día</p>
           </div>
-          <p id="dash-calories" class="text-3xl font-extrabold gradient-text">--</p>
-          <p class="text-xs text-gray-500 mt-1">Objetivo diario</p>
+          <p id="dash-calories" class="text-4xl font-extrabold gradient-text relative">--</p>
+          <p class="text-xs text-gray-500 mt-2 font-medium relative">Objetivo diario</p>
         </div>
-        <div class="bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-lg border border-gray-100">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-2xl">⚖️</span>
-            <p class="text-gray-600 text-sm font-medium">Peso actual</p>
+        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-green-500 opacity-5 rounded-full -mr-8 -mt-8"></div>
+          <div class="flex items-center gap-3 mb-3 relative">
+            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">⚖️</div>
+            <p class="text-gray-600 text-sm font-semibold">Peso actual</p>
           </div>
-          <p id="dash-weight" class="text-3xl font-extrabold text-green-600">-- kg</p>
-          <p class="text-xs text-gray-500 mt-1">Último registro</p>
+          <p id="dash-weight" class="text-4xl font-extrabold text-green-600 relative">-- kg</p>
+          <p class="text-xs text-gray-500 mt-2 font-medium relative">Último registro</p>
         </div>
-        <div class="bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-lg border border-gray-100">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-2xl">📈</span>
-            <p class="text-gray-600 text-sm font-medium">Progreso</p>
+        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500 opacity-5 rounded-full -mr-8 -mt-8"></div>
+          <div class="flex items-center gap-3 mb-3 relative">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">📈</div>
+            <p class="text-gray-600 text-sm font-semibold">Progreso</p>
           </div>
-          <p id="dash-progress" class="text-3xl font-extrabold text-blue-600">--%</p>
-          <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+          <p id="dash-progress" class="text-4xl font-extrabold text-blue-600 relative">--%</p>
+          <div class="w-full bg-gray-200 rounded-full h-3 mt-3 relative overflow-hidden">
+            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all shadow-lg" style="width: 0%"></div>
           </div>
         </div>
-        <div class="bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-lg border border-gray-100">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-2xl">📅</span>
-            <p class="text-gray-600 text-sm font-medium">Semana</p>
+        <div class="glass-effect p-6 rounded-3xl shadow-xl border border-gray-100 card-hover relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500 opacity-5 rounded-full -mr-8 -mt-8"></div>
+          <div class="flex items-center gap-3 mb-3 relative">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">📅</div>
+            <p class="text-gray-600 text-sm font-semibold">Semana</p>
           </div>
-          <p id="dash-week" class="text-3xl font-extrabold text-purple-600">#<span id="week-number">--</span></p>
-          <p class="text-xs text-gray-500 mt-1">En curso</p>
+          <p id="dash-week" class="text-4xl font-extrabold text-purple-600 relative">#<span id="week-number">--</span></p>
+          <p class="text-xs text-gray-500 mt-2 font-medium relative">En curso</p>
         </div>
       </div>
       
@@ -282,13 +301,13 @@
         <!-- Day Tabs + Actions -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div class="flex flex-wrap gap-2" id="day-tabs">
-            <button class="day-tab active px-5 py-2.5 rounded-xl font-semibold transition" data-day="1">Lun</button>
-            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="2">Mar</button>
-            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="3">Mié</button>
-            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="4">Jue</button>
-            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="5">Vie</button>
-            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="6">Sáb</button>
-            <button class="day-tab px-5 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-day="7">Dom</button>
+            <button class="day-tab active px-6 py-3 rounded-2xl font-bold transition shadow-lg" data-day="1">Lun</button>
+            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="2">Mar</button>
+            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="3">Mié</button>
+            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="4">Jue</button>
+            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="5">Vie</button>
+            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="6">Sáb</button>
+            <button class="day-tab px-6 py-3 rounded-2xl font-bold bg-white text-gray-700 hover:bg-gray-50 transition shadow-md" data-day="7">Dom</button>
           </div>
           <div class="flex gap-2">
             <button onclick="exportPlan()" class="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-200 transition font-semibold text-sm flex items-center gap-2" title="Exportar plan en texto">
@@ -296,6 +315,9 @@
             </button>
             <button onclick="regeneratePlan()" class="bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl hover:bg-orange-200 transition font-semibold text-sm flex items-center gap-2" title="Generar nuevo plan con otras recetas">
               🔄 Regenerar
+            </button>
+            <button onclick="resetAll()" class="bg-red-100 text-red-700 px-4 py-2.5 rounded-xl hover:bg-red-200 transition font-semibold text-sm flex items-center gap-2" title="Borrar todo y empezar de cero">
+              🗑️ Reset
             </button>
           </div>
         </div>
@@ -715,23 +737,24 @@
       container.innerHTML = meals.map(meal => {
         const mealInfo = mealIcons[meal.meal_type] || {icon: '🍽️', label: meal.meal_type, color: 'from-gray-500 to-gray-600'};
         return `
-        <div class="bg-white border-2 border-gray-100 rounded-2xl p-5 hover:border-indigo-200 hover:shadow-lg transition-all card-hover">
-          <div class="flex justify-between items-start gap-4">
+        <div class="glass-effect border-2 border-gray-100 rounded-3xl p-6 hover:border-indigo-300 hover:shadow-2xl transition-all card-hover relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-1 h-full gradient-bg"></div>
+          <div class="flex justify-between items-start gap-5 pl-3">
             <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-2xl">${mealInfo.icon}</span>
-                <span class="bg-gradient-to-r ${mealInfo.color} text-white text-xs font-bold px-3 py-1 rounded-full">${mealInfo.label}</span>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-2xl shadow-lg">${mealInfo.icon}</div>
+                <span class="gradient-bg text-white text-xs font-bold px-4 py-2 rounded-full shadow-md">${mealInfo.label}</span>
               </div>
-              <h3 class="font-bold text-lg text-gray-900 mb-2">${meal.recipe_name || 'Sin nombre'}</h3>
-              <p class="text-gray-600 text-sm leading-relaxed mb-3">${meal.ingredients || 'Sin ingredientes'}</p>
-              <div class="flex flex-wrap gap-3">
-                <span class="bg-red-50 text-red-700 px-3 py-1 rounded-lg text-sm font-semibold">🔥 ${meal.calories || 0} kcal</span>
-                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-sm font-semibold">🥩 ${Math.round(meal.protein || 0)}g prot</span>
-                <span class="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-lg text-sm font-semibold">🍞 ${Math.round(meal.carbs || 0)}g carb</span>
-                <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-lg text-sm font-semibold">🥑 ${Math.round(meal.fat || 0)}g grasa</span>
+              <h3 class="font-extrabold text-xl text-gray-900 mb-3 leading-tight">${meal.recipe_name || 'Sin nombre'}</h3>
+              <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">${meal.ingredients || 'Sin ingredientes'}</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="bg-gradient-to-r from-red-500 to-rose-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🔥 ${meal.calories || 0} kcal</span>
+                <span class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🥩 ${Math.round(meal.protein || 0)}g</span>
+                <span class="bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🍞 ${Math.round(meal.carbs || 0)}g</span>
+                <span class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">🥑 ${Math.round(meal.fat || 0)}g</span>
               </div>
             </div>
-            <button onclick="showOptionsModal('${meal.meal_type}')" class="bg-indigo-50 text-indigo-600 px-5 py-2.5 rounded-xl hover:bg-indigo-100 transition font-semibold whitespace-nowrap">
+            <button onclick="showOptionsModal('${meal.meal_type}')" class="gradient-bg text-white px-6 py-3 rounded-2xl hover:shadow-xl transition font-bold whitespace-nowrap shadow-lg transform hover:scale-105">
               🔄 Cambiar
             </button>
           </div>
@@ -753,17 +776,20 @@
       document.getElementById('macro-carbs').textContent = `${carbs}g`;
       document.getElementById('macro-fat').textContent = `${fat}g`;
       
-      // Calcular porcentajes (aproximado)
+      // Calcular porcentajes según objetivo diario
       const maxCals = targetCalories || 2000;
       const calsPct = Math.min(100, (cals / maxCals) * 100);
-      const protPct = Math.min(100, (prot / 150) * 100);
-      const carbsPct = Math.min(100, (carbs / 200) * 100);
-      const fatPct = Math.min(100, (fat / 70) * 100);
+      const protPct = Math.min(100, (prot / (maxCals * 0.3 / 4)) * 100); // 30% proteína
+      const carbsPct = Math.min(100, (carbs / (maxCals * 0.45 / 4)) * 100); // 45% carbs
+      const fatPct = Math.min(100, (fat / (maxCals * 0.25 / 9)) * 100); // 25% grasa
       
       document.getElementById('bar-calories').style.width = `${calsPct}%`;
       document.getElementById('bar-protein').style.width = `${protPct}%`;
       document.getElementById('bar-carbs').style.width = `${carbsPct}%`;
       document.getElementById('bar-fat').style.width = `${fatPct}%`;
+      
+      // Actualizar texto de calorías del día
+      document.getElementById('dash-calories').textContent = `${targetCalories} kcal`;
     }
 
     // ============================================================
@@ -1058,6 +1084,22 @@
           closeEditProfile();
           loadDashboard();
         }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    async function resetAll() {
+      if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará:\n- Tu perfil\n- Tu historial de peso\n- Tu plan semanal\n- Tus opciones guardadas\n\n¡Esta acción NO se puede deshacer!')) return;
+      
+      if (!confirm('⚠️ ÚLTIMA ADVERTENCIA\n\n¿Realmente quieres borrar TODO?')) return;
+      
+      try {
+        // Borrar todo de localStorage
+        localStorage.removeItem('user');
+        
+        // Recargar página
+        window.location.reload();
       } catch (err) {
         alert('❌ Error: ' + err.message);
       }

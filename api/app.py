@@ -279,35 +279,94 @@ def health():
 
 @app.route('/api/register', methods=['POST'])
 def register():
+    """Registra usuario nuevo con perfil completo."""
     try:
         data = request.json
-        if not all(k in data for k in ('email', 'password', 'name')):
-            return jsonify({'error': 'Datos incompletos'}), 400
+        required = ['username', 'age', 'gender', 'height', 'current_weight', 'goal_weight', 'goal_type', 'activity_level', 'meals_per_day']
         
-        existing = supabase.table('users').select('id').eq('email', data['email']).execute()
-        if existing.data:
-            return jsonify({'error': 'Email ya registrado'}), 400
+        # Validar campos requeridos
+        missing = [k for k in required if k not in data]
+        if missing:
+            return jsonify({'error': f'Faltan datos: {", ".join(missing)}'}), 400
         
-        result = supabase.table('users').insert({
-            'email': data['email'],
-            'password_hash': hash_password(data['password']),
-            'name': data['name']
+        # Verificar si usuario existe
+        existing = supabase.table('users').select('id').eq('username', data['username']).execute()
+        if existing.data and len(existing.data) > 0:
+            return jsonify({'error': 'Nombre de usuario ya existe'}), 400
+        
+        # Crear usuario
+        user_result = supabase.table('users').insert({
+            'username': data['username']
         }).execute()
         
-        return jsonify({'success': True, 'user_id': result.data[0]['id']})
+        user_id = user_result.data[0]['id']
+        
+        # Crear perfil
+        tmb, tdee = calculate_tmb(data['age'], data['gender'], data['height'], data['current_weight'], data['activity_level'])
+        target_calories = calculate_deficit(tdee, data['goal_type'], data['current_weight'], data['goal_weight'])
+        
+        supabase.table('user_profiles').insert({
+            'user_id': user_id,
+            'age': data['age'],
+            'gender': data['gender'],
+            'height_cm': data['height'],
+            'current_weight_kg': data['current_weight'],
+            'goal_weight_kg': data['goal_weight'],
+            'goal_type': data['goal_type'],
+            'activity_level': data['activity_level'],
+            'meals_per_day': data['meals_per_day'],
+            'target_calories': int(target_calories),
+            'starting_weight_kg': data['current_weight']
+        }).execute()
+        
+        # Generar plan inicial
+        generate_first_week_varied(user_id, int(target_calories), data['meals_per_day'])
+        
+        user = {
+            'id': user_id,
+            'username': data['username'],
+            **data
+        }
+        
+        return jsonify({'success': True, 'user': user, 'target_calories': int(target_calories)})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    """Login por username."""
     try:
         data = request.json
-        result = supabase.table('users').select('id, name').eq('email', data.get('email')).eq('password_hash', hash_password(data.get('password', ''))).execute()
+        username = data.get('username', '').strip()
         
-        if result.data:
-            return jsonify({'success': True, 'user_id': result.data[0]['id'], 'name': result.data[0]['name']})
-        return jsonify({'error': 'Credenciales inválidas'}), 401
+        if not username:
+            return jsonify({'error': 'Username requerido'}), 400
+        
+        # Buscar usuario
+        user_result = supabase.table('users').select('id, username').eq('username', username).execute()
+        
+        if not user_result.data or len(user_result.data) == 0:
+            return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+        user_data = user_result.data[0]
+        
+        # Obtener perfil
+        profile_result = supabase.table('user_profiles').select('*').eq('user_id', user_data['id']).execute()
+        
+        user = {
+            'id': user_data['id'],
+            'username': user_data['username']
+        }
+        
+        if profile_result.data and len(profile_result.data) > 0:
+            user = {**user, **profile_result.data[0]}
+        
+        return jsonify({'success': True, 'user': user})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/profile', methods=['POST'])

@@ -18,16 +18,14 @@
           animation: {
             'fade-in': 'fadeIn 0.6s ease-out',
             'slide-up': 'slideUp 0.7s ease-out',
-            'slide-down': 'slideDown 0.5s ease-out',
             'scale-in': 'scaleIn 0.4s ease-out',
-            'pulse-slow': 'pulse 3s infinite',
-            'bounce-slow': 'bounce 2s infinite'
+            'shake': 'shake 0.5s ease-in-out'
           },
           keyframes: {
             fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
             slideUp: { '0%': { transform: 'translateY(30px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-            slideDown: { '0%': { transform: 'translateY(-20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-            scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
+            scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+            shake: { '0%, 100%': { transform: 'translateX(0)' }, '25%': { transform: 'translateX(-10px)' }, '75%': { transform: 'translateX(10px)' } }
           }
         }
       }
@@ -40,15 +38,17 @@
     .gradient-premium { background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%); }
     .gradient-gold { background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); }
     .gradient-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .gradient-error { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); }
     .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-    .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); }
-    .dark .glass-card { background: rgba(30,41,59,0.85); }
+    .glass-card { background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); }
+    .dark .glass-card { background: rgba(30,41,59,0.9); }
     .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .card-hover:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
     .btn-premium { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .btn-premium:hover { transform: scale(1.05); box-shadow: 0 15px 30px rgba(102,126,234,0.4); }
     .btn-premium:active { transform: scale(0.98); }
+    .btn-premium:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .image-overlay { background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%); }
     .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
     .dark .shimmer { background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%); }
@@ -58,6 +58,9 @@
     @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     .glow { box-shadow: 0 0 20px rgba(102,126,234,0.5), 0 0 40px rgba(118,75,162,0.3); }
     .dark .glow { box-shadow: 0 0 20px rgba(102,126,234,0.3), 0 0 40px rgba(118,75,162,0.2); }
+    .loading-spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .error-shake { animation: shake 0.5s ease-in-out; }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900 transition-colors duration-500">
@@ -226,7 +229,10 @@
           <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Usuario</label>
           <input type="text" id="login-user" placeholder="Tu nombre de usuario" required class="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all shadow-sm">
         </div>
-        <button type="submit" class="w-full gradient-premium text-white py-4 rounded-2xl font-black text-lg shadow-xl btn-premium">Entrar</button>
+        <button type="submit" id="login-btn" class="w-full gradient-premium text-white py-4 rounded-2xl font-black text-lg shadow-xl btn-premium flex items-center justify-center gap-2">
+          <span>Entrar</span>
+          <div class="loading-spinner hidden"></div>
+        </button>
       </form>
       <button onclick="hideModal('login')" class="mt-4 w-full text-gray-500 dark:text-gray-400 text-sm font-medium py-2 hover:text-gray-700 dark:hover:text-gray-200 transition-all">Cancelar</button>
     </div>
@@ -242,7 +248,7 @@
       <form onsubmit="register(event)" class="space-y-3">
         <input type="text" id="reg-user" placeholder="👤 Usuario" required class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
         <div class="grid grid-cols-2 gap-2">
-          <input type="number" id="reg-age" placeholder="Edad" required class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
+          <input type="number" id="reg-age" placeholder="Edad" required min="16" max="100" class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
           <select id="reg-gender" required class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
             <option value="" class="dark:bg-gray-700">Género</option>
             <option value="male" class="dark:bg-gray-700">Hombre</option>
@@ -250,10 +256,10 @@
           </select>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <input type="number" id="reg-height" placeholder="Altura (cm)" required class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
-          <input type="number" id="reg-weight" placeholder="Peso (kg)" required class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
+          <input type="number" id="reg-height" placeholder="Altura (cm)" required min="100" max="250" class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
+          <input type="number" id="reg-weight" placeholder="Peso (kg)" required min="30" max="300" step="0.1" class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
         </div>
-        <input type="number" id="reg-goal" placeholder="🎯 Peso objetivo (kg)" required class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
+        <input type="number" id="reg-goal" placeholder="🎯 Peso objetivo (kg)" required min="30" max="300" step="0.1" class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
         <select id="reg-type" required class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-bold focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all text-sm">
           <option value="" class="dark:bg-gray-700">🎯 Objetivo</option>
           <option value="lose" class="dark:bg-gray-700">📉 Perder peso</option>
@@ -274,7 +280,10 @@
           <option value="4" class="dark:bg-gray-700">4 comidas</option>
           <option value="5" class="dark:bg-gray-700">5 comidas</option>
         </select>
-        <button type="submit" class="w-full gradient-premium text-white py-4 rounded-2xl font-black text-lg shadow-xl btn-premium mt-2">Crear cuenta gratis</button>
+        <button type="submit" id="register-btn" class="w-full gradient-premium text-white py-4 rounded-2xl font-black text-lg shadow-xl btn-premium mt-2 flex items-center justify-center gap-2">
+          <span>Crear cuenta gratis</span>
+          <div class="loading-spinner hidden"></div>
+        </button>
       </form>
       <button onclick="hideModal('register')" class="mt-4 w-full text-gray-500 dark:text-gray-400 text-sm font-medium py-2 hover:text-gray-700 dark:hover:text-gray-200 transition-all">Cancelar</button>
     </div>
@@ -341,7 +350,10 @@
             <option value="5" class="dark:bg-gray-700">5 comidas</option>
           </select>
         </div>
-        <button type="submit" class="w-full gradient-premium text-white py-4 rounded-2xl font-black text-lg shadow-xl btn-premium mt-3">💾 Guardar cambios</button>
+        <button type="submit" id="edit-btn" class="w-full gradient-premium text-white py-4 rounded-2xl font-black text-lg shadow-xl btn-premium mt-3 flex items-center justify-center gap-2">
+          <span>💾 Guardar cambios</span>
+          <div class="loading-spinner hidden"></div>
+        </button>
       </form>
       <button onclick="hideModal('edit')" class="mt-4 w-full text-gray-500 dark:text-gray-400 text-sm font-medium py-2 hover:text-gray-700 dark:hover:text-gray-200 transition-all">Cancelar</button>
     </div>
@@ -375,31 +387,105 @@
     const API = 'https://diet-tracker-app-ten.vercel.app/api';
     let user = null, day = 1, cals = 0, weightChart = null, currentMealType = '';
 
-    // Dark mode
+    // Dark mode - FIXED
     function toggleDark() {
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('dark', document.documentElement.classList.contains('dark'));
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      localStorage.setItem('dark', isDark);
+      // Update chart if exists
+      if (weightChart) {
+        weightChart.options.scales.y.grid.color = isDark ? '#334155' : '#e2e8f0';
+        weightChart.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
+        weightChart.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
+        weightChart.update();
+      }
     }
-    if (localStorage.getItem('dark') === 'true') document.documentElement.classList.add('dark');
+    // Initialize dark mode on load
+    if (localStorage.getItem('dark') === 'true') {
+      document.documentElement.classList.add('dark');
+    }
 
-    // Modals
-    function showModal(id) { document.getElementById('modal-'+id).classList.remove('hidden'); }
-    function hideModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
+    // Modals with animation
+    function showModal(id) { 
+      const modal = document.getElementById('modal-'+id);
+      modal.classList.remove('hidden');
+      // Focus first input
+      setTimeout(() => {
+        const firstInput = modal.querySelector('input, select');
+        if (firstInput) firstInput.focus();
+      }, 100);
+    }
+    function hideModal(id) { 
+      document.getElementById('modal-'+id).classList.add('hidden');
+      // Clear any error states
+      const form = document.getElementById('modal-'+id).querySelector('form');
+      if (form) form.classList.remove('error-shake');
+    }
 
-    // Auth
+    // Show error on form
+    function showFormError(modalId, message) {
+      const modal = document.getElementById('modal-'+modalId);
+      const form = modal.querySelector('form');
+      form.classList.add('error-shake');
+      setTimeout(() => form.classList.remove('error-shake'), 500);
+      alert('⚠️ ' + message);
+    }
+
+    // Set button loading state
+    function setButtonLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      const spinner = btn.querySelector('.loading-spinner');
+      const text = btn.querySelector('span');
+      if (loading) {
+        btn.disabled = true;
+        if (spinner) spinner.classList.remove('hidden');
+        if (text) text.textContent = 'Cargando...';
+      } else {
+        btn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (text && btnId === 'login-btn') text.textContent = 'Entrar';
+        if (text && btnId === 'register-btn') text.textContent = 'Crear cuenta gratis';
+        if (text && btnId === 'edit-btn') text.textContent = '💾 Guardar cambios';
+      }
+    }
+
+    // Auth - Login
     async function login(e) {
       e.preventDefault();
-      const u = document.getElementById('login-user').value.trim();
+      const username = document.getElementById('login-user').value.trim();
+      if (!username) { showFormError('login', 'Introduce tu usuario'); return; }
+      
+      setButtonLoading('login-btn', true);
+      
       try {
-        const r = await fetch(`${API}/login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: u}) });
+        const r = await fetch(`${API}/login`, { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify({username}) 
+        });
         const d = await r.json();
-        if (d.success) { user = d.user; localStorage.setItem('user', JSON.stringify(user)); document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); hideModal('login'); loadDash(); }
-        else alert('❌ ' + (d.error || 'Usuario no encontrado'));
-      } catch (err) { alert('❌ Error: ' + err.message); }
+        
+        if (d.success) { 
+          user = d.user; 
+          localStorage.setItem('user', JSON.stringify(user)); 
+          document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); 
+          hideModal('login'); 
+          loadDash(); 
+        } else { 
+          showFormError('login', d.error || 'Usuario no encontrado');
+        }
+      } catch (err) { 
+        showFormError('login', 'Error de conexión: ' + err.message); 
+      } finally {
+        setButtonLoading('login-btn', false);
+      }
     }
 
+    // Auth - Register
     async function register(e) {
       e.preventDefault();
+      
       const data = {
         username: document.getElementById('reg-user').value.trim(),
         age: parseInt(document.getElementById('reg-age').value),
@@ -411,16 +497,56 @@
         activity_level: document.getElementById('reg-activity').value,
         meals_per_day: parseInt(document.getElementById('reg-meals').value)
       };
+      
+      // Validate
+      if (!data.username || data.username.length < 3) { showFormError('register', 'Usuario debe tener 3+ caracteres'); return; }
+      if (!data.age || data.age < 16 || data.age > 100) { showFormError('register', 'Edad inválida (16-100)'); return; }
+      if (!data.height || data.height < 100 || data.height > 250) { showFormError('register', 'Altura inválida (100-250 cm)'); return; }
+      if (!data.current_weight || data.current_weight < 30) { showFormError('register', 'Peso actual inválido'); return; }
+      if (!data.goal_weight || data.goal_weight < 30) { showFormError('register', 'Peso objetivo inválido'); return; }
+      if (!data.goal_type) { showFormError('register', 'Selecciona un objetivo'); return; }
+      if (!data.activity_level) { showFormError('register', 'Selecciona actividad física'); return; }
+      if (!data.meals_per_day) { showFormError('register', 'Selecciona comidas por día'); return; }
+      
+      setButtonLoading('register-btn', true);
+      
       try {
-        const r = await fetch(`${API}/register`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        const r = await fetch(`${API}/register`, { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify(data) 
+        });
         const d = await r.json();
-        if (d.success) { user = d.user; localStorage.setItem('user', JSON.stringify(user)); document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); alert(`✅ ¡Cuenta creada!\n\n🔥 ${d.target_calories} kcal/día`); hideModal('register'); loadDash(); }
-        else alert('⚠️ ' + (d.error || 'Error al crear cuenta'));
-      } catch (err) { alert('❌ Error: ' + err.message); }
+        
+        if (d.success) { 
+          user = d.user; 
+          localStorage.setItem('user', JSON.stringify(user)); 
+          document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); 
+          alert(`✅ ¡Cuenta creada!\n\n🔥 ${d.target_calories} kcal/día\n\n¡Tu plan está listo!`); 
+          hideModal('register'); 
+          loadDash(); 
+        } else { 
+          showFormError('register', d.error || 'Error al crear cuenta');
+        }
+      } catch (err) { 
+        showFormError('register', 'Error de conexión: ' + err.message); 
+      } finally {
+        setButtonLoading('register-btn', false);
+      }
     }
 
-    function logout() { localStorage.removeItem('user'); user = null; document.getElementById('nav-auth').classList.remove('hidden'); document.getElementById('nav-user').classList.add('hidden'); document.getElementById('welcome').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); }
+    // Logout
+    function logout() { 
+      localStorage.removeItem('user'); 
+      user = null; 
+      document.getElementById('nav-auth').classList.remove('hidden'); 
+      document.getElementById('nav-user').classList.add('hidden'); 
+      document.getElementById('welcome').classList.remove('hidden'); 
+      document.getElementById('dashboard').classList.add('hidden'); 
+      if (weightChart) { weightChart.destroy(); weightChart = null; }
+    }
 
+    // Load Dashboard
     async function loadDash() {
       document.getElementById('welcome').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
@@ -454,9 +580,13 @@
         
         // Load weight chart
         loadWeightChart();
-      } catch (err) { alert('❌ Error: ' + err.message); }
+      } catch (err) { 
+        console.error('Error loading dashboard:', err);
+        alert('⚠️ Error al cargar datos: ' + err.message);
+      }
     }
 
+    // Set Day
     function setDay(d) {
       day = d;
       document.querySelectorAll('.day-btn').forEach((b, i) => {
@@ -470,6 +600,7 @@
       });
     }
 
+    // Render Day Meals
     async function renderDay(d) {
       try {
         const r = await fetch(`${API}/plan/current?user_id=${user.id}`);
@@ -495,7 +626,7 @@
           return `
           <div class="glass-card rounded-3xl p-0 shadow-xl border border-white/30 dark:border-gray-700/50 card-hover overflow-hidden animate-slide-up" style="animation-delay: ${idx * 0.1}s">
             <div class="relative">
-              ${m.image_url ? `<img src="${m.image_url}" alt="${m.recipe_name}" class="w-full h-48 sm:h-56 object-cover" loading="lazy">` : '<div class="w-full h-48 sm:h-56 gradient flex items-center justify-center text-6xl">🍽️</div>'}
+              ${m.image_url ? `<img src="${m.image_url}" alt="${m.recipe_name}" class="w-full h-48 sm:h-56 object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-48 sm:h-56 gradient flex items-center justify-center text-6xl\\'>🍽️</div>'">` : '<div class="w-full h-48 sm:h-56 gradient flex items-center justify-center text-6xl">🍽️</div>'}
               <div class="absolute inset-0 image-overlay"></div>
               <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end">
                 <div class="flex items-center gap-2">
@@ -522,6 +653,7 @@
       }
     }
 
+    // Weight Check-in
     async function checkin() {
       const w = parseFloat(document.getElementById('weight-in').value);
       if (!w || w <= 0) return alert('⚠️ Peso inválido');
@@ -536,6 +668,7 @@
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
+    // Show Options Modal
     async function showOptions(mealType) {
       currentMealType = mealType;
       try {
@@ -548,7 +681,7 @@
           content.innerHTML = d.options.map((o, idx) => `
             <div class="glass-card border border-white/30 dark:border-gray-700/50 rounded-2xl p-4 card-hover animate-slide-up" style="animation-delay: ${idx * 0.05}s">
               <div class="flex gap-4">
-                ${o.image_url ? `<img src="${o.image_url}" class="w-24 h-24 object-cover rounded-xl shadow-md flex-shrink-0">` : '<div class="w-24 h-24 gradient rounded-xl flex items-center justify-center text-3xl flex-shrink-0">🍽️</div>'}
+                ${o.image_url ? `<img src="${o.image_url}" class="w-24 h-24 object-cover rounded-xl shadow-md flex-shrink-0" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23667eea%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 font-size=%2240%22 text-anchor=%22middle%22>🍽️</text></svg>'">` : '<div class="w-24 h-24 gradient rounded-xl flex items-center justify-center text-3xl flex-shrink-0">🍽️</div>'}
                 <div class="flex-1 min-w-0">
                   <h4 class="font-bold text-gray-900 dark:text-white mb-1 truncate">${o.name}</h4>
                   <p class="text-xs text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">${o.ingredients}</p>
@@ -567,6 +700,7 @@
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
+    // Swap Recipe
     async function swap(recipeId) {
       try {
         const r = await fetch(`${API}/plan/swap`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: user.id, day: day, meal_type: currentMealType, new_recipe_id: recipeId}) });
@@ -576,6 +710,7 @@
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
+    // Show Shopping List
     async function showShopping() {
       try {
         const r = await fetch(`${API}/plan/shopping-list?user_id=${user.id}`);
@@ -590,6 +725,7 @@
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
+    // Regenerate Plan
     async function regenerate() {
       if (!confirm('⚠️ ¿Regenerar plan semanal?')) return;
       try {
@@ -600,6 +736,7 @@
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
+    // Export Plan
     async function exportPlan() {
       try {
         const r = await fetch(`${API}/plan/export?user_id=${user.id}`);
@@ -608,6 +745,7 @@
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
+    // Update Profile
     async function updateProfile(e) {
       e.preventDefault();
       const data = {
@@ -621,6 +759,9 @@
         activity_level: document.getElementById('edit-activity').value,
         meals_per_day: parseInt(document.getElementById('edit-meals').value)
       };
+      
+      setButtonLoading('edit-btn', true);
+      
       try {
         const r = await fetch(`${API}/profile/update`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
         const d = await r.json();
@@ -632,6 +773,9 @@
           loadDash();
         } else alert('⚠️ ' + (d.error || 'Error'));
       } catch (err) { alert('❌ Error: ' + err.message); }
+      finally {
+        setButtonLoading('edit-btn', false);
+      }
     }
 
     // Weight Chart
@@ -702,10 +846,15 @@
       }
     }
 
-    // Init
+    // Init on load
     window.addEventListener('DOMContentLoaded', () => {
+      // Dark mode already initialized above
       const saved = localStorage.getItem('user');
-      if (saved) { user = JSON.parse(saved); document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); loadDash(); }
+      if (saved) { 
+        user = JSON.parse(saved); 
+        document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); 
+        loadDash(); 
+      }
     });
   </script>
 </body>

@@ -391,10 +391,10 @@
       e.preventDefault();
       const u = document.getElementById('login-user').value.trim();
       try {
-        const r = await fetch(`${API}/user/get?username=${encodeURIComponent(u)}`);
+        const r = await fetch(`${API}/login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: u}) });
         const d = await r.json();
-        if (d.user) { user = d.user; localStorage.setItem('user', JSON.stringify(user)); document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); hideModal('login'); loadDash(); }
-        else alert('❌ Usuario no encontrado');
+        if (d.success) { user = d.user; localStorage.setItem('user', JSON.stringify(user)); document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); hideModal('login'); loadDash(); }
+        else alert('❌ ' + (d.error || 'Usuario no encontrado'));
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
@@ -412,10 +412,10 @@
         meals_per_day: parseInt(document.getElementById('reg-meals').value)
       };
       try {
-        const r = await fetch(`${API}/user/create`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        const r = await fetch(`${API}/register`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
         const d = await r.json();
         if (d.success) { user = d.user; localStorage.setItem('user', JSON.stringify(user)); document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase(); alert(`✅ ¡Cuenta creada!\n\n🔥 ${d.target_calories} kcal/día`); hideModal('register'); loadDash(); }
-        else alert('⚠️ ' + (d.error || 'Error'));
+        else alert('⚠️ ' + (d.error || 'Error al crear cuenta'));
       } catch (err) { alert('❌ Error: ' + err.message); }
     }
 

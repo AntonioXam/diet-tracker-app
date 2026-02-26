@@ -289,14 +289,16 @@ def register():
         if missing:
             return jsonify({'error': f'Faltan datos: {", ".join(missing)}'}), 400
         
-        # Verificar si usuario existe
-        existing = supabase.table('users').select('id').eq('username', data['username']).execute()
+        # Verificar si usuario existe (usamos email como username)
+        existing = supabase.table('users').select('id').eq('email', data['username']).execute()
         if existing.data and len(existing.data) > 0:
             return jsonify({'error': 'Nombre de usuario ya existe'}), 400
         
-        # Crear usuario
+        # Crear usuario (email = username, name = username)
         user_result = supabase.table('users').insert({
-            'username': data['username']
+            'email': data['username'],
+            'password_hash': 'no_password',  # No usamos password por ahora
+            'name': data['username']
         }).execute()
         
         user_id = user_result.data[0]['id']
@@ -344,8 +346,8 @@ def login():
         if not username:
             return jsonify({'error': 'Username requerido'}), 400
         
-        # Buscar usuario
-        user_result = supabase.table('users').select('id, username').eq('username', username).execute()
+        # Buscar usuario (email = username)
+        user_result = supabase.table('users').select('id, email, name').eq('email', username).execute()
         
         if not user_result.data or len(user_result.data) == 0:
             return jsonify({'error': 'Usuario no encontrado'}), 404
@@ -357,7 +359,7 @@ def login():
         
         user = {
             'id': user_data['id'],
-            'username': user_data['username']
+            'username': user_data.get('name', user_data.get('email', username))
         }
         
         if profile_result.data and len(profile_result.data) > 0:
@@ -693,25 +695,6 @@ def export_plan():
             output += "\n"
         
         return jsonify({'export': output})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/weight/history', methods=['GET'])
-def get_weight_history():
-    """Retorna historial de peso del usuario (últimos 30 días)."""
-    try:
-        user_id = request.args.get('user_id')
-        if not user_id:
-            return jsonify({'error': 'user_id requerido'}), 400
-        
-        from datetime import datetime, timedelta
-        thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
-        
-        result = supabase.table('weight_history').select('created_at, weight_kg').eq('user_id', user_id).gte('created_at', thirty_days_ago).order('created_at', desc=False).execute()
-        
-        history = [{'created_at': h['created_at'], 'weight': h['weight_kg']} for h in result.data]
-        
-        return jsonify({'history': history})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

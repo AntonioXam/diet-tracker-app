@@ -317,8 +317,7 @@ def register():
             'goal_type': data['goal_type'],
             'activity_level': data['activity_level'],
             'meals_per_day': data['meals_per_day'],
-            'target_calories': int(target_calories),
-            'starting_weight_kg': data['current_weight']
+            'target_calories': int(target_calories)
         }).execute()
         
         # Generar plan inicial

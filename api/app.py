@@ -316,8 +316,7 @@ def register():
             'goal_weight_kg': data['goal_weight'],
             'goal_type': data['goal_type'],
             'activity_level': data['activity_level'],
-            'meals_per_day': data['meals_per_day'],
-            'target_calories': int(target_calories)
+            'meals_per_day': data['meals_per_day']
         }).execute()
         
         # Generar plan inicial
@@ -452,18 +451,40 @@ def update_profile():
 
 @app.route('/api/profile/get', methods=['GET'])
 def get_profile():
-    """Obtiene el perfil del usuario."""
+    """Obtiene el perfil del usuario con calorías calculadas."""
     try:
         user_id = request.args.get('user_id')
         if not user_id:
             return jsonify({'error': 'user_id requerido'}), 400
         
-        profile = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
-        if not profile.data:
+        profile_result = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+        if not profile_result.data:
             return jsonify({'error': 'Perfil no encontrado'}), 404
         
-        return jsonify({'profile': profile.data[0]})
+        profile = profile_result.data[0]
+        
+        # Calcular calorías objetivo dinámicamente
+        tmb, tdee = calculate_tmb(
+            profile['age'],
+            profile['gender'],
+            profile['height_cm'],
+            profile['current_weight_kg'],
+            profile['activity_level']
+        )
+        target_calories = calculate_deficit(
+            tdee,
+            profile['goal_type'],
+            profile['current_weight_kg'],
+            profile['goal_weight_kg']
+        )
+        
+        # Añadir target_calories al perfil retornado
+        profile['target_calories'] = int(target_calories)
+        
+        return jsonify({'profile': profile})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 def get_meal_types_for_count(meals_per_day):

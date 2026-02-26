@@ -656,6 +656,22 @@ def get_weight_history():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/weight/history', methods=['GET'])
+def weight_history():
+    """Retorna el historial de peso del usuario para el gráfico."""
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'user_id requerido'}), 400
+        
+        result = supabase.table('weight_history').select('created_at, weight_kg').eq('user_id', user_id).order('created_at', desc=False).limit(30).execute()
+        
+        history = [{'created_at': h['created_at'], 'weight': h['weight_kg']} for h in result.data] if result.data else []
+        
+        return jsonify({'history': history})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/weight/checkin', methods=['POST'])
 def weight_checkin():
     try:

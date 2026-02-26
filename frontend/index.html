@@ -1,770 +1,481 @@
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Diet Tracker FIT - Tu plan semanal saludable</title>
+  <title>Diet Tracker FIT</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            dark: { bg: '#0f172a', card: '#1e293b', text: '#f1f5f9', muted: '#94a3b8' }
-          }
-        }
-      }
+      theme: { extend: { colors: { primary: { 50: '#f5f3ff', 100: '#ede9fe', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' } } } }
     }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Inter', sans-serif; }
-    .fade-in { animation: fadeIn 0.5s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .gradient-text { background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .gradient-bg { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
-    .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-    .day-tab { transition: all 0.3s ease; }
-    .day-tab.active { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
-    .glass-light { background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); }
-    .glass-dark { background: rgba(30,41,59,0.9); backdrop-filter: blur(16px); }
-    .floating { animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    @media (max-width: 640px) {
-      .mobile-p { padding-left: 12px; padding-right: 12px; }
-      .mobile-text { font-size: 14px; }
-      .mobile-card { padding: 12px; }
-    }
-    /* Dark mode improvements */
-    html.dark .text-gray-600 { color: #d1d5db !important; }
-    html.dark .text-gray-700 { color: #e5e7eb !important; }
-    html.dark .bg-gray-100 { background-color: #374151 !important; }
-    html.dark .bg-gray-200 { background-color: #4b5563 !important; }
-    html.dark .border-gray-100 { border-color: #4b5563 !important; }
-    html.dark .border-gray-200 { border-color: #6b7280 !important; }
+    .gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glass { backdrop-filter: blur(12px); }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    @media (max-width: 640px) { .hide-scroll::-webkit-scrollbar { display: none; } }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-dark-bg dark:via-slate-900 dark:to-dark-bg transition-colors duration-300">
-  
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100 dark:from-gray-900 dark:to-slate-900 transition-colors">
+
   <!-- Navbar -->
-  <nav class="glass-light dark:glass-dark shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-2 sm:gap-3">
-        <div class="w-10 h-10 sm:w-12 sm:h-12 gradient-bg rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-lg floating">🥗</div>
+  <nav class="sticky top-0 z-40 bg-white/80 dark:bg-gray-800/80 glass shadow-md border-b border-gray-200 dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-10 h-10 gradient rounded-xl flex items-center justify-center text-xl shadow-lg">🥗</div>
         <div class="hidden sm:block">
-          <h1 class="text-lg sm:text-xl font-extrabold gradient-text tracking-tight">Diet Tracker FIT</h1>
-          <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">🛒 Mercadona & Lidl • 250+ recetas</p>
-        </div>
-        <div class="sm:hidden">
-          <h1 class="text-sm font-extrabold gradient-text">Diet FIT</h1>
+          <h1 class="text-lg font-bold gradient-text">Diet Tracker FIT</h1>
+          <p class="text-xs text-gray-500 dark:text-gray-400">250+ recetas</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Modo oscuro">🌙</button>
+        <button onclick="toggleDark()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-lg">🌙</button>
         <div id="nav-auth" class="flex gap-2">
-          <button onclick="showLogin()" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm">Entrar</button>
-          <button onclick="showRegister()" class="gradient-bg text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-105 text-sm">Registrarse</button>
+          <button onclick="showModal('login')" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Entrar</button>
+          <button onclick="showModal('register')" class="gradient text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:shadow-lg">Registrarse</button>
         </div>
-        <div id="nav-user" class="hidden flex items-center gap-2 sm:gap-4">
-          <div class="text-right hidden sm:block">
-            <p id="user-name" class="font-semibold text-gray-800 dark:text-gray-200 text-sm"></p>
-          </div>
-          <div class="w-8 h-8 sm:w-10 sm:h-10 gradient-bg rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm sm:text-base"></div>
-          <button onclick="showEditProfile()" class="bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-800 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1 sm:gap-2">⚙️</button>
-          <button onclick="logout()" class="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900 transition">🚪</button>
+        <div id="nav-user" class="hidden flex items-center gap-2">
+          <span id="user-name" class="text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:block"></span>
+          <button onclick="showModal('edit')" class="gradient text-white px-3 py-1.5 rounded-lg text-xs font-semibold">⚙️</button>
+          <button onclick="logout()" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg">🚪</button>
         </div>
       </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8 mobile-p">
+  <!-- Main -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
     
-    <!-- Welcome Screen -->
-    <div id="welcome-screen" class="text-center py-8 sm:py-16 fade-in">
-      <div class="mb-6 sm:mb-10">
-        <div class="inline-block mb-4 sm:mb-6">
-          <div class="w-16 h-16 sm:w-24 sm:h-24 gradient-bg rounded-2xl sm:rounded-3xl flex items-center justify-center text-3xl sm:text-5xl shadow-2xl floating">🎯</div>
-        </div>
-        <h2 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 sm:mb-6 tracking-tight">Transforma tu <span class="gradient-text">alimentación</span></h2>
-        <p class="text-base sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mobile-text">Plan nutricional personalizado con productos <span class="font-bold text-red-600 bg-red-50 dark:bg-red-900/30 px-2 sm:px-3 py-1 rounded-lg">🛒 Mercadona</span> y <span class="font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 sm:px-3 py-1 rounded-lg">🛒 Lidl</span>.</p>
-      </div>
-      
-      <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
-        <button onclick="showRegister()" class="gradient-bg text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:shadow-2xl transition transform hover:scale-105 w-full sm:w-auto">Comenzar gratis →</button>
-        <button onclick="showLogin()" class="bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg border-2 border-indigo-200 dark:border-indigo-700 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition w-full sm:w-auto">Ya tengo cuenta</button>
-      </div>
-      
-      <!-- Features -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
-        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg card-hover border border-gray-100 dark:border-gray-700">
-          <div class="text-3xl sm:text-4xl mb-3">📊</div>
-          <h3 class="font-bold text-base sm:text-xl mb-2 text-gray-800 dark:text-white">Macros calculados</h3>
-          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">Proteínas, carbohidratos y grasas equilibrados.</p>
-        </div>
-        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg card-hover border border-gray-100 dark:border-gray-700">
-          <div class="text-3xl sm:text-4xl mb-3">🔄</div>
-          <h3 class="font-bold text-base sm:text-xl mb-2 text-gray-800 dark:text-white">Variedad semanal</h3>
-          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">Cada día menús diferentes. 250+ recetas.</p>
-        </div>
-        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg card-hover border border-gray-100 dark:border-gray-700">
-          <div class="text-3xl sm:text-4xl mb-3">🛒</div>
-          <h3 class="font-bold text-base sm:text-xl mb-2 text-gray-800 dark:text-white">Lista automática</h3>
-          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">Generada por supermercado. Solo copia y compra.</p>
-        </div>
+    <!-- Welcome -->
+    <div id="welcome" class="text-center py-12">
+      <div class="w-20 h-20 gradient rounded-3xl flex items-center justify-center text-4xl shadow-2xl mx-auto mb-6">🎯</div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Transforma tu alimentación</h2>
+      <p class="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">Planes personalizados con productos Mercadona y Lidl. 250+ recetas saludables.</p>
+      <div class="flex flex-col sm:flex-row justify-center gap-3">
+        <button onclick="showModal('register')" class="gradient text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl">Comenzar gratis</button>
+        <button onclick="showModal('login')" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-8 py-3 rounded-xl font-bold border-2 border-gray-200 dark:border-gray-700">Ya tengo cuenta</button>
       </div>
     </div>
 
     <!-- Dashboard -->
-    <div id="dashboard" class="hidden fade-in">
-      <!-- Stats Overview -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
-          <div class="flex items-center gap-2 sm:gap-3 mb-2">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 gradient-bg rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">🔥</div>
-            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Calorías/día</p>
+    <div id="dashboard" class="hidden">
+      <!-- Stats -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 gradient rounded-lg flex items-center justify-center text-lg">🔥</div>
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Calorías/día</span>
           </div>
-          <p id="dash-calories" class="text-xl sm:text-3xl font-extrabold gradient-text">--</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Objetivo</p>
+          <p id="dash-cals" class="text-2xl font-bold gradient-text">--</p>
         </div>
-        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
-          <div class="flex items-center gap-2 sm:gap-3 mb-2">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">⚖️</div>
-            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Peso</p>
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-lg">⚖️</div>
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Peso</span>
           </div>
-          <p id="dash-weight" class="text-xl sm:text-3xl font-extrabold text-green-600 dark:text-green-400">--</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">kg actual</p>
+          <p id="dash-weight" class="text-2xl font-bold text-green-600">-- kg</p>
         </div>
-        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
-          <div class="flex items-center gap-2 sm:gap-3 mb-2">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">📈</div>
-            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Progreso</p>
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-lg">📈</div>
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Progreso</span>
           </div>
-          <p id="dash-progress" class="text-xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">--%</p>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
-            <div id="progress-bar" class="gradient-bg h-2 rounded-full transition-all" style="width: 0%"></div>
-          </div>
+          <p id="dash-progress" class="text-2xl font-bold text-blue-600">--%</p>
         </div>
-        <div class="glass-light dark:glass-dark p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 card-hover">
-          <div class="flex items-center gap-2 sm:gap-3 mb-2">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-xl shadow">📅</div>
-            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">Semana</p>
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-lg">📅</div>
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Semana</span>
           </div>
-          <p id="dash-week" class="text-xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400">#<span id="week-number">--</span></p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">En curso</p>
+          <p id="dash-week" class="text-2xl font-bold text-purple-600">#--</p>
         </div>
       </div>
 
-      <!-- Day Tabs - Mobile Optimized -->
-      <div class="mb-4 sm:mb-6">
-        <div class="flex gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide" id="day-tabs">
-          <button class="day-tab active flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base transition shadow-md" data-day="1">Lun</button>
-          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="2">Mar</button>
-          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="3">Mié</button>
-          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="4">Jue</button>
-          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="5">Vie</button>
-          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="6">Sáb</button>
-          <button class="day-tab flex-shrink-0 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md" data-day="7">Dom</button>
-        </div>
+      <!-- Day Tabs -->
+      <div class="flex gap-2 overflow-x-auto hide-scroll pb-2 mb-6" id="day-tabs">
+        <button onclick="setDay(1)" class="day-btn active flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm gradient text-white shadow">Lun</button>
+        <button onclick="setDay(2)" class="day-btn flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow">Mar</button>
+        <button onclick="setDay(3)" class="day-btn flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow">Mié</button>
+        <button onclick="setDay(4)" class="day-btn flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow">Jue</button>
+        <button onclick="setDay(5)" class="day-btn flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow">Vie</button>
+        <button onclick="setDay(6)" class="day-btn flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow">Sáb</button>
+        <button onclick="setDay(7)" class="day-btn flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow">Dom</button>
       </div>
 
-      <!-- Meals Container -->
-      <div class="space-y-3 sm:space-y-4 mb-6" id="meals-container"></div>
+      <!-- Meals -->
+      <div id="meals" class="space-y-3 mb-6"></div>
 
-      <!-- Action Buttons -->
-      <div class="flex flex-wrap gap-2 sm:gap-3 mb-6">
-        <button onclick="showShoppingList()" class="flex-1 sm:flex-none gradient-bg text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:shadow-xl transition flex items-center justify-center gap-2">🛒 Lista compra</button>
-        <button onclick="exportPlan()" class="flex-1 sm:flex-none bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:bg-gray-200 dark:hover:bg-gray-700 transition flex items-center justify-center gap-2">📋 Exportar</button>
-        <button onclick="regeneratePlan()" class="flex-1 sm:flex-none bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:bg-orange-200 dark:hover:bg-orange-900/50 transition flex items-center justify-center gap-2">🔄 Regenerar</button>
-        <button onclick="resetAll()" class="flex-1 sm:flex-none bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center justify-center gap-2">🗑️ Reset</button>
+      <!-- Actions -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        <button onclick="showShopping()" class="flex-1 gradient text-white px-4 py-3 rounded-xl font-bold text-sm shadow">🛒 Lista</button>
+        <button onclick="exportPlan()" class="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-bold text-sm border border-gray-200 dark:border-gray-700">📋 Exportar</button>
+        <button onclick="regenerate()" class="flex-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-4 py-3 rounded-xl font-bold text-sm">🔄 Regenerar</button>
       </div>
 
-      <!-- Weight Check-in -->
-      <div class="glass-light dark:glass-dark p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-        <h3 class="font-bold text-lg sm:text-xl text-gray-800 dark:text-white mb-4 flex items-center gap-2">⚖️ Registro semanal de peso</h3>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Pésate una vez por semana (mismo día y hora). El sistema añadirá automáticamente nuevas recetas.</p>
-        <div class="flex flex-col sm:flex-row gap-3">
-          <input type="number" id="weight-input" step="0.1" placeholder="Tu peso (kg)" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 focus:outline-none transition">
-          <button onclick="checkinWeight()" class="gradient-bg text-white px-6 sm:px-8 py-3 rounded-xl font-bold hover:shadow-xl transition transform hover:scale-105 whitespace-nowrap">✅ Registrar</button>
+      <!-- Weight -->
+      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-3">⚖️ Registro de peso</h3>
+        <div class="flex gap-3">
+          <input type="number" id="weight-in" step="0.1" placeholder="Tu peso (kg)" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none">
+          <button onclick="checkin()" class="gradient text-white px-6 py-3 rounded-xl font-bold shadow hover:shadow-lg">Registrar</button>
         </div>
       </div>
     </div>
   </main>
 
   <!-- Modals -->
-  <div id="login-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-gray-700">
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-6 text-center">👋 Bienvenido</h2>
-      <form onsubmit="handleLogin(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Usuario</label>
-          <input type="text" id="login-username" placeholder="Tu nombre de usuario" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold placeholder-gray-400 dark:placeholder-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition">
-        </div>
-        <button type="submit" class="w-full gradient-bg text-white py-3.5 rounded-xl font-bold text-lg hover:shadow-xl hover:scale-[1.02] transition transform">Entrar</button>
+  <div id="modal-login" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">👋 Bienvenido</h3>
+      <form onsubmit="login(event)" class="space-y-4">
+        <input type="text" id="login-user" placeholder="Usuario" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none">
+        <button type="submit" class="w-full gradient text-white py-3 rounded-xl font-bold shadow">Entrar</button>
       </form>
-      <button onclick="closeLogin()" class="mt-4 w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm font-medium py-2">Cancelar</button>
+      <button onclick="hideModal('login')" class="mt-3 w-full text-gray-500 dark:text-gray-400 text-sm">Cancelar</button>
     </div>
   </div>
 
-  <div id="register-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 text-center">🎯 Crea tu cuenta</h2>
-      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">Gratis • Sin tarjeta • 250+ recetas</p>
-      <form onsubmit="handleRegister(event)" class="space-y-3">
-        <input type="text" id="reg-username" placeholder="👤 Usuario" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold placeholder-gray-400 dark:placeholder-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-        <div class="grid grid-cols-2 gap-3">
-          <input type="number" id="reg-age" placeholder="Edad" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold placeholder-gray-400 dark:placeholder-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-          <select id="reg-gender" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-            <option value="" class="dark:bg-gray-700">Género</option>
-            <option value="male" class="dark:bg-gray-700">Hombre</option>
-            <option value="female" class="dark:bg-gray-700">Mujer</option>
+  <div id="modal-register" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">🎯 Crear cuenta</h3>
+      <form onsubmit="register(event)" class="space-y-3">
+        <input type="text" id="reg-user" placeholder="Usuario" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="reg-age" placeholder="Edad" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <select id="reg-gender" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+            <option value="">Género</option>
+            <option value="male">Hombre</option>
+            <option value="female">Mujer</option>
           </select>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <input type="number" id="reg-height" placeholder="Altura (cm)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold placeholder-gray-400 dark:placeholder-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-          <input type="number" id="reg-weight" placeholder="Peso (kg)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold placeholder-gray-400 dark:placeholder-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="reg-height" placeholder="Altura (cm)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <input type="number" id="reg-weight" placeholder="Peso (kg)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
         </div>
-        <input type="number" id="reg-goal-weight" placeholder="🎯 Peso objetivo (kg)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold placeholder-gray-400 dark:placeholder-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-        <select id="reg-goal-type" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-          <option value="" class="dark:bg-gray-700">🎯 Objetivo</option>
-          <option value="lose" class="dark:bg-gray-700">📉 Perder peso</option>
-          <option value="maintain" class="dark:bg-gray-700">⚖️ Mantener</option>
-          <option value="gain" class="dark:bg-gray-700">💪 Ganar masa</option>
+        <input type="number" id="reg-goal" placeholder="Peso objetivo (kg)" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+        <select id="reg-type" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <option value="">Objetivo</option>
+          <option value="lose">Perder peso</option>
+          <option value="maintain">Mantener</option>
+          <option value="gain">Ganar masa</option>
         </select>
-        <select id="reg-activity" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-          <option value="" class="dark:bg-gray-700">🏃 Actividad física</option>
-          <option value="sedentary" class="dark:bg-gray-700">Sedentario (poco ejercicio)</option>
-          <option value="light" class="dark:bg-gray-700">Ligero (1-3 días/semana)</option>
-          <option value="moderate" class="dark:bg-gray-700">Moderado (3-5 días)</option>
-          <option value="active" class="dark:bg-gray-700">Activo (6-7 días)</option>
-          <option value="very_active" class="dark:bg-gray-700">Muy activo (trabajo físico)</option>
+        <select id="reg-activity" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <option value="">Actividad</option>
+          <option value="sedentary">Sedentario</option>
+          <option value="light">Ligero (1-3 días)</option>
+          <option value="moderate">Moderado (3-5 días)</option>
+          <option value="active">Activo (6-7 días)</option>
+          <option value="very_active">Muy activo</option>
         </select>
-        <select id="reg-meals" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm sm:text-base">
-          <option value="" class="dark:bg-gray-700">🍽️ Comidas por día</option>
-          <option value="3" class="dark:bg-gray-700">3 comidas</option>
-          <option value="4" class="dark:bg-gray-700">4 comidas</option>
-          <option value="5" class="dark:bg-gray-700">5 comidas</option>
+        <select id="reg-meals" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <option value="">Comidas/día</option>
+          <option value="3">3 comidas</option>
+          <option value="4">4 comidas</option>
+          <option value="5">5 comidas</option>
         </select>
-        <button type="submit" class="w-full gradient-bg text-white py-3.5 rounded-xl font-bold text-lg hover:shadow-xl hover:scale-[1.02] transition transform mt-2">Crear cuenta gratis</button>
+        <button type="submit" class="w-full gradient text-white py-3 rounded-xl font-bold shadow">Crear cuenta</button>
       </form>
-      <button onclick="closeRegister()" class="mt-4 w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm font-medium py-2">Cancelar</button>
+      <button onclick="hideModal('register')" class="mt-3 w-full text-gray-500 dark:text-gray-400 text-sm">Cancelar</button>
     </div>
   </div>
 
-  <div id="edit-profile-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 text-center">⚙️ Editar perfil</h2>
-      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">Actualiza tus datos para recalcular calorías</p>
-      <form onsubmit="handleEditProfile(event)" class="space-y-3">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Edad</label>
-            <input type="number" id="edit-age" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Género</label>
-            <select id="edit-gender" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-              <option value="male" class="dark:bg-gray-700">Hombre</option>
-              <option value="female" class="dark:bg-gray-700">Mujer</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Altura (cm)</label>
-            <input type="number" id="edit-height" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Peso (kg)</label>
-            <input type="number" id="edit-current-weight" step="0.1" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Peso objetivo (kg)</label>
-          <input type="number" id="edit-goal-weight" step="0.1" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Objetivo</label>
-          <select id="edit-goal-type" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-            <option value="lose" class="dark:bg-gray-700">📉 Perder peso</option>
-            <option value="maintain" class="dark:bg-gray-700">⚖️ Mantener</option>
-            <option value="gain" class="dark:bg-gray-700">💪 Ganar masa</option>
+  <div id="modal-edit" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">⚙️ Editar perfil</h3>
+      <form onsubmit="updateProfile(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="edit-age" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <select id="edit-gender" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+            <option value="male">Hombre</option>
+            <option value="female">Mujer</option>
           </select>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Actividad</label>
-          <select id="edit-activity" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-            <option value="sedentary" class="dark:bg-gray-700">Sedentario</option>
-            <option value="light" class="dark:bg-gray-700">Ligero (1-3 días)</option>
-            <option value="moderate" class="dark:bg-gray-700">Moderado (3-5 días)</option>
-            <option value="active" class="dark:bg-gray-700">Activo (6-7 días)</option>
-            <option value="very_active" class="dark:bg-gray-700">Muy activo</option>
-          </select>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="edit-height" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <input type="number" id="edit-weight" step="0.1" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Comidas/día</label>
-          <select id="edit-meals" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition text-sm">
-            <option value="3" class="dark:bg-gray-700">3 comidas</option>
-            <option value="4" class="dark:bg-gray-700">4 comidas</option>
-            <option value="5" class="dark:bg-gray-700">5 comidas</option>
-          </select>
-        </div>
-        <button type="submit" class="w-full gradient-bg text-white py-3.5 rounded-xl font-bold text-lg hover:shadow-xl hover:scale-[1.02] transition transform mt-3">💾 Guardar cambios</button>
+        <input type="number" id="edit-goal" step="0.1" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+        <select id="edit-type" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <option value="lose">Perder peso</option>
+          <option value="maintain">Mantener</option>
+          <option value="gain">Ganar masa</option>
+        </select>
+        <select id="edit-activity" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <option value="sedentary">Sedentario</option>
+          <option value="light">Ligero</option>
+          <option value="moderate">Moderado</option>
+          <option value="active">Activo</option>
+          <option value="very_active">Muy activo</option>
+        </select>
+        <select id="edit-meals" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:border-purple-500 focus:outline-none text-sm">
+          <option value="3">3 comidas</option>
+          <option value="4">4 comidas</option>
+          <option value="5">5 comidas</option>
+        </select>
+        <button type="submit" class="w-full gradient text-white py-3 rounded-xl font-bold shadow">Guardar</button>
       </form>
-      <button onclick="closeEditProfile()" class="mt-4 w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm font-medium py-2">Cancelar</button>
+      <button onclick="hideModal('edit')" class="mt-3 w-full text-gray-500 dark:text-gray-400 text-sm">Cancelar</button>
     </div>
   </div>
 
-  <div id="options-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-2xl w-full shadow-2xl border border-gray-100 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 text-center">🔄 Cambiar receta</h2>
-      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">Selecciona una alternativa para esta comida</p>
-      <div id="options-content" class="space-y-4"></div>
-      <button onclick="closeOptionsModal()" class="mt-6 w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3.5 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cerrar</button>
+  <div id="modal-options" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">🔄 Cambiar receta</h3>
+      <div id="options-content" class="space-y-3"></div>
+      <button onclick="hideModal('options')" class="mt-4 w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold">Cerrar</button>
     </div>
   </div>
 
-  <div id="shopping-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-3xl w-full shadow-2xl border border-gray-100 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 text-center">🛒 Lista de la compra</h2>
-      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">Productos organizados por supermercado</p>
-      <div id="shopping-content" class="space-y-4"></div>
-      <button onclick="closeShoppingModal()" class="mt-6 w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3.5 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cerrar</button>
+  <div id="modal-shopping" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">🛒 Lista de compra</h3>
+      <div id="shopping-content" class="space-y-3"></div>
+      <button onclick="hideModal('shopping')" class="mt-4 w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold">Cerrar</button>
     </div>
   </div>
 
   <script>
-    const API_URL = 'https://diet-tracker-app-ten.vercel.app/api';
-    let currentUser = null;
-    let selectedDay = 1;
-    let targetCalories = 0;
-    let isDarkMode = false;
+    const API = 'https://diet-tracker-app-ten.vercel.app/api';
+    let user = null, day = 1, cals = 0;
 
-    const mealIcons = {
-      desayuno: {icon: '🌅', label: 'Desayuno', color: 'from-orange-500 to-amber-500'},
-      almuerzo: {icon: '🍎', label: 'Almuerzo', color: 'from-green-500 to-emerald-500'},
-      comida: {icon: '🍽️', label: 'Comida', color: 'from-red-500 to-rose-500'},
-      merienda: {icon: '🍪', label: 'Merienda', color: 'from-purple-500 to-pink-500'},
-      cena: {icon: '🌙', label: 'Cena', color: 'from-blue-500 to-indigo-500'}
-    };
-
-    // Toggle Dark Mode
-    function toggleDarkMode() {
-      isDarkMode = !isDarkMode;
-      document.documentElement.classList.toggle('dark', isDarkMode);
-      localStorage.setItem('darkMode', isDarkMode);
+    // Dark mode
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('dark', document.documentElement.classList.contains('dark'));
     }
+    if (localStorage.getItem('dark') === 'true') document.documentElement.classList.add('dark');
 
-    // Load dark mode preference
-    if (localStorage.getItem('darkMode') === 'true') {
-      isDarkMode = true;
-      document.documentElement.classList.add('dark');
-    }
+    // Modals
+    function showModal(id) { document.getElementById('modal-'+id).classList.remove('hidden'); }
+    function hideModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
 
-    // Auth functions
-    function showLogin() { document.getElementById('login-modal').classList.remove('hidden'); }
-    function closeLogin() { document.getElementById('login-modal').classList.add('hidden'); }
-    function showRegister() { document.getElementById('register-modal').classList.remove('hidden'); }
-    function closeRegister() { document.getElementById('register-modal').classList.add('hidden'); }
-
-    async function handleLogin(e) {
+    // Auth
+    async function login(e) {
       e.preventDefault();
-      const username = document.getElementById('login-username').value.trim();
+      const u = document.getElementById('login-user').value.trim();
       try {
-        const res = await fetch(`${API_URL}/user/get?username=${encodeURIComponent(username)}`);
-        const data = await res.json();
-        if (data.user) {
-          currentUser = data.user;
-          localStorage.setItem('user', JSON.stringify(currentUser));
-          closeLogin();
-          showDashboard();
-        } else {
-          alert('❌ Usuario no encontrado');
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        const r = await fetch(`${API}/user/get?username=${encodeURIComponent(u)}`);
+        const d = await r.json();
+        if (d.user) { user = d.user; localStorage.setItem('user', JSON.stringify(user)); hideModal('login'); loadDash(); }
+        else alert('❌ Usuario no encontrado');
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    async function handleRegister(e) {
+    async function register(e) {
       e.preventDefault();
-      const userData = {
-        username: document.getElementById('reg-username').value.trim(),
+      const data = {
+        username: document.getElementById('reg-user').value.trim(),
         age: parseInt(document.getElementById('reg-age').value),
         gender: document.getElementById('reg-gender').value,
         height: parseFloat(document.getElementById('reg-height').value),
         current_weight: parseFloat(document.getElementById('reg-weight').value),
-        goal_weight: parseFloat(document.getElementById('reg-goal-weight').value),
-        goal_type: document.getElementById('reg-goal-type').value,
+        goal_weight: parseFloat(document.getElementById('reg-goal').value),
+        goal_type: document.getElementById('reg-type').value,
         activity_level: document.getElementById('reg-activity').value,
         meals_per_day: parseInt(document.getElementById('reg-meals').value)
       };
       try {
-        const res = await fetch(`${API_URL}/user/create`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(userData)
-        });
-        const data = await res.json();
-        if (data.success) {
-          currentUser = data.user;
-          localStorage.setItem('user', JSON.stringify(currentUser));
-          alert(`✅ ¡Cuenta creada!\n\n🔥 Tus calorías: ${data.target_calories} kcal/día`);
-          closeRegister();
-          showDashboard();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error al crear cuenta'));
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        const r = await fetch(`${API}/user/create`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        const d = await r.json();
+        if (d.success) { user = d.user; localStorage.setItem('user', JSON.stringify(user)); alert(`✅ ¡Cuenta creada!\n\n🔥 ${d.target_calories} kcal/día`); hideModal('register'); loadDash(); }
+        else alert('⚠️ ' + (d.error || 'Error'));
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    function logout() {
-      localStorage.removeItem('user');
-      currentUser = null;
-      document.getElementById('nav-auth').classList.remove('hidden');
-      document.getElementById('nav-user').classList.add('hidden');
-      document.getElementById('welcome-screen').classList.remove('hidden');
-      document.getElementById('dashboard').classList.add('hidden');
-    }
+    function logout() { localStorage.removeItem('user'); user = null; document.getElementById('nav-auth').classList.remove('hidden'); document.getElementById('nav-user').classList.add('hidden'); document.getElementById('welcome').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); }
 
-    function showWelcome() {
-      document.getElementById('welcome-screen').classList.remove('hidden');
-      document.getElementById('dashboard').classList.add('hidden');
-      document.getElementById('nav-auth').classList.remove('hidden');
-      document.getElementById('nav-user').classList.add('hidden');
-    }
-
-    async function showDashboard() {
-      document.getElementById('welcome-screen').classList.add('hidden');
+    async function loadDash() {
+      document.getElementById('welcome').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
       document.getElementById('nav-auth').classList.add('hidden');
       document.getElementById('nav-user').classList.remove('hidden');
-      document.getElementById('user-name').textContent = currentUser.username;
-      await loadDashboard();
-    }
-
-    async function loadDashboard() {
+      document.getElementById('user-name').textContent = user.username;
+      
       try {
-        const [planRes, profileRes] = await Promise.all([
-          fetch(`${API_URL}/plan/current?user_id=${currentUser.id}`),
-          fetch(`${API_URL}/profile/get?user_id=${currentUser.id}`)
+        const [planR, profR] = await Promise.all([
+          fetch(`${API}/plan/current?user_id=${user.id}`),
+          fetch(`${API}/profile/get?user_id=${user.id}`)
         ]);
-        const planData = await planRes.json();
-        const profileData = await profileRes.json();
+        const planD = await planR.json();
+        const profD = await profR.json();
         
-        if (profileData.profile) {
-          targetCalories = profileData.profile.target_calories || 2000;
-          document.getElementById('dash-calories').textContent = `${targetCalories} kcal`;
-          document.getElementById('dash-weight').textContent = `${profileData.profile.current_weight_kg} kg`;
-          
-          const startWeight = profileData.profile.starting_weight_kg || profileData.profile.current_weight_kg;
-          const progress = startWeight > 0 ? Math.round(((startWeight - profileData.profile.current_weight_kg) / (startWeight - profileData.profile.goal_weight_kg)) * 100) : 0;
-          document.getElementById('dash-progress').textContent = `${Math.max(0, Math.min(100, progress))}%`;
-          document.getElementById('progress-bar').style.width = `${Math.max(0, Math.min(100, progress))}%`;
-          
-          const weeksPassed = Math.abs(startWeight - profileData.profile.current_weight_kg) / 0.5;
-          document.getElementById('week-number').textContent = Math.floor(weeksPassed) + 1;
+        if (profD.profile) {
+          cals = profD.profile.target_calories || 2000;
+          document.getElementById('dash-cals').textContent = `${cals} kcal`;
+          document.getElementById('dash-weight').textContent = `${profD.profile.current_weight_kg} kg`;
+          const start = profD.profile.starting_weight_kg || profD.profile.current_weight_kg;
+          const prog = start > 0 ? Math.round(((start - profD.profile.current_weight_kg) / (start - profD.profile.goal_weight_kg)) * 100) : 0;
+          document.getElementById('dash-progress').textContent = `${Math.max(0, Math.min(100, prog))}%`;
+          document.getElementById('dash-week').textContent = '#' + (Math.floor(Math.abs(start - profD.profile.current_weight_kg) / 0.5) + 1);
         }
         
-        if (planData.plan?.length) {
-          selectedDay = 1;
-          renderDayTabs();
-          showDay(1);
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        if (planD.plan?.length) { setDay(1); renderDay(1); }
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    function renderDayTabs() {
-      document.querySelectorAll('.day-tab').forEach(tab => {
-        tab.classList.remove('active', 'gradient-bg', 'text-white', 'shadow-lg');
-        tab.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300', 'shadow-md');
-        if (parseInt(tab.dataset.day) === selectedDay) {
-          tab.classList.add('active', 'gradient-bg', 'text-white', 'shadow-lg');
-          tab.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300', 'shadow-md');
-        }
+    function setDay(d) {
+      day = d;
+      document.querySelectorAll('.day-btn').forEach((b, i) => {
+        if (i + 1 === d) { b.classList.add('gradient', 'text-white'); b.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300'); }
+        else { b.classList.remove('gradient', 'text-white'); b.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300'); }
       });
     }
 
-    function showDay(day) {
-      selectedDay = day;
-      renderDayTabs();
-      loadDayMeals(day);
-    }
-
-    async function loadDayMeals(day) {
+    async function renderDay(d) {
       try {
-        const res = await fetch(`${API_URL}/plan/current?user_id=${currentUser.id}`);
-        const data = await res.json();
-        const meals = data.plan?.filter(m => m.day === day) || [];
-        const container = document.getElementById('meals-container');
+        const r = await fetch(`${API}/plan/current?user_id=${user.id}`);
+        const data = await r.json();
+        const meals = (data.plan || []).filter(m => m.day_of_week === d);
+        const container = document.getElementById('meals');
         
-        if (!meals.length) {
-          container.innerHTML = '<div class="text-center py-12 text-gray-500 dark:text-gray-400">📭 No hay plan para este día</div>';
-          return;
-        }
+        if (!meals.length) { container.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">📭 Sin plan este día</div>'; return; }
         
-        container.innerHTML = meals.map(meal => {
-          const mealInfo = mealIcons[meal.meal_type] || {icon: '🍽️', label: meal.meal_type, color: 'from-gray-500 to-gray-600'};
+        const icons = { desayuno: ['🌅', 'Desayuno'], almuerzo: ['🍎', 'Almuerzo'], comida: ['🍽️', 'Comida'], merienda: ['🍪', 'Merienda'], cena: ['🌙', 'Cena'] };
+        
+        container.innerHTML = meals.map(m => {
+          const icon = icons[m.meal_type] || ['🍽️', 'Comida'];
           return `
-          <div class="glass-light dark:glass-dark border-2 border-gray-100 dark:border-gray-700 rounded-xl sm:rounded-2xl p-4 sm:p-5 card-hover relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-1 h-full gradient-bg"></div>
-            <div class="flex flex-col sm:flex-row justify-between items-start gap-4 pl-3">
-              <div class="flex-1 w-full">
-                <div class="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center text-xl shadow">${mealInfo.icon}</div>
-                  <span class="gradient-bg text-white text-xs font-bold px-3 py-1 rounded-full shadow">${mealInfo.label}</span>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md border border-gray-100 dark:border-gray-700 card-hover">
+            <div class="flex justify-between items-start gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-xl">${icon[0]}</span>
+                  <span class="gradient text-white text-xs font-bold px-3 py-1 rounded-full">${icon[1]}</span>
                 </div>
-                <h3 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white mb-2 leading-tight">${meal.recipe_name || 'Sin nombre'}</h3>
-                ${meal.image_url ? `<img src="${meal.image_url}" alt="${meal.recipe_name}" class="w-full h-32 sm:h-48 object-cover rounded-xl mb-3 shadow-lg">` : ''}
-                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">${meal.ingredients || 'Sin ingredientes'}</p>
+                <h4 class="font-bold text-gray-900 dark:text-white mb-2">${m.recipe_name || 'Sin nombre'}</h4>
+                ${m.image_url ? `<img src="${m.image_url}" class="w-full h-40 object-cover rounded-xl mb-3 shadow">` : ''}
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">${m.ingredients || ''}</p>
                 <div class="flex flex-wrap gap-2">
-                  <span class="gradient-bg text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">${meal.calories || 0} kcal</span>
-                  <span class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🥩 ${Math.round(meal.protein || 0)}g</span>
-                  <span class="bg-yellow-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🍞 ${Math.round(meal.carbs || 0)}g</span>
-                  <span class="bg-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🥑 ${Math.round(meal.fat || 0)}g</span>
+                  <span class="gradient text-white px-3 py-1 rounded-lg text-xs font-bold">${m.calories || 0} kcal</span>
+                  <span class="bg-blue-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🥩 ${Math.round(m.protein || 0)}g</span>
+                  <span class="bg-yellow-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🍞 ${Math.round(m.carbs || 0)}g</span>
+                  <span class="bg-purple-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🥑 ${Math.round(m.fat || 0)}g</span>
                 </div>
               </div>
-              <button onclick="showOptionsModal('${meal.meal_type}')" class="gradient-bg text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold whitespace-nowrap shadow-lg transform hover:scale-105 transition text-sm">🔄 Cambiar</button>
+              <button onclick="showOptions('${m.meal_type}')" class="gradient text-white px-4 py-2 rounded-xl font-bold text-sm shadow whitespace-nowrap">🔄</button>
             </div>
-          </div>
-        `}).join('');
-      } catch (err) {
-        document.getElementById('meals-container').innerHTML = `<div class="text-center py-8 text-red-500">❌ Error: ${err.message}</div>`;
-      }
+          </div>`;
+        }).join('');
+      } catch (err) { document.getElementById('meals').innerHTML = `<div class="text-center py-8 text-red-500">❌ ${err.message}</div>`; }
     }
 
-    document.querySelectorAll('.day-tab').forEach(tab => {
-      tab.addEventListener('click', () => showDay(parseInt(tab.dataset.day)));
-    });
-
-    async function checkinWeight() {
-      const weight = parseFloat(document.getElementById('weight-input').value);
-      if (!weight || weight <= 0) { alert('⚠️ Introduce un peso válido'); return; }
+    async function checkin() {
+      const w = parseFloat(document.getElementById('weight-in').value);
+      if (!w) return alert('⚠️ Peso inválido');
       try {
-        const res = await fetch(`${API_URL}/weight/checkin`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({user_id: currentUser.id, weight})
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`✅ ¡Peso registrado!\n\n📊 Nuevo peso: ${weight} kg\n${data.new_recipes ? '🎉 ¡Nuevas recetas desbloqueadas!' : ''}`);
-          document.getElementById('weight-input').value = '';
-          loadDashboard();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error al registrar'));
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        const r = await fetch(`${API}/weight/checkin`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: user.id, weight: w}) });
+        const d = await r.json();
+        if (d.success) { alert(`✅ ¡Peso registrado!\n${d.new_recipes ? '🎉 Nuevas recetas desbloqueadas' : ''}`); document.getElementById('weight-in').value = ''; loadDash(); }
+        else alert('⚠️ ' + (d.error || 'Error'));
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    async function showShoppingList() {
+    async function showOptions(mealType) {
       try {
-        const res = await fetch(`${API_URL}/plan/shopping-list?user_id=${currentUser.id}`);
-        const data = await res.json();
-        const content = document.getElementById('shopping-content');
-        const list = data.list || {};
-        
-        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-        if (list.mercadona?.length) {
-          html += `<div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-4"><h3 class="font-bold text-lg mb-3 text-red-700 dark:text-red-400 flex items-center gap-2">🛒 Mercadona</h3><ul class="space-y-2 text-sm">${list.mercadona.map(item => `<li class="flex items-start gap-2"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700 dark:text-gray-300">${item}</span></li>`).join('')}</ul></div>`;
-        }
-        if (list.lidl?.length) {
-          html += `<div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4"><h3 class="font-bold text-lg mb-3 text-blue-700 dark:text-blue-400 flex items-center gap-2">🛒 Lidl</h3><ul class="space-y-2 text-sm">${list.lidl.map(item => `<li class="flex items-start gap-2"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700 dark:text-gray-300">${item}</span></li>`).join('')}</ul></div>`;
-        }
-        if (list.mixto?.length) {
-          html += `<div class="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-4 md:col-span-2"><h3 class="font-bold text-lg mb-3 text-purple-700 dark:text-purple-400 flex items-center gap-2">🛒 Ambos supermercados</h3><ul class="space-y-2 text-sm">${list.mixto.map(item => `<li class="flex items-start gap-2"><span class="text-green-500 font-bold">✓</span><span class="text-gray-700 dark:text-gray-300">${item}</span></li>`).join('')}</ul></div>`;
-        }
-        html += '</div>';
-        content.innerHTML = html;
-        document.getElementById('shopping-modal').classList.remove('hidden');
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
-    }
-
-    function closeShoppingModal() { document.getElementById('shopping-modal').classList.add('hidden'); }
-
-    async function showOptionsModal(mealType) {
-      try {
-        const res = await fetch(`${API_URL}/food-bank/options?user_id=${currentUser.id}&meal_type=${mealType}`);
-        const data = await res.json();
+        const r = await fetch(`${API}/food-bank/options?user_id=${user.id}&meal_type=${mealType}`);
+        const d = await r.json();
         const content = document.getElementById('options-content');
-        
-        if (!data.options?.length) {
-          content.innerHTML = '<div class="text-center py-12 text-gray-500 dark:text-gray-400"><p class="text-lg">📭 No hay más opciones</p><p class="text-sm mt-2">Registra tu peso para desbloquear recetas</p></div>';
-        } else {
-          content.innerHTML = data.options.map(opt => `
-            <div class="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg transition-all card-hover">
-              <div class="flex flex-col sm:flex-row justify-between gap-4">
+        if (!d.options?.length) { content.innerHTML = '<div class="text-center py-8 text-gray-500">📭 Sin opciones disponibles</div>'; }
+        else {
+          content.innerHTML = d.options.map(o => `
+            <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+              <div class="flex justify-between gap-3">
                 <div class="flex-1">
-                  <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-2">${opt.name}</h3>
-                  ${opt.image_url ? `<img src="${opt.image_url}" alt="${opt.name}" class="w-full h-32 object-cover rounded-lg mb-3">` : ''}
-                  <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">${opt.ingredients}</p>
+                  <h4 class="font-bold text-gray-900 dark:text-white mb-1">${o.name}</h4>
+                  ${o.image_url ? `<img src="${o.image_url}" class="w-full h-32 object-cover rounded-lg mb-2">` : ''}
+                  <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">${o.ingredients}</p>
                   <div class="flex flex-wrap gap-2">
-                    <span class="gradient-bg text-white px-3 py-1 rounded-lg text-xs font-bold">${opt.calories} kcal</span>
-                    <span class="bg-blue-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🥩 ${Math.round(opt.protein)}g</span>
-                    <span class="bg-yellow-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🍞 ${Math.round(opt.carbs)}g</span>
-                    <span class="bg-purple-500 text-white px-3 py-1 rounded-lg text-xs font-bold">🥑 ${Math.round(opt.fat)}g</span>
+                    <span class="gradient text-white px-2 py-1 rounded text-xs font-bold">${o.calories} kcal</span>
+                    <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold">🥩 ${Math.round(o.protein)}g</span>
+                    <span class="bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold">🍞 ${Math.round(o.carbs)}g</span>
+                    <span class="bg-purple-500 text-white px-2 py-1 rounded text-xs font-bold">🥑 ${Math.round(o.fat)}g</span>
                   </div>
                 </div>
-                <button onclick="swapMeal(${opt.recipe_id})" class="gradient-bg text-white px-5 py-2.5 rounded-xl font-bold whitespace-nowrap shadow-lg hover:shadow-xl transition self-start">Seleccionar</button>
+                <button onclick="swap(${o.recipe_id})" class="gradient text-white px-4 py-2 rounded-xl font-bold text-sm shadow h-fit">Seleccionar</button>
               </div>
-            </div>
-          `).join('');
+            </div>`).join('');
         }
-        document.getElementById('options-modal').classList.remove('hidden');
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        showModal('options');
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    function closeOptionsModal() { document.getElementById('options-modal').classList.add('hidden'); }
-
-    async function swapMeal(recipeId) {
+    async function swap(recipeId) {
       try {
-        const res = await fetch(`${API_URL}/plan/swap`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({user_id: currentUser.id, day: selectedDay, meal_type: currentMealTypeToSwap, new_recipe_id: recipeId})
-        });
-        const data = await res.json();
-        if (data.success) {
-          closeOptionsModal();
-          loadDashboard();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error al cambiar'));
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        const r = await fetch(`${API}/plan/swap`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: user.id, day: day, meal_type: currentMealType, new_recipe_id: recipeId}) });
+        const d = await r.json();
+        if (d.success) { hideModal('options'); renderDay(day); }
+        else alert('⚠️ ' + (d.error || 'Error'));
+      } catch (err) { alert('❌ Error: ' + err.message); }
+    }
+    let currentMealType = '';
+
+    async function showShopping() {
+      try {
+        const r = await fetch(`${API}/plan/shopping-list?user_id=${user.id}`);
+        const d = await r.json();
+        const list = d.list || {};
+        let html = '';
+        if (list.mercadona?.length) html += `<div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-4"><h4 class="font-bold text-red-700 dark:text-red-400 mb-2">🛒 Mercadona</h4><ul class="space-y-1 text-sm">${list.mercadona.map(i => `<li class="text-gray-700 dark:text-gray-300">✓ ${i}</li>`).join('')}</ul></div>`;
+        if (list.lidl?.length) html += `<div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4"><h4 class="font-bold text-blue-700 dark:text-blue-400 mb-2">🛒 Lidl</h4><ul class="space-y-1 text-sm">${list.lidl.map(i => `<li class="text-gray-700 dark:text-gray-300">✓ ${i}</li>`).join('')}</ul></div>`;
+        if (list.mixto?.length) html += `<div class="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-4"><h4 class="font-bold text-purple-700 dark:text-purple-400 mb-2">🛒 Ambos</h4><ul class="space-y-1 text-sm">${list.mixto.map(i => `<li class="text-gray-700 dark:text-gray-300">✓ ${i}</li>`).join('')}</ul></div>`;
+        document.getElementById('shopping-content').innerHTML = html || '<div class="text-center py-8 text-gray-500">📭 Lista vacía</div>';
+        showModal('shopping');
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    async function regeneratePlan() {
-      if (!confirm('⚠️ ¿Regenerar el plan?\n\nSe crearán nuevas recetas para esta semana.')) return;
+    async function regenerate() {
+      if (!confirm('⚠️ ¿Regenerar plan?')) return;
       try {
-        const res = await fetch(`${API_URL}/plan/regenerate`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({user_id: currentUser.id})
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert('✅ ¡Plan regenerado!');
-          loadDashboard();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error'));
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        const r = await fetch(`${API}/plan/regenerate`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: user.id}) });
+        const d = await r.json();
+        if (d.success) { alert('✅ ¡Plan regenerado!'); renderDay(day); }
+        else alert('⚠️ ' + (d.error || 'Error'));
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
     async function exportPlan() {
       try {
-        const res = await fetch(`${API_URL}/plan/export?user_id=${currentUser.id}`);
-        const data = await res.json();
-        if (data.export) {
-          await navigator.clipboard.writeText(data.export);
-          alert('✅ ¡Plan copiado al portapapeles!');
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        const r = await fetch(`${API}/plan/export?user_id=${user.id}`);
+        const d = await r.json();
+        if (d.export) { await navigator.clipboard.writeText(d.export); alert('✅ ¡Plan copiado!'); }
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    async function showEditProfile() {
-      try {
-        const res = await fetch(`${API_URL}/profile/get?user_id=${currentUser.id}`);
-        const data = await res.json();
-        if (data.profile) {
-          const p = data.profile;
-          document.getElementById('edit-age').value = p.age;
-          document.getElementById('edit-gender').value = p.gender;
-          document.getElementById('edit-height').value = p.height_cm;
-          document.getElementById('edit-current-weight').value = p.current_weight_kg;
-          document.getElementById('edit-goal-weight').value = p.goal_weight_kg;
-          document.getElementById('edit-goal-type').value = p.goal_type;
-          document.getElementById('edit-activity').value = p.activity_level;
-          document.getElementById('edit-meals').value = p.meals_per_day;
-          document.getElementById('edit-profile-modal').classList.remove('hidden');
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
-    }
-
-    function closeEditProfile() { document.getElementById('edit-profile-modal').classList.add('hidden'); }
-
-    async function handleEditProfile(e) {
+    async function updateProfile(e) {
       e.preventDefault();
-      const updateData = {
-        user_id: currentUser.id,
+      const data = {
+        user_id: user.id,
         age: parseInt(document.getElementById('edit-age').value),
         gender: document.getElementById('edit-gender').value,
         height: parseFloat(document.getElementById('edit-height').value),
-        current_weight: parseFloat(document.getElementById('edit-current-weight').value),
-        goal_weight: parseFloat(document.getElementById('edit-goal-weight').value),
-        goal_type: document.getElementById('edit-goal-type').value,
+        current_weight: parseFloat(document.getElementById('edit-weight').value),
+        goal_weight: parseFloat(document.getElementById('edit-goal').value),
+        goal_type: document.getElementById('edit-type').value,
         activity_level: document.getElementById('edit-activity').value,
         meals_per_day: parseInt(document.getElementById('edit-meals').value)
       };
       try {
-        const res = await fetch(`${API_URL}/profile/update`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(updateData)
-        });
-        const data = await res.json();
-        if (data.success) {
-          // ACTUALIZAR LOCALSTORAGE CON LOS NUEVOS DATOS
-          currentUser = { ...currentUser, ...updateData };
-          localStorage.setItem('user', JSON.stringify(currentUser));
-          
-          if (data.recalculated) {
-            alert(`✅ ¡Perfil actualizado!\n\n🔥 Nuevas calorías: ${data.target_calories} kcal/día\n📊 TMB: ${data.tmb} kcal\n⚡ TDEE: ${data.tdee} kcal`);
-          } else {
-            alert('✅ ¡Perfil actualizado!');
-          }
-          closeEditProfile();
-          loadDashboard();
-        } else {
-          alert('⚠️ ' + (data.error || 'Error'));
-        }
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
+        const r = await fetch(`${API}/profile/update`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        const d = await r.json();
+        if (d.success) {
+          user = { ...user, ...data };
+          localStorage.setItem('user', JSON.stringify(user));
+          alert(`✅ ¡Perfil actualizado!\n${d.recalculated ? `🔥 ${d.target_calories} kcal/día` : ''}`);
+          hideModal('edit');
+          loadDash();
+        } else alert('⚠️ ' + (d.error || 'Error'));
+      } catch (err) { alert('❌ Error: ' + err.message); }
     }
 
-    async function resetAll() {
-      if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará todo tu progreso.')) return;
-      if (!confirm('⚠️ ÚLTIMA ADVERTENCIA\n\n¿Realmente quieres borrar TODO?')) return;
-      try {
-        localStorage.removeItem('user');
-        window.location.reload();
-      } catch (err) {
-        alert('❌ Error: ' + err.message);
-      }
-    }
-
+    // Init
     window.addEventListener('DOMContentLoaded', () => {
       const saved = localStorage.getItem('user');
-      if (saved) {
-        currentUser = JSON.parse(saved);
-        showDashboard();
-      } else {
-        showWelcome();
-      }
+      if (saved) { user = JSON.parse(saved); loadDash(); }
     });
   </script>
 </body>

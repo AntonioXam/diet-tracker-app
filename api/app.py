@@ -259,20 +259,20 @@ def calculate_tmb(age, gender, height, weight, activity_level, body_fat_percenta
 def calculate_deficit(tdee, goal_type, current_weight, goal_weight, tmb=None, loss_rate='moderate', gender='female'):
     """
     Calcula calorías objetivo de forma segura y personalizada.
-    - loss_rate: 'slow' (0.25-0.5 kg/semana), 'moderate' (0.5-0.75), 'aggressive' (0.75-1)
+    - loss_rate: 'slow' (250 kcal/día), 'moderate' (500 kcal/día), 'aggressive' (750 kcal/día)
     - Nunca por debajo del TMB (o 1200 kcal mujeres / 1500 hombres)
-    - Déficit máximo 20% del TDEE (excepto bajo supervisión)
+    - Déficit máximo 30% del TDEE (para resultados más rápidos pero seguros)
     - Superávit para ganancia: +250-500 kcal, máximo 3500 kcal
     """
     if goal_type == 'lose':
-        # Determinar déficit según tasa deseada
-        deficit_per_week = {'slow': 250, 'moderate': 500, 'aggressive': 750}.get(loss_rate, 500)
-        # 1 kg de grasa ≈ 7700 kcal, semanal déficit: 7700 * kg_semana / 7
-        # pero usamos déficit fijo por simplicidad (250-750 kcal/día)
-        deficit = deficit_per_week
-        # Asegurar que el déficit no supere el 20% del TDEE
-        max_deficit = tdee * 0.2
-        deficit = min(deficit, max_deficit)
+        # Determinar déficit diario según tasa deseada
+        deficit_daily = {'slow': 250, 'moderate': 500, 'aggressive': 750}.get(loss_rate, 500)
+        # Asegurar que el déficit no supere el 30% del TDEE (límite seguro)
+        max_deficit = tdee * 0.3
+        deficit = min(deficit_daily, max_deficit)
+        # Garantizar déficit mínimo de 300 kcal si TDEE es alto (para que haya efecto)
+        if deficit < 300 and tdee > 2000:
+            deficit = min(300, max_deficit)
         target = tdee - deficit
         # Mínimo saludable: nunca menos del TMB (si se proporciona) y nunca menos de
         # 1200 kcal mujeres, 1500 hombres (recomendaciones generales)
@@ -362,7 +362,7 @@ def register():
         # Crear perfil
         tmb, tdee = calculate_tmb(data['age'], data['gender'], data['height'], data['current_weight'], data['activity_level'])
         target_calories = calculate_deficit(tdee, data['goal_type'], data['current_weight'], data['goal_weight'],
-                                            tmb=tmb, gender=data['gender'])
+                                            tmb=tmb, gender=data['gender'], loss_rate='aggressive')
         
         supabase.table('user_profiles').insert({
             'user_id': user_id,
@@ -373,7 +373,10 @@ def register():
             'goal_weight_kg': data['goal_weight'],
             'goal_type': data['goal_type'],
             'activity_level': data['activity_level'],
-            'meals_per_day': data['meals_per_day']
+            'meals_per_day': data['meals_per_day'],
+            'tmb': tmb,
+            'tdee': tdee,
+            'target_calories': target_calories
         }).execute()
         
         # Generar plan inicial

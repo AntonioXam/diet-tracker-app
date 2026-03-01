@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """Inicializa DB en Supabase vía REST API."""
 import requests
+import os
+from dotenv import load_dotenv
 
-SUPABASE_URL = "https://jxafifppxnaqjxpqfrtr.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWZpZnBweG5hcWp4cHFmcnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE1NDEsImV4cCI6MjA4NzQ0NzU0MX0._8JT1PAaSZpnyUf9SwuwKxBtV5hhsvrq4BalSN5t3GU"
+load_dotenv()
+
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("❌ Error: SUPABASE_URL y SUPABASE_KEY deben estar definidos en .env")
+    exit(1)
 
 headers = {
     "apikey": SUPABASE_KEY,

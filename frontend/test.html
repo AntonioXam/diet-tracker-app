@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Diet Tracker FIT</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .feature {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+        .emoji {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Diet Tracker FIT</h1>
+        <p style="font-size: 1.2em; opacity: 0.9;">Frontend modernizado y optimizado</p>
+        
+        <div style="margin: 40px 0;">
+            <h2>✅ Mejoras Implementadas</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="emoji">🌙</div>
+                    <h3>Modo Oscuro</h3>
+                    <p>Toggle persistente con localStorage</p>
+                </div>
+                <div class="feature">
+                    <div class="emoji">📱</div>
+                    <h3>Responsive</h3>
+                    <p>Mobile, tablet y desktop</p>
+                </div>
+                <div class="feature">
+                    <div class="emoji">🎨</div>
+                    <h3>Diseño Moderno</h3>
+                    <p>Gradientes y efectos glass</p>
+                </div>
+                <div class="feature">
+                    <div class="emoji">📊</div>
+                    <h3>Gráficos</h3>
+                    <p>Evolución de peso interactiva</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px;">
+            <a href="index.html" style="
+                background: white;
+                color: #667eea;
+                padding: 15px 30px;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: bold;
+                display: inline-block;
+                transition: transform 0.3s;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                🚀 Abrir Aplicación Principal
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 0.9em; opacity: 0.7;">
+            <p>Archivos principales:</p>
+            <ul style="list-style: none; padding: 0;">
+                <li>📄 <strong>index.html</strong> - HTML principal</li>
+                <li>🎨 <strong>styles.css</strong> - Estilos con variables CSS</li>
+                <li>⚡ <strong>app.js</strong> - Lógica JavaScript</li>
+                <li>📖 <strong>README.md</strong> - Documentación</li>
+                <li>📝 <strong>CHANGELOG.md</strong> - Historial de cambios</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

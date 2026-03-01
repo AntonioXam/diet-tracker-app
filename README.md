@@ -56,3 +56,19 @@ Tablas principales:
 - `user_food_bank` - Banco de comidas (máx 6 por tipo)
 - `weekly_plans` - Planes semanales
 - `master_recipes` - Recetas maestras (Mercadona/Lidl)
+
+## 🧪 Testing
+
+The project includes a comprehensive testing suite covering unit tests, integration tests, and end‑to‑end tests. See [TESTING.md](./TESTING.md) for detailed instructions on running and writing tests.
+
+**Quick start:**
+```bash
+cd api
+pip install -r requirements-dev.txt
+python -m pytest tests/ -v
+```
+
+**Coverage:**
+- Unit tests for utility functions (TMB, deficit, etc.)
+- Integration tests for Flask API endpoints (mocked Supabase)
+- E2E tests for frontend interactions (using Playwright)

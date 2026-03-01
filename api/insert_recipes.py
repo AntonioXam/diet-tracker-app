@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Script para crear tablas en Supabase."""
+"""Insertar recetas maestras en Supabase."""
 
 import os
 from supabase import create_client
@@ -7,118 +7,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Credenciales desde .env
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print("❌ Error: SUPABASE_URL y SUPABASE_KEY deben estar definidos en .env")
-    exit(1)
-
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# SQL para crear tablas
-sql_statements = """
--- Tabla de usuarios
-CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Perfiles de usuario
-CREATE TABLE IF NOT EXISTS user_profiles (
-    user_id BIGINT PRIMARY KEY REFERENCES users(id),
-    age INTEGER NOT NULL,
-    gender TEXT NOT NULL,
-    height_cm REAL NOT NULL,
-    current_weight_kg REAL NOT NULL,
-    goal_weight_kg REAL NOT NULL,
-    activity_level TEXT NOT NULL,
-    meals_per_day INTEGER NOT NULL,
-    allergies TEXT,
-    disliked_foods TEXT,
-    goal_type TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Historial de peso
-CREATE TABLE IF NOT EXISTS weight_history (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id),
-    weight_kg REAL NOT NULL,
-    week_number INTEGER NOT NULL,
-    recorded_at TIMESTAMP DEFAULT NOW()
-);
-
--- Recetas maestras
-CREATE TABLE IF NOT EXISTS master_recipes (
-    id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    meal_type TEXT NOT NULL,
-    calories REAL NOT NULL,
-    protein REAL NOT NULL,
-    carbs REAL NOT NULL,
-    fat REAL NOT NULL,
-    ingredients TEXT NOT NULL,
-    instructions TEXT,
-    supermarket TEXT NOT NULL,
-    category TEXT NOT NULL
-);
-
--- Banco de comidas del usuario
-CREATE TABLE IF NOT EXISTS user_food_bank (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id),
-    meal_type TEXT NOT NULL,
-    recipe_id BIGINT REFERENCES master_recipes(id),
-    times_used INTEGER DEFAULT 0,
-    added_week INTEGER NOT NULL
-);
-
--- Planes semanales
-CREATE TABLE IF NOT EXISTS weekly_plans (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id),
-    week_number INTEGER NOT NULL,
-    day_of_week INTEGER NOT NULL,
-    meal_type TEXT NOT NULL,
-    selected_recipe_id BIGINT REFERENCES master_recipes(id),
-    calories REAL,
-    protein REAL,
-    carbs REAL,
-    fat REAL
-);
-
--- Función para incrementar uso de receta
-CREATE OR REPLACE FUNCTION increment_recipe_usage(p_user_id BIGINT, p_recipe_id BIGINT)
-RETURNS void AS $$
-BEGIN
-    UPDATE user_food_bank 
-    SET times_used = times_used + 1 
-    WHERE user_id = p_user_id AND recipe_id = p_recipe_id;
-END;
-$$ LANGUAGE plpgsql;
-"""
-
-print("🔧 Creando tablas en Supabase...")
-
-try:
-    # Ejecutar SQL
-    result = supabase.rpc('exec_sql', {'sql': sql_statements}).execute()
-    print("✅ Tablas creadas correctamente")
-except Exception as e:
-    print(f"⚠️ Error con RPC: {e}")
-    print("Intentando crear tablas individualmente...")
-    
-    # Si RPC no funciona, las tablas se crearán al insertar datos
-    print("Las tablas se crearán automáticamente al usar la API")
-
-# Insertar recetas
-print("\n📦 Insertando recetas maestras...")
-
+# Recetas maestras (copiadas de setup_db.py)
 recipes = [
     {'name': 'Tostada con aguacate y huevo', 'meal_type': 'desayuno', 'calories': 350, 'protein': 15, 'carbs': 30, 'fat': 18, 'ingredients': 'Pan de molde integral Hacendado/Lidl (2 rebanadas), Aguacate (1/2), Huevo L Hacendado (1), Aceite de oliva', 'instructions': 'Tostar pan, machacar aguacate, hacer huevo', 'supermarket': 'mixto', 'category': 'salado'},
     {'name': 'Yogur con avena y frutas', 'meal_type': 'desayuno', 'calories': 320, 'protein': 18, 'carbs': 45, 'fat': 8, 'ingredients': 'Queso fresco batido 0% Hacendado (150g), Avena Lidl (40g), Plátano, Miel', 'instructions': 'Mezclar todo en bol', 'supermarket': 'mixto', 'category': 'dulce'},
@@ -152,6 +46,8 @@ recipes = [
     {'name': 'Crema calabacín', 'meal_type': 'cena', 'calories': 240, 'protein': 12, 'carbs': 25, 'fat': 10, 'ingredients': 'Calabacín (2), Puerro, Queso Hacendado (50g)', 'instructions': 'Cocer y triturar', 'supermarket': 'mixto', 'category': 'crema'},
 ]
 
+print(f"📦 Insertando {len(recipes)} recetas maestras...")
+
 try:
     # Verificar si ya existen recetas
     existing = supabase.table('master_recipes').select('id').execute()
@@ -160,8 +56,10 @@ try:
             supabase.table('master_recipes').insert(recipe).execute()
         print(f"✅ {len(recipes)} recetas insertadas")
     else:
-        print(f"✅ Ya existen {len(existing.data)} recetas")
+        print(f"✅ Ya existen {len(existing.data)} recetas (no se insertan nuevas)")
 except Exception as e:
     print(f"⚠️ Error insertando recetas: {e}")
+    import traceback
+    traceback.print_exc()
 
-print("\n✅ ¡Base de datos configurada!")
+print("\n🎉 ¡Recetas listas!")

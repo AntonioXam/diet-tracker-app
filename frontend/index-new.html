@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diet Tracker App | Tu plan nutricional inteligente</title>
+  <meta name="description" content="Aplicación de seguimiento de dieta con planificación de comidas, registro de peso y lista de compras automática.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥗</text></svg>">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              500: '#d946ef',
+              600: '#c026d3',
+              700: '#a21caf'
+            },
+            accent: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- GSAP para animaciones avanzadas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  
+  <!-- Animate.css para animaciones predefinidas -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <style>
+    /* Estilos adicionales para mejoras visuales */
+    .glassmorphism {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .dark .glassmorphism {
+      background: rgba(30, 41, 59, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    
+    .dark .skeleton {
+      background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    
+    .hover-3d {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-3d:hover {
+      transform: translateY(-8px) rotateX(5deg) rotateY(5deg);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    .pulse-effect:active {
+      animation: pulse 0.3s ease;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    .modal-enter {
+      animation: modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    @keyframes modalEnter {
+      0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    
+    .modal-exit {
+      animation: modalExit 0.3s ease;
+    }
+    
+    @keyframes modalExit {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen font-sans transition-colors duration-300">
+  <!-- Navigation -->
+  <nav class="glassmorphism sticky top-0 z-50 border-b border-white/20 dark:border-gray-700/50">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 gradient rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+            🥗
+          </div>
+          <h1 class="text-xl font-black gradient-text">Diet Tracker</h1>
+        </div>
+        
+        <!-- Navigation Links -->
+        <div class="flex items-center gap-4">
+          <!-- Dark Mode Toggle -->
+          <button onclick="toggleDark()" 
+                  class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center hover:scale-105 transition-transform pulse-effect"
+                  aria-label="Alternar modo oscuro/claro">
+            <span id="dark-mode-icon" class="text-lg">🌙</span>
+          </button>
+          
+          <!-- User Menu (hidden by default) -->
+          <div id="nav-user" class="hidden items-center gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 gradient rounded-full flex items-center justify-center text-white font-bold shadow-lg" id="user-avatar">
+                U
+              </div>
+              <div class="hidden md:block">
+                <p class="text-sm font-bold text-gray-900 dark:text-white" id="user-name">Usuario</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Plan activo</p>
+              </div>
+            </div>
+            <button onclick="logout()" 
+                    class="text-sm font-bold text-red-500 hover:text-red-700 dark:hover:text-red-400 px-4 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              Salir
+            </button>
+          </div>
+          
+          <!-- Auth Buttons (shown by default) -->
+          <div id="nav-auth" class="flex items-center gap-3">
+            <button onclick="showCustomModal('login')" 
+                    class="text-sm font-bold text-primary-600 dark:text-primary-400 px-4 py-2 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
+              Iniciar sesión
+            </button>
+            <button onclick="showCustomModal('register')" 
+                    class="text-sm font-bold gradient text-white px-4 py-2 rounded-xl shadow-lg hover:scale-105 transition-transform pulse-effect">
+              Registrarse
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Welcome Section -->
+  <section id="welcome" class="min-h-[80vh] flex items-center justify-center px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="animate__animated animate__fadeInUp">
+        <h1 class="text-5xl md:text-7xl font-black mb-6 gradient-text">
+          Transforma tu salud
+          <span class="block text-4xl md:text-6xl mt-2">con inteligencia</span>
+        </h1>
+        <p class="text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto">
+          Planificación nutricional personalizada, seguimiento de progreso y lista de compras automática.
+          Todo en una aplicación moderna y elegante.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <button onclick="showCustomModal('register')" 
+                  class="gradient-premium text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-transform pulse-effect animate__animated animate__pulse animate__infinite">
+            <i class="fas fa-rocket mr-2"></i> Comenzar gratis
+          </button>
+          <button onclick="showCustomModal('login')" 
+                  class="glassmorphism text-gray-900 dark:text-white px-8 py-4 rounded-2xl font-bold text-lg border-2 border-transparent hover:border-primary-500 transition-all pulse-effect">
+            <i class="fas fa-sign-in-alt mr-2"></i> Acceder
+          </button>
+        </div>
+      </div>
+      
+      <!-- Features Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+        <div class="glassmorphism p-6 rounded-3xl hover-3d">
+          <div class="w-16 h-16 gradient rounded-2xl flex items-center justify-center text-2xl text-white mb-4 mx-auto">
+            <i class="fas fa-utensils"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Planificación inteligente</h3>
+          <p class="text-gray-600 dark:text-gray-400">Recetas personalizadas según tus objetivos y preferencias dietéticas.</p>
+        </div>
+        
+        <div class="glassmorphism p-6 rounded-3xl hover-3d">
+          <div class="w-16 h-16 gradient-success rounded-2xl flex items-center justify-center text-2xl text-white mb-4 mx-auto">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Seguimiento preciso</h3>
+          <p class="text-gray-600 dark:text-gray-400">Registro de peso y visualización de progreso con gráficos interactivos.</p>
+        </div>
+        
+        <div class="glassmorphism p-6 rounded-3xl hover-3d">
+          <div class="w-16 h-16 gradient-gold rounded-2xl flex items-center justify-center text-2xl text-white mb-4 mx-auto">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Lista de compras</h3>
+          <p class="text-gray-600 dark:text-gray-400">Generación automática de lista de compras organizada por supermercado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard (hidden by default) -->
+  <section id="dashboard" class="hidden container mx-auto px-4 py-8">
+    <!-- Dashboard content will be loaded here -->
+    <div id="dashboard-loader" class="text-center py-20">
+      <div class="loading-spinner mx-auto mb-4"></div>
+      <p class="text-gray-500 dark:text-gray-400">Cargando tu dashboard...</p>
+    </div>
+  </section>
+
+  <!-- Custom Modals Container -->
+  <div id="custom-modals-container"></div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[100] space-y-2"></div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+  
+  <script>
+    // Inicializar GSAP
+    gsap.registerEffect({
+      name: "pulse",
+      effect: (targets, config) => {
+        return gsap.to(targets, {
+          scale: config.scale || 1.1,
+          duration: config.duration || 0.2,
+          yoyo: true,
+          repeat: 1
+        });
+      },
+      defaults: { scale: 1.1, duration: 0.2 }
+    });
+    
+    // Función para mostrar modales personalizados
+    function showCustomModal(type) {
+      const container = document.getElementById('custom-modals-container');
+      
+      if (type === 'login') {
+        container.innerHTML = `
+          <!-- Login Modal -->
+          <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="hideCustomModal()"></div>
+            <div class="relative glassmorphism rounded-3xl shadow-2xl max-w-md w-full p-8 modal-enter">
+              <div class="flex justify-between items-center mb-8">
+                <div>
+                  <h2 class="text-2xl font-black text-gray-900 dark:text-white">
+                    <i class="fas fa-sign-in-alt mr-2 text-primary-500"></i>
+                    Iniciar sesión
+                  </h2>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Accede a tu cuenta para continuar</p>
+                </div>
+                <button onclick="hideCustomModal()" 
+                        class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl hover:scale-105 transition-transform pulse-effect"
+                        aria-label="Cerrar">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <form onsubmit="event.preventDefault(); login();" class="space-y-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-user mr-2 text-primary-500"></i>
+                    Nombre de usuario
+                  </label>
+                  <input type="text" 
+                         id="login-username"
+                         class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all form-input"
+                         placeholder="Tu nombre de usuario"
+                         required>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-lock mr-2 text-primary-500"></i>
+                    Contraseña
+                  </label>
+                  <input type="password" 
+                         id="login-password"
+                         class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all form-input"
+                         placeholder="Tu contraseña"
+                         required>
+                </div>
+                
+                <button type="submit" 
+                        class="w-full gradient-premium text-white py-4 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform pulse-effect flex items-center justify-center gap-2">
+                  <i class="fas fa-sign-in-alt"></i>
+                  Iniciar sesión
+                </button>
+              </form>
+              
+              <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+                ¿No tienes cuenta? 
+                <button onclick="showCustomModal('register')" 
+                        class="text-primary-600 dark:text-primary-400 font-bold hover:underline ml-1">
+                  Regístrate aquí
+                </button>
+              </p>
+            </div>
+          </div>
+        `;
+      } else if (type === 'register') {
+        container.innerHTML = `
+          <!-- Register Modal -->
+          <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="hideCustomModal()"></div>
+            <div class="relative glassmorphism rounded-3xl shadow-2xl max-w-md w-full p-8 modal-enter overflow-y-auto max-h-[90vh]">
+              <div class="flex justify-between items-center mb-8">
+                <div>
+                  <h2 class="text-2xl font-black text-gray-900 dark:text-white">
+                    <i class="fas fa-user-plus mr-2 text-primary-500"></i>
+                    Crear cuenta
+                  </h2>
+                  <p class="text-sm text-gray-500 dark:text-gray

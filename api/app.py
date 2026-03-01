@@ -316,6 +316,23 @@ def seed_recipes():
 def health():
     return jsonify({'status': 'ok', 'timestamp': datetime.now().isoformat()})
 
+@app.route('/api/debug')
+def debug():
+    """Endpoint de depuración para verificar configuración."""
+    import os
+    import sys
+    debug_info = {
+        'supabase_url_configured': bool(os.getenv('SUPABASE_URL')),
+        'supabase_url_length': len(os.getenv('SUPABASE_URL', '')),
+        'supabase_key_configured': bool(os.getenv('SUPABASE_KEY')),
+        'supabase_key_prefix': os.getenv('SUPABASE_KEY', '')[:10] + '...' if os.getenv('SUPABASE_KEY') else None,
+        'python_version': sys.version,
+        'flask_env': os.getenv('FLASK_ENV', 'production'),
+        'vercel_env': os.getenv('VERCEL_ENV', 'unknown'),
+        'timestamp': datetime.now().isoformat()
+    }
+    return jsonify(debug_info)
+
 @app.route('/api/register', methods=['POST'])
 def register():
     """Registra usuario nuevo con perfil completo."""

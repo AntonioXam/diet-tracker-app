@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diet Tracker App | Tu plan nutricional inteligente</title>
+  <meta name="description" content="Aplicación de seguimiento de dieta con planificación de comidas, registro de peso y lista de compras automática.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥗</text></svg>">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              500: '#d946ef',
+              600: '#c026d3',
+              700: '#a21caf'
+            },
+            accent: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.6s ease-out',
+            'slide-up': 'slideUp 0.7s ease-out',
+            'scale-in': 'scaleIn 0.4s ease-out',
+            'shake': 'shake 0.5s ease-in-out'
+          },
+          keyframes: {
+            fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+            slideUp: { '0%': { transform: 'translateY(30px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+            scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+            shake: { '0%, 100%': { transform: 'translateX(0)' }, '25%': { transform: 'translateX(-10px)' }, '75%': { transform: 'translateX(10px)' } }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- GSAP para animaciones avanzadas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  
+  <!-- Animate.css para animaciones predefinidas -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="font-inter bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 min-h-screen text-gray-900 dark:text-white transition-colors duration-300">
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="text-3xl">🥗</div>
+        <div>
+          <h1 class="text-xl font-black bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">Diet Tracker FIT</h1>
+          <p class="text-xs text-gray-500 dark:text-gray-400">✨ 350+ recetas premium</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <button onclick="toggleDark()" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:scale-105 transition-transform" aria-label="Alternar modo oscuro">
+          🌙
+        </button>
+        
+        <div class="flex gap-2">
+          <button onclick="showModal('login')" class="px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all">Entrar</button>
+          <button onclick="showModal('register')" class="gradient-premium text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg btn-premium">Registrarse</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-12">
+    <div class="max-w-6xl mx-auto">
+      <!-- Hero Section -->
+      <div class="text-center mb-16">
+        <div class="text-5xl mb-6">🎯</div>
+        <h1 class="text-5xl md:text-7xl font-black mb-6">
+          Transforma tu alimentación
+        </h1>
+        <p class="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-3xl mx-auto">
+          Planes personalizados con productos de Mercadona y Lidl. 350+ recetas saludables con fotos.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <button onclick="showModal('register')" class="gradient-premium text-white px-10 py-4 rounded-2xl font-black text-lg shadow-2xl btn-premium glow">🚀 Comenzar gratis</button>
+          <button onclick="showModal('login')" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-10 py-4 rounded-2xl font-bold text-lg border-2 border-gray-200 dark:border-gray-700 hover:border-purple-400 transition-all btn-premium">👤 Ya tengo cuenta</button>
+        </div>
+      </div>
+      
+      <!-- Features -->
+      <div class="grid md:grid-cols-3 gap-8 mb-20">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl">
+          <div class="text-4xl mb-4">📊</div>
+          <h3 class="text-2xl font-black mb-3">Macros calculados</h3>
+          <p class="text-gray-600 dark:text-gray-400">Proteínas, carbohidratos y grasas equilibrados automáticamente.</p>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl">
+          <div class="text-4xl mb-4">🔄</div>
+          <h3 class="text-2xl font-black mb-3">Variedad total</h3>
+          <p class="text-gray-600 dark:text-gray-400">Cada día menús diferentes. Nunca te aburrirás comiendo.</p>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl">
+          <div class="text-4xl mb-4">🛒</div>
+          <h3 class="text-2xl font-black mb-3">Lista automática</h3>
+          <p class="text-gray-600 dark:text-gray-400">Generada por supermercado. Copia y compra sin pensar.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modals will be dynamically inserted here -->
+  <div id="modals-container"></div>
+  
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[100] space-y-2"></div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

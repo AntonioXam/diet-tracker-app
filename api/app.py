@@ -229,29 +229,68 @@ MASTER_RECIPES = [
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-def calculate_tmb(age, gender, height, weight, activity_level):
-    """Tasa Metabólica Basal - fórmula Mifflin-St Jeor."""
-    if gender == 'male':
-        tmb = 10 * weight + 6.25 * height - 5 * age + 5
+def calculate_tmb(age, gender, height, weight, activity_level, body_fat_percentage=None, formula='mifflin'):
+    """
+    Tasa Metabólica Basal - con opción de fórmula Mifflin-St Jeor (default), Harris-Benedict, o Katch-McArdle.
+    Si se proporciona body_fat_percentage, se usa Katch-McArdle (más precisa).
+    Altura en cm, peso en kg.
+    """
+    if body_fat_percentage is not None and 0 <= body_fat_percentage <= 100:
+        # Katch-McArdle: requiere masa magra
+        lean_body_mass = weight * (1 - body_fat_percentage / 100)
+        tmb = 370 + 21.6 * lean_body_mass
+    elif formula.lower() == 'harris':
+        # Harris-Benedict (revisada)
+        if gender == 'male':
+            tmb = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+        else:
+            tmb = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
     else:
-        tmb = 10 * weight + 6.25 * height - 5 * age - 161
+        # Mifflin-St Jeor (default)
+        if gender == 'male':
+            tmb = 10 * weight + 6.25 * height - 5 * age + 5
+        else:
+            tmb = 10 * weight + 6.25 * height - 5 * age - 161
     
     multipliers = {'sedentary': 1.2, 'light': 1.375, 'moderate': 1.55, 'active': 1.725, 'very_active': 1.9}
-    return round(tmb), round(tmb * multipliers.get(activity_level, 1.2))
+    tdee = tmb * multipliers.get(activity_level, 1.2)
+    return round(tmb), round(tdee)
 
-def calculate_deficit(tdee, goal_type, current_weight, goal_weight):
-    """Calcula calorías objetivo de forma segura y realista."""
+def calculate_deficit(tdee, goal_type, current_weight, goal_weight, tmb=None, loss_rate='moderate', gender='female'):
+    """
+    Calcula calorías objetivo de forma segura y personalizada.
+    - loss_rate: 'slow' (0.25-0.5 kg/semana), 'moderate' (0.5-0.75), 'aggressive' (0.75-1)
+    - Nunca por debajo del TMB (o 1200 kcal mujeres / 1500 hombres)
+    - Déficit máximo 20% del TDEE (excepto bajo supervisión)
+    - Superávit para ganancia: +250-500 kcal, máximo 3500 kcal
+    """
     if goal_type == 'lose':
-        # Déficit seguro: 300-500 kcal menos del TDEE
-        # Nunca menos de 1200 kcal (mínimo saludable)
-        deficit = min(500, max(300, (current_weight - goal_weight) * 15))
-        target = max(1200, tdee - deficit)
-        return target
+        # Determinar déficit según tasa deseada
+        deficit_per_week = {'slow': 250, 'moderate': 500, 'aggressive': 750}.get(loss_rate, 500)
+        # 1 kg de grasa ≈ 7700 kcal, semanal déficit: 7700 * kg_semana / 7
+        # pero usamos déficit fijo por simplicidad (250-750 kcal/día)
+        deficit = deficit_per_week
+        # Asegurar que el déficit no supere el 20% del TDEE
+        max_deficit = tdee * 0.2
+        deficit = min(deficit, max_deficit)
+        target = tdee - deficit
+        # Mínimo saludable: nunca menos del TMB (si se proporciona) y nunca menos de
+        # 1200 kcal mujeres, 1500 hombres (recomendaciones generales)
+        min_calories = 1200 if gender == 'female' else 1500
+        if tmb is not None:
+            min_calories = max(min_calories, tmb)
+        target = max(min_calories, target)
+        return round(target)
     elif goal_type == 'gain':
-        # Superávit moderado: +250-300 kcal
-        return min(tdee + 300, 3500)  # Máximo 3500 kcal
+        # Superávit moderado
+        surplus = 300  # kcal por defecto
+        target = tdee + surplus
+        # Límite superior para evitar ganancia excesiva de grasa
+        max_calories = 3500
+        target = min(target, max_calories)
+        return round(target)
     # Mantenimiento
-    return tdee
+    return round(tdee)
 
 def get_week_number():
     return datetime.now().isocalendar()[1]
@@ -305,7 +344,8 @@ def register():
         
         # Crear perfil
         tmb, tdee = calculate_tmb(data['age'], data['gender'], data['height'], data['current_weight'], data['activity_level'])
-        target_calories = calculate_deficit(tdee, data['goal_type'], data['current_weight'], data['goal_weight'])
+        target_calories = calculate_deficit(tdee, data['goal_type'], data['current_weight'], data['goal_weight'],
+                                            tmb=tmb, gender=data['gender'])
         
         supabase.table('user_profiles').insert({
             'user_id': user_id,
@@ -402,7 +442,8 @@ def save_profile():
         
         # Calcular calorías
         tmb, tdee = calculate_tmb(data['age'], data['gender'], data['height'], data['current_weight'], data['activity_level'])
-        target = calculate_deficit(tdee, data['goal_type'], data['current_weight'], data['goal_weight'])
+        target = calculate_deficit(tdee, data['goal_type'], data['current_weight'], data['goal_weight'],
+                                   tmb=tmb, gender=data['gender'])
         
         # Generar primera semana CON VARIEDAD DIARIA
         generate_first_week_varied(user_id, target, data['meals_per_day'])
@@ -441,7 +482,8 @@ def update_profile():
             profile = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute().data[0]
             tmb, tdee = calculate_tmb(profile['age'], profile['gender'], profile['height_cm'], 
                                       profile['current_weight_kg'], profile['activity_level'])
-            target = calculate_deficit(tdee, profile['goal_type'], profile['current_weight_kg'], profile['goal_weight_kg'])
+            target = calculate_deficit(tdee, profile['goal_type'], profile['current_weight_kg'], profile['goal_weight_kg'],
+                                       tmb=tmb, gender=profile['gender'])
             
             return jsonify({'success': True, 'recalculated': True, 'tmb': tmb, 'tdee': tdee, 'target_calories': int(target)})
         
@@ -475,7 +517,9 @@ def get_profile():
             tdee,
             profile['goal_type'],
             profile['current_weight_kg'],
-            profile['goal_weight_kg']
+            profile['goal_weight_kg'],
+            tmb=tmb,
+            gender=profile['gender']
         )
         
         # Añadir target_calories al perfil retornado
@@ -498,11 +542,41 @@ def get_meal_types_for_count(meals_per_day):
     else:
         return ['desayuno', 'comida', 'cena']  # default
 
+
+def get_calorie_distribution(target_calories, meals_per_day):
+    """Distribuye calorías diarias entre los tipos de comida según porcentajes típicos."""
+    meal_types = get_meal_types_for_count(meals_per_day)
+    # Porcentajes basados en recomendaciones dietéticas (ajustables)
+    if meals_per_day == 3:
+        # desayuno 30%, comida 40%, cena 30%
+        percentages = {'desayuno': 0.3, 'comida': 0.4, 'cena': 0.3}
+    elif meals_per_day == 4:
+        # desayuno 30%, comida 35%, merienda 10%, cena 25%
+        percentages = {'desayuno': 0.3, 'comida': 0.35, 'merienda': 0.1, 'cena': 0.25}
+    elif meals_per_day == 5:
+        # desayuno 25%, almuerzo 10%, comida 35%, merienda 10%, cena 20%
+        percentages = {'desayuno': 0.25, 'almuerzo': 0.1, 'comida': 0.35, 'merienda': 0.1, 'cena': 0.2}
+    else:
+        percentages = {meal_type: 1.0 / len(meal_types) for meal_type in meal_types}
+    
+    distribution = {}
+    for meal_type in meal_types:
+        distribution[meal_type] = round(percentages[meal_type] * target_calories)
+    return distribution
+
 def generate_first_week_varied(user_id, target_calories, meals_per_day):
-    """Genera la primera semana CON VARIEDAD - cada día diferente."""
+    """Genera la primera semana CON VARIEDAD - cada día diferente, considerando alergias, preferencias y distribución calórica."""
     import random
     week = get_week_number()
     meal_types = get_meal_types_for_count(meals_per_day)
+    
+    # Obtener perfil del usuario (alergias y alimentos no deseados)
+    profile = supabase.table('user_profiles').select('allergies, disliked_foods').eq('user_id', user_id).execute()
+    allergies = profile.data[0]['allergies'] if profile.data and profile.data[0]['allergies'] else ''
+    disliked = profile.data[0]['disliked_foods'] if profile.data and profile.data[0]['disliked_foods'] else ''
+    
+    # Obtener distribución calórica por tipo de comida
+    calorie_targets = get_calorie_distribution(target_calories, meals_per_day)
     
     # Obtener todas las recetas por tipo de comida
     recipes_by_type = {}
@@ -510,19 +584,46 @@ def generate_first_week_varied(user_id, target_calories, meals_per_day):
         result = supabase.table('master_recipes').select('*').eq('meal_type', meal_type).execute()
         recipes_by_type[meal_type] = result.data or []
     
+    # Filtrar recetas que contengan ingredientes alergénicos o desagradables
+    # (comparación simple de subcadenas, ignorando mayúsculas)
+    def is_safe_recipe(recipe):
+        ingredients = recipe.get('ingredients', '').lower()
+        if allergies:
+            for allergen in allergies.split(','):
+                allergen = allergen.strip().lower()
+                if allergen and allergen in ingredients:
+                    return False
+        if disliked:
+            for food in disliked.split(','):
+                food = food.strip().lower()
+                if food and food in ingredients:
+                    return False
+        return True
+    
+    safe_recipes_by_type = {}
+    for meal_type in meal_types:
+        safe_recipes_by_type[meal_type] = [r for r in recipes_by_type[meal_type] if is_safe_recipe(r)]
+        # Si no hay recetas seguras, usar todas (mejor que nada)
+        if not safe_recipes_by_type[meal_type]:
+            safe_recipes_by_type[meal_type] = recipes_by_type[meal_type]
+    
     used_recipes = {mt: [] for mt in meal_types}  # Tracking de recetas usadas esta semana
     
     for day in range(1, 8):  # 7 días
         for meal_type in meal_types:
-            available = [r for r in recipes_by_type[meal_type] if r['id'] not in used_recipes[meal_type]]
+            available = [r for r in safe_recipes_by_type[meal_type] if r['id'] not in used_recipes[meal_type]]
             
             # Si se agotan, resetear y permitir repetir
             if not available:
-                available = recipes_by_type[meal_type]
+                available = safe_recipes_by_type[meal_type]
                 used_recipes[meal_type] = []
             
-            # Seleccionar aleatoria
-            recipe = random.choice(available)
+            # Seleccionar receta que mejor se ajuste a las calorías objetivo para este tipo
+            target_cals = calorie_targets[meal_type]
+            # Ordenar por proximidad a target_cals (abs(calorías - target_cals))
+            available.sort(key=lambda r: abs(r['calories'] - target_cals))
+            # Tomar la mejor (la más cercana)
+            recipe = available[0]
             used_recipes[meal_type].append(recipe['id'])
             
             # Insertar en plan semanal
@@ -538,13 +639,21 @@ def generate_first_week_varied(user_id, target_calories, meals_per_day):
                 'fat': recipe['fat']
             }).execute()
             
-            # Añadir al banco de comidas
-            supabase.table('user_food_bank').insert({
-                'user_id': user_id,
-                'meal_type': meal_type,
-                'recipe_id': recipe['id'],
-                'added_week': week
-            }).execute()
+            # Añadir al banco de comidas si no existe ya (o incrementar uso)
+            existing = supabase.table('user_food_bank').select('*').eq('user_id', user_id).eq('recipe_id', recipe['id']).execute()
+            if not existing.data:
+                supabase.table('user_food_bank').insert({
+                    'user_id': user_id,
+                    'meal_type': meal_type,
+                    'recipe_id': recipe['id'],
+                    'added_week': week,
+                    'times_used': 1
+                }).execute()
+            else:
+                # Incrementar times_used
+                supabase.table('user_food_bank').update({
+                    'times_used': existing.data[0]['times_used'] + 1
+                }).eq('id', existing.data[0]['id']).execute()
 
 @app.route('/api/plan/current', methods=['GET'])
 def get_current_plan():
@@ -563,7 +672,7 @@ def get_current_plan():
         meals = []
         for row in result.data:
             # Obtener detalles de la receta
-            recipe_result = supabase.table('master_recipes').select('id, name, ingredients, instructions, supermarket, category, image_url').eq('id', row['selected_recipe_id']).execute()
+            recipe_result = supabase.table('master_recipes').select('id, name, ingredients, instructions, supermarket, category').eq('id', row['selected_recipe_id']).execute()
             recipe = recipe_result.data[0] if recipe_result.data else {}
             
             meal = {
@@ -603,17 +712,69 @@ def get_food_bank():
         if not user_id:
             return jsonify({'error': 'user_id requerido'}), 400
         
-        query = supabase.table('user_food_bank').select('*').eq('user_id', user_id)
+        # Obtener perfil para calorías objetivo y alergias
+        profile_result = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+        if not profile_result.data:
+            return jsonify({'error': 'Perfil no encontrado'}), 404
+        profile = profile_result.data[0]
         
+        # Calcular distribución calórica
+        target_calories = None
+        if 'target_calories' in profile and profile['target_calories']:
+            target_calories = profile['target_calories']
+        else:
+            # Calcular dinámicamente
+            tmb, tdee = calculate_tmb(profile['age'], profile['gender'], profile['height_cm'],
+                                      profile['current_weight_kg'], profile['activity_level'])
+            target_calories = calculate_deficit(tdee, profile['goal_type'],
+                                                profile['current_weight_kg'], profile['goal_weight_kg'],
+                                                tmb=tmb, gender=profile['gender'])
+        
+        calorie_targets = get_calorie_distribution(target_calories, profile['meals_per_day'])
+        
+        # Obtener alergias y alimentos desagradables
+        allergies = profile.get('allergies', '')
+        disliked = profile.get('disliked_foods', '')
+        
+        # Obtener banco de comidas del usuario
+        query = supabase.table('user_food_bank').select('*').eq('user_id', user_id)
         if meal_type:
             query = query.eq('meal_type', meal_type)
-        
         result = query.execute()
         
         options = []
         for row in result.data:
-            recipe_result = supabase.table('master_recipes').select('id, name, meal_type, calories, protein, carbs, fat, ingredients, supermarket, image_url').eq('id', row['recipe_id']).execute()
-            recipe = recipe_result.data[0] if recipe_result.data else {}
+            recipe_result = supabase.table('master_recipes').select('id, name, meal_type, calories, protein, carbs, fat, ingredients, supermarket').eq('id', row['recipe_id']).execute()
+            if not recipe_result.data:
+                continue
+            recipe = recipe_result.data[0]
+            
+            # Verificar seguridad (por si acaso)
+            ingredients = recipe.get('ingredients', '').lower()
+            safe = True
+            if allergies:
+                for allergen in allergies.split(','):
+                    allergen = allergen.strip().lower()
+                    if allergen and allergen in ingredients:
+                        safe = False
+                        break
+            if safe and disliked:
+                for food in disliked.split(','):
+                    food = food.strip().lower()
+                    if food and food in ingredients:
+                        safe = False
+                        break
+            
+            # Calcular score de recomendación
+            # 1. Priorizar menos usadas (times_used bajo)
+            usage_score = row['times_used']  # menor es mejor
+            # 2. Proximidad calórica a objetivo del tipo de comida
+            calorie_diff = abs(recipe['calories'] - calorie_targets.get(recipe['meal_type'], 0))
+            # Normalizar diferencia (asumiendo máximo 500 kcal de diferencia)
+            calorie_score = calorie_diff / 500.0  # 0-1, menor es mejor
+            
+            # Score combinado (ponderar uso 60%, calorías 40%)
+            recommendation_score = usage_score * 0.6 + calorie_score * 0.4
             
             options.append({
                 'id': row['id'],
@@ -628,11 +789,18 @@ def get_food_bank():
                 'fat': recipe.get('fat', 0),
                 'ingredients': recipe.get('ingredients', ''),
                 'supermarket': recipe.get('supermarket', ''),
-                'image_url': recipe.get('image_url', None)
+                'image_url': recipe.get('image_url', None),
+                'safe': safe,
+                'recommendation_score': round(recommendation_score, 3)
             })
+        
+        # Ordenar por recommendation_score ascendente (mejores primero)
+        options.sort(key=lambda x: x['recommendation_score'])
         
         return jsonify({'options': options})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/plan/swap', methods=['POST'])
@@ -773,7 +941,8 @@ def weight_checkin():
         
         # Recalcular calorías
         tmb, tdee = calculate_tmb(profile['age'], profile['gender'], profile['height_cm'], data['weight'], profile['activity_level'])
-        target = calculate_deficit(tdee, profile['goal_type'], data['weight'], profile['goal_weight_kg'])
+        target = calculate_deficit(tdee, profile['goal_type'], data['weight'], profile['goal_weight_kg'],
+                                   tmb=tmb, gender=profile['gender'])
         
         return jsonify({'success': True, 'new_target_calories': int(target)})
     except Exception as e:

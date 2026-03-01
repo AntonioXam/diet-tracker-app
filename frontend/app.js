@@ -160,7 +160,9 @@ async function login() {
     const data = await response.json();
     
     if (response.ok) {
-      user = { username, token: data.token };
+      // Si la API devuelve token, usarlo; si no, usar user id como token
+      const token = data.token || (data.user && data.user.id ? data.user.id.toString() : null);
+      user = { username, token: token, id: data.user?.id };
       localStorage.setItem('user', JSON.stringify(user));
       document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
       document.getElementById('user-name').textContent = username;

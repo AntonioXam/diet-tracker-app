@@ -1,1 +1,4 @@
 .vercel
+credentials/
+.env
+*.env

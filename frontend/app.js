@@ -1,6 +1,8 @@
 // Diet Tracker FIT - Frontend Completo
-// API Base URL
-const API_BASE = 'https://diet-tracker-app-chi.vercel.app/api';
+// API Base URL - relativa para producción en Vercel, localhost para desarrollo
+const API_BASE = window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api' 
+    : '/api';
 
 // Estado global
 let user = null;
@@ -81,15 +83,75 @@ function updateChartTheme() {
 
 // ==================== NAVEGACIÓN ====================
 
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-menu');
-    menu.classList.toggle('hidden');
+// Toggle landing page mobile menu
+function toggleLandingMenu() {
+    const menu = document.getElementById('landing-mobile-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+// Toggle dashboard mobile menu
+function toggleDashboardMenu() {
+    const menu = document.getElementById('dashboard-mobile-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
 }
 
 function scrollToSection(id) {
     const element = document.getElementById(id);
     if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
+    }
+    // Close mobile menu after navigation
+    const landingMenu = document.getElementById('landing-mobile-menu');
+    if (landingMenu && !landingMenu.classList.contains('hidden')) {
+        landingMenu.classList.add('hidden');
+    }
+}
+
+// Simple page router
+function showPage(page) {
+    const landingContent = document.getElementById('main-content');
+    const dashboardContent = document.getElementById('dashboard-content');
+    const navAuth = document.getElementById('nav-auth');
+    const navUser = document.getElementById('nav-user');
+    const dashboardMenuBtn = document.getElementById('dashboard-menu-btn');
+    const landingMobileMenu = document.getElementById('landing-mobile-menu');
+    
+    if (page === 'landing') {
+        // Show landing page
+        landingContent.classList.remove('hidden');
+        dashboardContent.classList.add('hidden');
+        
+        // Show auth buttons, hide user info
+        navAuth.classList.remove('hidden');
+        navAuth.classList.add('flex');
+        navUser.classList.add('hidden');
+        navUser.classList.remove('flex');
+        
+        // Hide dashboard menu button
+        dashboardMenuBtn.classList.add('hidden');
+        
+        // Landing menu is triggered by a separate button if needed
+        landingMobileMenu.classList.add('hidden');
+    } else if (page === 'dashboard') {
+        // Show dashboard
+        landingContent.classList.add('hidden');
+        dashboardContent.classList.remove('hidden');
+        
+        // Hide auth buttons, show user info
+        navAuth.classList.add('hidden');
+        navAuth.classList.remove('flex');
+        navUser.classList.remove('hidden');
+        navUser.classList.add('flex');
+        
+        // Show dashboard menu button
+        dashboardMenuBtn.classList.remove('hidden');
+        
+        // Hide landing mobile menu
+        landingMobileMenu.classList.add('hidden');
     }
 }
 
@@ -691,8 +753,13 @@ function hideModal(event) {
 
 async function handleLogin(e) {
     e.preventDefault();
-    const email = document.getElementById('login-email').value;
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
+    
+    if (!email || !password) {
+        showToast('❌ Email y contraseña requeridos', 'error');
+        return;
+    }
     
     showToast('Iniciando sesión...', 'info');
     
@@ -705,19 +772,27 @@ async function handleLogin(e) {
         
         const data = await res.json();
         
-        if (res.ok) {
-            user = data.user;
+        if (res.ok && data.user && data.token) {
+            // Guardar usuario completo con token
+            user = {
+                ...data.user,
+                token: data.token
+            };
             localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('token', data.token);
+            
             document.getElementById('auth-modals').innerHTML = '';
             document.body.style.overflow = '';
-            showToast('¡Bienvenido!', 'success');
+            showToast('✅ ¡Bienvenido, ' + (user.name || user.email) + '!', 'success');
+            
+            // Redirigir al dashboard
             checkAuth();
         } else {
-            showToast(data.error || 'Error al iniciar sesión', 'error');
+            showToast('❌ ' + (data.error || 'Email o contraseña incorrectos'), 'error');
         }
     } catch (err) {
-        showToast('Error de conexión', 'error');
-        console.error(err);
+        showToast('❌ Error de conexión. Verifica tu internet.', 'error');
+        console.error('Login error:', err);
     }
 }
 
@@ -769,11 +844,37 @@ async function handleRegister(e) {
 
 async function handleForgotPassword(e) {
     e.preventDefault();
-    const email = document.getElementById('forgot-email').value;
+    const email = document.getElementById('forgot-email').value.trim();
     
-    showToast('📧 Email enviado', 'success');
-    document.getElementById('auth-modals').innerHTML = '';
-    document.body.style.overflow = '';
+    if (!email) {
+        showToast('❌ Ingresa tu email', 'error');
+        return;
+    }
+    
+    showToast('📧 Procesando solicitud...', 'info');
+    
+    try {
+        const res = await fetch(API_BASE + '/recover-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast('✅ Si tu email está registrado, recibirás instrucciones', 'success');
+            document.getElementById('auth-modals').innerHTML = '';
+            document.body.style.overflow = '';
+            // Mostrar modal de login
+            setTimeout(() => showModal('login'), 1500);
+        } else {
+            showToast(data.error || 'Error al procesar solicitud', 'error');
+        }
+    } catch (err) {
+        showToast('Error de conexión', 'error');
+        console.error(err);
+    }
 }
 
 function checkAuth() {
@@ -782,33 +883,20 @@ function checkAuth() {
     if (saved) {
         user = JSON.parse(saved);
         
-        // Show dashboard
-        document.getElementById('main-content').classList.add('hidden');
-        document.getElementById('dashboard-content').classList.remove('hidden');
-        
-        // Update nav
-        document.getElementById('nav-auth').classList.add('hidden');
-        document.getElementById('nav-auth').classList.remove('flex');
-        document.getElementById('nav-user').classList.remove('hidden');
-        document.getElementById('nav-user').classList.add('flex');
-        
+        // Update nav user info
         document.getElementById('user-name').textContent = user.name || user.email;
         document.getElementById('user-avatar').textContent = (user.name || 'U')[0].toUpperCase();
         
         showToast('✅ Sesión iniciada', 'success');
         
+        // Use router to show dashboard
+        showPage('dashboard');
+        
         // Load dashboard
         loadDashboard();
     } else {
-        // Show landing
-        document.getElementById('main-content').classList.remove('hidden');
-        document.getElementById('dashboard-content').classList.add('hidden');
-        
-        // Update nav
-        document.getElementById('nav-auth').classList.remove('hidden');
-        document.getElementById('nav-auth').classList.add('flex');
-        document.getElementById('nav-user').classList.add('hidden');
-        document.getElementById('nav-user').classList.remove('flex');
+        // Use router to show landing
+        showPage('landing');
     }
 }
 
@@ -825,48 +913,120 @@ async function loadDashboard() {
     if (!user) return;
     
     const dashboard = document.getElementById('dashboard-content');
+    
+    // Loading state con spinner animado
     dashboard.innerHTML = `
         <div class="flex items-center justify-center min-h-[60vh]">
             <div class="text-center">
                 <div class="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="font-bold dark:text-white">Cargando tu dashboard...</p>
+                <p class="font-bold dark:text-white text-lg">Cargando tu dashboard...</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Obteniendo tus datos</p>
             </div>
         </div>
     `;
     
     try {
-        // Load user plan
-        const userId = user.id || user.token;
-        const planRes = await fetch(API_BASE + '/plan/current?user_id=' + userId, {
-            headers: { 'Authorization': 'Bearer ' + user.token }
-        });
+        const userId = user.id;
+        const token = user.token;
         
-        if (!planRes.ok) throw new Error('Error cargando plan');
+        if (!userId || !token) {
+            throw new Error('Usuario no autenticado correctamente');
+        }
         
-        currentPlan = await planRes.json();
+        const headers = { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        };
         
-        // Load weight history
-        const historyRes = await fetch(API_BASE + '/weight/history?user_id=' + userId, {
-            headers: { 'Authorization': 'Bearer ' + user.token }
-        });
+        // Load dashboard data from main endpoint
+        const dashboardRes = await fetch(API_BASE + '/dashboard', { headers });
         
-        const history = historyRes.ok ? await historyRes.json() : [];
+        let dashboardData = null;
+        let weightHistory = [];
         
-        renderDashboard(currentPlan, history);
+        if (dashboardRes.ok) {
+            dashboardData = await dashboardRes.json();
+        } else {
+            console.warn('Dashboard endpoint failed, trying fallback endpoints...');
+        }
+        
+        // Load weight history separately
+        try {
+            const weightRes = await fetch(API_BASE + '/stats', { headers });
+            if (weightRes.ok) {
+                const stats = await weightRes.json();
+                weightHistory = stats.weight_history || [];
+            }
+        } catch (weightErr) {
+            console.warn('Could not load weight history:', weightErr);
+        }
+        
+        // Use dashboard data or fallback to plan endpoint
+        if (!dashboardData) {
+            try {
+                const planRes = await fetch(API_BASE + '/plan', { headers });
+                if (planRes.ok) {
+                    const plan = await planRes.json();
+                    dashboardData = {
+                        profile: {},
+                        metrics: {
+                            target_calories: 2000,
+                            current_weight: 70,
+                            goal_weight: 65
+                        },
+                        today: {
+                            calories: 0,
+                            protein: 0,
+                            carbs: 0,
+                            fat: 0
+                        },
+                        plan: plan
+                    };
+                }
+            } catch (planErr) {
+                console.warn('Plan endpoint also failed, using defaults');
+            }
+        }
+        
+        // Render with data or defaults
+        renderDashboard(dashboardData, weightHistory);
         
     } catch (err) {
         console.error('Error loading dashboard:', err);
-        showToast('Error cargando datos', 'error');
-        renderDashboardError();
+        showToast('Error cargando datos. Usando datos de ejemplo.', 'error');
+        renderDashboardWithFallback();
     }
 }
 
-function renderDashboard(plan, history) {
+function renderDashboard(data, history) {
     const dashboard = document.getElementById('dashboard-content');
     
-    const dailyCalories = plan.daily_calories || 2000;
-    const currentWeight = plan.current_weight || 70;
-    const goalWeight = plan.goal_weight || 65;
+    // Extraer datos con fallbacks seguros
+    const metrics = data?.metrics || {};
+    const today = data?.today || {};
+    const profile = data?.profile || {};
+    
+    const dailyCalories = metrics.target_calories || 2000;
+    const currentWeight = metrics.current_weight || 70;
+    const goalWeight = metrics.goal_weight || 65;
+    const todayCalories = today.calories || 0;
+    const todayProtein = today.protein || 0;
+    const todayCarbs = today.carbs || 0;
+    const todayFat = today.fat || 0;
+    
+    // Calcular porcentajes para las barras de progreso
+    const proteinGoal = 150;
+    const carbsGoal = 200;
+    const fatGoal = 65;
+    
+    const proteinPercent = Math.min(100, (todayProtein / proteinGoal) * 100);
+    const carbsPercent = Math.min(100, (todayCarbs / carbsGoal) * 100);
+    const fatPercent = Math.min(100, (todayFat / fatGoal) * 100);
+    const caloriesPercent = Math.min(100, (todayCalories / dailyCalories) * 100);
+    
+    // Calcular dashoffset para el círculo de calorías (283 es la circunferencia)
+    const circumference = 283;
+    const dashOffset = circumference - (caloriesPercent / 100) * circumference;
     
     dashboard.innerHTML = `
         <!-- Welcome Header -->
@@ -886,7 +1046,7 @@ function renderDashboard(plan, history) {
                 <div class="relative w-32 h-32 mx-auto mb-4">
                     <svg class="w-32 h-32 progress-circle" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" stroke-width="10" class="dark:stroke-gray-700"/>
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="141"/>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="${dashOffset}"/>
                         <defs>
                             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stop-color="#a855f7"/>
@@ -895,7 +1055,7 @@ function renderDashboard(plan, history) {
                         </defs>
                     </svg>
                     <div class="absolute inset-0 flex items-center justify-center flex-col">
-                        <span class="text-2xl font-black dark:text-white">0</span>
+                        <span class="text-2xl font-black dark:text-white">${todayCalories}</span>
                         <span class="text-xs text-gray-500">/ ${dailyCalories}</span>
                     </div>
                 </div>
@@ -912,28 +1072,28 @@ function renderDashboard(plan, history) {
                     <div>
                         <div class="flex justify-between text-sm mb-1">
                             <span class="dark:text-gray-300">Proteínas</span>
-                            <span class="font-bold dark:text-white">0g / 150g</span>
+                            <span class="font-bold dark:text-white">${todayProtein}g / ${proteinGoal}g</span>
                         </div>
                         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" style="width: 0%"></div>
+                            <div class="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" style="width: ${proteinPercent}%"></div>
                         </div>
                     </div>
                     <div>
                         <div class="flex justify-between text-sm mb-1">
                             <span class="dark:text-gray-300">Carbos</span>
-                            <span class="font-bold dark:text-white">0g / 200g</span>
+                            <span class="font-bold dark:text-white">${todayCarbs}g / ${carbsGoal}g</span>
                         </div>
                         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full" style="width: 0%"></div>
+                            <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full" style="width: ${carbsPercent}%"></div>
                         </div>
                     </div>
                     <div>
                         <div class="flex justify-between text-sm mb-1">
                             <span class="dark:text-gray-300">Grasas</span>
-                            <span class="font-bold dark:text-white">0g / 65g</span>
+                            <span class="font-bold dark:text-white">${todayFat}g / ${fatGoal}g</span>
                         </div>
                         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style="width: 0%"></div>
+                            <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style="width: ${fatPercent}%"></div>
                         </div>
                     </div>
                 </div>
@@ -948,6 +1108,7 @@ function renderDashboard(plan, history) {
                 <div class="text-center mb-4">
                     <p class="text-4xl font-black dark:text-white mb-1">${currentWeight}</p>
                     <p class="text-sm text-gray-500">kg actuales</p>
+                    <p class="text-xs text-gray-400 mt-1">Meta: ${goalWeight} kg</p>
                 </div>
                 <div class="h-32">
                     <canvas id="weight-chart"></canvas>
@@ -1109,6 +1270,46 @@ function renderDashboardError() {
             </button>
         </div>
     `;
+}
+
+// Función de fallback con datos de ejemplo cuando la API falla
+function renderDashboardWithFallback() {
+    const fallbackData = {
+        profile: {
+            goal_type: 'lose',
+            activity_level: 'moderate'
+        },
+        metrics: {
+            tmb: 1500,
+            tdee: 2000,
+            target_calories: 1800,
+            current_weight: 75,
+            goal_weight: 68,
+            weight_change: -2
+        },
+        today: {
+            calories: 450,
+            protein: 35,
+            carbs: 55,
+            fat: 18,
+            calories_remaining: 1350
+        },
+        plan: {
+            week_number: 10,
+            entries_count: 7
+        }
+    };
+    
+    // Datos de ejemplo para el gráfico
+    const fallbackHistory = [
+        { weight: 77, date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000) },
+        { weight: 76.2, date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
+        { weight: 75.5, date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+        { weight: 75, date: new Date() }
+    ];
+    
+    showToast('Mostrando datos de ejemplo (API no disponible)', 'info');
+    renderDashboard(fallbackData, fallbackHistory);
 }
 
 // ==================== ONBOARDING FLOW ====================
@@ -1502,37 +1703,152 @@ function showShoppingList() {
     showToast('Lista de compras próximamente', 'info');
 }
 
-// ==================== TOAST NOTIFICATIONS ====================
+// ==================== TOAST NOTIFICATIONS MEJORADOS ====================
 
-function showToast(message, type) {
-    if (!type) type = 'info';
-    
+function showToast(message, type = 'info', duration = 3000) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     
-    const colors = {
-        success: 'from-green-500 to-emerald-600',
-        error: 'from-red-500 to-rose-600',
-        info: 'from-purple-500 to-blue-600'
+    const config = {
+        success: { 
+            icon: '✓', 
+            class: 'toast-success',
+            ariaLabel: 'Éxito'
+        },
+        error: { 
+            icon: '✕', 
+            class: 'toast-error',
+            ariaLabel: 'Error'
+        },
+        info: { 
+            icon: 'ℹ', 
+            class: 'toast-info',
+            ariaLabel: 'Información'
+        },
+        warning: { 
+            icon: '⚠', 
+            class: 'toast-warning',
+            ariaLabel: 'Advertencia'
+        }
     };
     
-    const icons = {
-        success: '✓',
-        error: '✕',
-        info: 'ℹ'
-    };
+    const toastConfig = config[type] || config.info;
     
-    toast.className = `bg-gradient-to-r ${colors[type]} text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 slide-enter`;
+    toast.className = `toast ${toastConfig.class} slide-up`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'polite');
     toast.innerHTML = `
-        <span class="text-lg font-bold">${icons[type]}</span>
-        <span class="font-medium">${message}</span>
+        <span class="text-xl font-bold" aria-hidden="true">${toastConfig.icon}</span>
+        <span class="font-medium flex-1">${message}</span>
+        <button onclick="this.parentElement.remove()" class="touch-target w-8 h-8 rounded-lg hover:bg-black/10 flex items-center justify-center" aria-label="Cerrar notificación">
+            <i class="fas fa-times text-sm"></i>
+        </button>
     `;
     
     container.appendChild(toast);
     
-    setTimeout(() => {
-        toast.style.transition = 'opacity 0.3s';
+    // Auto-remove after duration
+    const timeoutId = setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s, transform 0.3s';
         toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, duration);
+    
+    // Store timeout for manual cleanup if needed
+    toast.dataset.timeoutId = timeoutId;
+    
+    // Limit toasts to max 5 visible
+    const toasts = container.querySelectorAll('.toast');
+    if (toasts.length > 5) {
+        const oldest = toasts[0];
+        clearTimeout(oldest.dataset.timeoutId);
+        oldest.remove();
+    }
+}
+
+// ==================== LOADING SKELETONS ====================
+
+function showSkeleton(containerId, type = 'card', count = 3) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    let skeletonHTML = '';
+    
+    switch(type) {
+        case 'card':
+            skeletonHTML = Array(count).fill(`
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="skeleton skeleton-circle"></div>
+                        <div class="flex-1">
+                            <div class="skeleton skeleton-title"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text" style="width: 60%"></div>
+                    </div>
+                </div>
+            `).join('');
+            break;
+        case 'list':
+            skeletonHTML = Array(count).fill(`
+                <div class="glass-card rounded-xl p-4 flex items-center gap-4">
+                    <div class="skeleton skeleton-circle"></div>
+                    <div class="flex-1">
+                        <div class="skeleton skeleton-title" style="height: 1rem; width: 80%"></div>
+                        <div class="skeleton skeleton-text" style="height: 0.75rem; width: 60%"></div>
+                    </div>
+                </div>
+            `).join('');
+            break;
+        case 'table':
+            skeletonHTML = `
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <div class="skeleton skeleton-title"></div>
+                    </div>
+                    ${Array(count).fill(`
+                        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex gap-4">
+                            <div class="skeleton skeleton-text flex-1"></div>
+                            <div class="skeleton skeleton-text flex-1"></div>
+                            <div class="skeleton skeleton-text flex-1"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            break;
+        default:
+            skeletonHTML = `<div class="skeleton skeleton-card"></div>`;
+    }
+    
+    container.innerHTML = skeletonHTML;
+}
+
+function hideSkeleton(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.querySelectorAll('.skeleton').forEach(el => el.remove());
+    }
+}
+
+// ==================== LOADING OVERLAY ====================
+
+function showLoadingOverlay(message = 'Cargando...') {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.querySelector('p').textContent = message;
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
 }

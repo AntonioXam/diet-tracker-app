@@ -20,8 +20,8 @@ app = Flask(__name__)
 CORS(app, origins=["*"], supports_credentials=True)
 
 # Credenciales Supabase
-SUPABASE_URL = "https://jxafifppxnaqjxpqfrtr.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWZpZnBweG5hcWp4cHFmcnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE1NDEsImV4cCI6MjA4NzQ0NzU0MX0._8JT1PAaSZpnyUf9SwuwKxBtV5hhsvrq4BalSN5t3GU"
+SUPABASE_URL = "https://kaomgwojvnncidyezdzj.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthb21nd29qdm5uY2lkeWV6ZHpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcxNzYsImV4cCI6MjA4ODI4MzE3Nn0.Ds2ICxfiahuqt2n83dwoX9tMYGf7Xz8Jjvx6lFJc4zs"
 JWT_SECRET = os.getenv("JWT_SECRET", secrets.token_hex(32))
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -787,10 +787,13 @@ def login():
     """Login con email/password."""
     try:
         data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
+        if not data:
+            return jsonify({'error': 'JSON requerido'}), 400
         
-        if not all([email, password]):
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        
+        if not email or not password:
             return jsonify({'error': 'Email y contraseña requeridos'}), 400
         
         result = supabase.table('users').select('*').eq('email', email).execute()
@@ -803,7 +806,7 @@ def login():
         if ':' in password_hash:
             stored_hash, salt = password_hash.split(':', 1)
         else:
-            return jsonify({'error': 'Formato inválido'}), 500
+            return jsonify({'error': 'Formato de contraseña inválido'}), 500
         
         if not verify_password(password, stored_hash, salt):
             return jsonify({'error': 'Contraseña incorrecta'}), 401
@@ -814,7 +817,97 @@ def login():
             'token': token
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Error al iniciar sesión: {str(e)}'}), 500
+
+@app.route('/api/recover-password', methods=['POST'])
+def recover_password():
+    """Solicita recuperación de contraseña por email."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'JSON requerido'}), 400
+        
+        email = data.get('email', '').strip().lower()
+        if not email:
+            return jsonify({'error': 'Email requerido'}), 400
+        
+        # Verificar que el usuario existe
+        result = supabase.table('users').select('id, email, name').eq('email', email).execute()
+        if not result.data or len(result.data) == 0:
+            # Por seguridad, no revelamos si el email existe o no
+            return jsonify({'message': 'Si el email está registrado, recibirás instrucciones'}), 200
+        
+        user = result.data[0]
+        
+        # Generar token de recuperación (válido por 1 hora)
+        reset_token = generate_token(user['id'], email)
+        reset_payload = {
+            'user_id': user['id'],
+            'email': email,
+            'type': 'password_reset',
+            'exp': datetime.utcnow() + timedelta(hours=1),
+            'iat': datetime.utcnow()
+        }
+        reset_token = jwt.encode(reset_payload, JWT_SECRET, algorithm='HS256')
+        
+        # En producción: enviar email con enlace de recuperación
+        # reset_link = f"https://diet-tracker-app-chi.vercel.app/reset-password?token={reset_token}"
+        # TODO: Integrar con servicio de email (SendGrid, Resend, etc.)
+        
+        # Por ahora, devolvemos el token para testing (solo en desarrollo)
+        return jsonify({
+            'message': 'Si el email está registrado, recibirás instrucciones',
+            'reset_token': reset_token,  # Remover en producción
+            'user_email': email  # Remover en producción
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error al procesar recuperación: {str(e)}'}), 500
+
+@app.route('/api/reset-password', methods=['POST'])
+def reset_password():
+    """Resetea contraseña con token válido."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'JSON requerido'}), 400
+        
+        token = data.get('token', '')
+        new_password = data.get('password', '')
+        
+        if not token or not new_password:
+            return jsonify({'error': 'Token y nueva contraseña requeridos'}), 400
+        
+        if len(new_password) < 6:
+            return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
+        
+        # Verificar token
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+            if payload.get('type') != 'password_reset':
+                return jsonify({'error': 'Token inválido'}), 400
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expirado'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Token inválido'}), 401
+        
+        user_id = payload['user_id']
+        
+        # Hashear nueva contraseña
+        hashed = hash_password(new_password)
+        
+        # Actualizar en DB
+        result = supabase.table('users').update({
+            'password_hash': f"{hashed['hash']}:{hashed['salt']}"
+        }).eq('id', user_id).execute()
+        
+        if not result.data:
+            return jsonify({'error': 'Error al actualizar contraseña'}), 500
+        
+        return jsonify({'message': 'Contraseña actualizada correctamente'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error al resetear contraseña: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

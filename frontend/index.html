@@ -189,7 +189,7 @@
                         <span id="dark-icon">🌙</span>
                     </button>
                     
-                    <!-- User Info -->
+                    <!-- User Info (Dashboard only) -->
                     <div id="nav-user" class="hidden items-center gap-2 sm:gap-3">
                         <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base" id="user-avatar">U</div>
                         <span class="font-bold text-sm sm:text-base dark:text-white hidden sm:block" id="user-name"></span>
@@ -198,27 +198,37 @@
                         </button>
                     </div>
                     
-                    <!-- Auth Buttons -->
+                    <!-- Auth Buttons (Landing only) -->
                     <div id="nav-auth" class="flex items-center gap-2">
-                        <button onclick="showModal('login')" class="touch-target px-3 sm:px-4 py-2 font-bold rounded-xl text-sm sm:text-base dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Entrar</button>
+                        <button onclick="showModal('login')" class="touch-target px-3 sm:px-4 py-2 font-bold rounded-xl text-sm sm:text-base text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Entrar</button>
                         <button onclick="showModal('register')" class="btn-primary text-white px-4 sm:px-6 py-2 rounded-xl font-bold text-sm sm:text-base">Registrarse</button>
                     </div>
                     
-                    <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="touch-target sm:hidden w-10 h-10 rounded-xl glass flex items-center justify-center">
+                    <!-- Dashboard Mobile Menu Button (hidden on landing) -->
+                    <button id="dashboard-menu-btn" onclick="toggleDashboardMenu()" class="touch-target sm:hidden w-10 h-10 rounded-xl glass flex items-center justify-center hidden">
                         <i class="fas fa-bars"></i>
                     </button>
                 </div>
             </div>
             
-            <!-- Mobile Menu -->
-            <div id="mobile-menu" class="hidden sm:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+            <!-- Landing Page Mobile Menu (hidden by default, shown via JS when on landing) -->
+            <div id="landing-mobile-menu" class="hidden sm:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                 <div class="flex flex-col gap-2">
-                    <a href="#inicio" class="touch-target px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Inicio</a>
-                    <a href="#features" class="touch-target px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Características</a>
-                    <a href="#beneficios" class="touch-target px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Beneficios</a>
-                    <a href="#pricing" class="touch-target px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Precios</a>
-                    <a href="#faq" class="touch-target px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">FAQ</a>
+                    <a href="#inicio" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Inicio</a>
+                    <a href="#features" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Características</a>
+                    <a href="#beneficios" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Beneficios</a>
+                    <a href="#pricing" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">Precios</a>
+                    <a href="#faq" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">FAQ</a>
+                </div>
+            </div>
+            
+            <!-- Dashboard Mobile Menu (hidden by default) -->
+            <div id="dashboard-mobile-menu" class="hidden sm:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="flex flex-col gap-2">
+                    <a href="#" onclick="showPage('dashboard'); toggleDashboardMenu()" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"><i class="fas fa-home mr-2"></i>Dashboard</a>
+                    <a href="#" onclick="showProfile(); toggleDashboardMenu()" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"><i class="fas fa-user mr-2"></i>Perfil</a>
+                    <a href="#" onclick="showSettings(); toggleDashboardMenu()" class="touch-target px-4 py-3 rounded-xl text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"><i class="fas fa-cog mr-2"></i>Configuración</a>
+                    <a href="#" onclick="logout(); toggleDashboardMenu()" class="touch-target px-4 py-3 rounded-xl text-red-500 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"><i class="fas fa-sign-out-alt mr-2"></i>Cerrar sesión</a>
                 </div>
             </div>
         </div>
@@ -267,6 +277,11 @@
             <p class="font-bold dark:text-white">Cargando...</p>
         </div>
     </div>
+
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-purple-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-xl focus:z-[300]">
+        Saltar al contenido principal
+    </a>
 
     <script src="app.js"></script>
 </body>

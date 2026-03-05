@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Favicon Generator</title></head>
+<body>
+<h1>🥗 Diet Tracker FIT - Favicon Generator</h1>
+<p>Open this file in a browser, right-click the emoji below, and save as PNG in different sizes.</p>
+<div style="font-size: 128px;">🥗</div>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 512;
+canvas.height = 512;
+
+// Gradient background
+const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+gradient.addColorStop(0, '#a855f7');
+gradient.addColorStop(1, '#3b82f6');
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 512, 512);
+
+// Emoji
+ctx.font = '300px Arial';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillStyle = 'white';
+ctx.fillText('🥗', 256, 280);
+
+console.log('Canvas ready. Right-click and save as icon-512.png');
+</script>
+</body>
+</html>

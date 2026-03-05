@@ -1,0 +1,1574 @@
+{
+  "recetas": [
+    {
+      "nombre": "Salmón al Horno con Verduras",
+      "descripción": "Filete de salmón jugoso acompañado de verduras asadas, una cena saludable y rápida.",
+      "ingredientes": {
+        "salmón": "200g",
+        "brócoli": "150g",
+        "zanahorias": "100g",
+        "aceite de oliva": "1 cucharada",
+        "limón": "1 unidad",
+        "sal": "al gusto",
+        "pimienta": "al gusto"
+      },
+      "instrucciones": [
+        "Precalentar el horno a 200°C",
+        "Lavar y cortar las verduras en trozos medianos",
+        "Colocar el salmón y las verduras en una bandeja de horno",
+        "Rociar con aceite de oliva, sal y pimienta",
+        "Hornear durante 20-25 minutos",
+        "Servir con rodajas de limón"
+      ],
+      "info_nutricional": {
+        "calorias": 420,
+        "proteina": 35,
+        "carbs": 12,
+        "grasa": 26
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800"
+    },
+    {
+      "nombre": "Ensalada César con Pollo",
+      "descripción": "Clásica ensalada César con pechuga de pollo a la plancha y crutones caseros.",
+      "ingredientes": {
+        "lechuga romana": "200g",
+        "pechuga de pollo": "150g",
+        "parmesano": "30g",
+        "crutones": "50g",
+        "salsa césar": "2 cucharadas",
+        "aceite de oliva": "1 cucharada"
+      },
+      "instrucciones": [
+        "Lavar y trocear la lechuga",
+        "Cocinar el pollo a la plancha con sal y pimienta",
+        "Cortar el pollo en tiras",
+        "Mezclar la lechuga con la salsa césar",
+        "Añadir el pollo, crutones y parmesano rallado",
+        "Servir inmediatamente"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 32,
+        "carbs": 15,
+        "grasa": 22
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=800"
+    },
+    {
+      "nombre": "Tortilla de Espinacas",
+      "descripción": "Tortilla española ligera con espinacas frescas, perfecta para cenas ligeras.",
+      "ingredientes": {
+        "huevos": "3 unidades",
+        "espinacas": "150g",
+        "cebolla": "50g",
+        "aceite de oliva": "2 cucharadas",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Lavar y picar las espinacas",
+        "Picar la cebolla muy fina",
+        "Batir los huevos con una pizca de sal",
+        "Pochar la cebolla en aceite hasta dorar",
+        "Añadir las espinacas y cocinar 2 minutos",
+        "Mezclar con los huevos batidos",
+        "Cuajar la tortilla en la sartén por ambos lados"
+      ],
+      "info_nutricional": {
+        "calorias": 320,
+        "proteina": 18,
+        "carbs": 8,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1590412497706-e98f0916f6d8?w=800"
+    },
+    {
+      "nombre": "Merluza en Salsa Verde",
+      "descripción": "Pescado blanco en salsa verde con almejas, un clásico de la cocina española.",
+      "ingredientes": {
+        "merluza": "200g",
+        "almejas": "100g",
+        "perejil": "1 manojo",
+        "ajo": "2 dientes",
+        "vino blanco": "50ml",
+        "aceite de oliva": "3 cucharadas",
+        "harina": "1 cucharada"
+      },
+      "instrucciones": [
+        "Limpiar las almejas en agua con sal",
+        "Picar el ajo y el perejil",
+        "Dorar el ajo en aceite",
+        "Añadir la harina y remover",
+        "Agregar el vino blanco y dejar reducir",
+        "Añadir las almejas y tapar hasta que se abran",
+        "Incorporar la merluza y cocinar 8 minutos",
+        "Espolvorear con perejil picado"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 28,
+        "carbs": 10,
+        "grasa": 18
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 35,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800"
+    },
+    {
+      "nombre": "Wrap de Pollo y Aguacate",
+      "descripción": "Wrap integral relleno de pollo, aguacate y vegetales frescos.",
+      "ingredientes": {
+        "tortilla integral": "1 unidad",
+        "pechuga de pollo": "120g",
+        "aguacate": "1/2 unidad",
+        "tomate cherry": "8 unidades",
+        "lechuga": "50g",
+        "yogur griego": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Cocinar el pollo a la plancha y cortar en tiras",
+        "Lavar y cortar los vegetales",
+        "Calentar ligeramente la tortilla",
+        "Extender el yogur griego sobre la tortilla",
+        "Colocar el pollo, aguacate y vegetales",
+        "Enrollar bien apretado",
+        "Cortar por la mitad y servir"
+      ],
+      "info_nutricional": {
+        "calorias": 390,
+        "proteina": 28,
+        "carbs": 32,
+        "grasa": 18
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 15,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800"
+    },
+    {
+      "nombre": "Crema de Calabaza",
+      "descripción": "Suave crema de calabaza con un toque de jengibre, ideal para noches frías.",
+      "ingredientes": {
+        "calabaza": "300g",
+        "cebolla": "1 unidad",
+        "zanahoria": "1 unidad",
+        "jengibre": "10g",
+        "caldo de verduras": "500ml",
+        "aceite de oliva": "1 cucharada",
+        "nata": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Pelar y trocear la calabaza y zanahoria",
+        "Picar la cebolla",
+        "Pochar la cebolla en aceite",
+        "Añadir las verduras y el jengibre rallado",
+        "Cubrir con caldo y cocinar 25 minutos",
+        "Triturar hasta obtener una crema suave",
+        "Servir con un chorrito de nata"
+      ],
+      "info_nutricional": {
+        "calorias": 220,
+        "proteina": 5,
+        "carbs": 28,
+        "grasa": 10
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 35,
+      "raciones": 2,
+      "imagen_url": "https://images.unsplash.com/photo-1476718408415-c0805d168554?w=800"
+    },
+    {
+      "nombre": "Pechuga de Pavo a la Plancha",
+      "descripción": "Filete de pavo jugoso con champiñones salteados.",
+      "ingredientes": {
+        "pechuga de pavo": "180g",
+        "champiñones": "150g",
+        "ajo": "2 dientes",
+        "perejil": "1 manojo",
+        "aceite de oliva": "2 cucharadas",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Limpiar y laminar los champiñones",
+        "Saltear los champiñones con ajo picado",
+        "Cocinar el pavo a la plancha 5-6 minutos por lado",
+        "Añadir los champiñones al final",
+        "Espolvorear con perejil fresco",
+        "Servir caliente"
+      ],
+      "info_nutricional": {
+        "calorias": 280,
+        "proteina": 35,
+        "carbs": 6,
+        "grasa": 12
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=800"
+    },
+    {
+      "nombre": "Berenjenas Rellenas",
+      "descripción": "Berenjenas rellenas de carne picada y verduras, gratinadas con queso.",
+      "ingredientes": {
+        "berenjena": "1 unidad grande",
+        "carne picada": "150g",
+        "cebolla": "1/2 unidad",
+        "tomate triturado": "100g",
+        "queso mozzarella": "50g",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Cortar la berenjena por la mitad y vaciar",
+        "Hornear las berenjenas 20 minutos a 180°C",
+        "Pochar la cebolla y añadir la carne",
+        "Agregar el tomate y cocinar 10 minutos",
+        "Rellenar las berenjenas con la mezcla",
+        "Cubrir con queso y gratinar 10 minutos"
+      ],
+      "info_nutricional": {
+        "calorias": 420,
+        "proteina": 26,
+        "carbs": 18,
+        "grasa": 28
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 45,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1590412497706-e98f0916f6d8?w=800"
+    },
+    {
+      "nombre": "Gazpacho con Huevos Duros",
+      "descripción": "Gazpacho andaluz refrescante acompañado de huevos picados y jamón.",
+      "ingredientes": {
+        "tomates": "400g",
+        "pimiento verde": "1/2 unidad",
+        "pepino": "1/2 unidad",
+        "ajo": "1 diente",
+        "aceite de oliva": "3 cucharadas",
+        "vinagre": "1 cucharada",
+        "huevos": "2 unidades",
+        "jamón serrano": "30g"
+      },
+      "instrucciones": [
+        "Lavar y trocear todas las verduras",
+        "Triturar tomates, pimiento, pepino y ajo",
+        "Añadir aceite, vinagre y sal",
+        "Colar si se prefiere más fino",
+        "Refrigerar al menos 1 hora",
+        "Servir con huevo duro picado y taquitos de jamón"
+      ],
+      "info_nutricional": {
+        "calorias": 310,
+        "proteina": 14,
+        "carbs": 15,
+        "grasa": 22
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 20,
+      "raciones": 2,
+      "imagen_url": "https://images.unsplash.com/photo-1574484284008-86d47dc7b505?w=800"
+    },
+    {
+      "nombre": "Sepia a la Plancha",
+      "descripción": "Sepia fresca a la plancha con alioli casero y ensalada.",
+      "ingredientes": {
+        "sepia": "200g",
+        "ajo": "3 dientes",
+        "aceite de oliva": "4 cucharadas",
+        "huevo": "1 unidad",
+        "limón": "1 unidad",
+        "lechuga": "100g",
+        "tomate": "1 unidad"
+      },
+      "instrucciones": [
+        "Limpiar la sepia y cortar en tiras",
+        "Hacer alioli machacando ajo con aceite y huevo",
+        "Cocinar la sepia a la plancha muy caliente",
+        "Preparar ensalada con lechuga y tomate",
+        "Servir la sepia con alioli y limón",
+        "Acompañar con la ensalada"
+      ],
+      "info_nutricional": {
+        "calorias": 350,
+        "proteina": 24,
+        "carbs": 8,
+        "grasa": 25
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Revuelto de Gambas",
+      "descripción": "Huevos revueltos cremosos con gambas frescas y ajo.",
+      "ingredientes": {
+        "huevos": "3 unidades",
+        "gambas": "150g",
+        "ajo": "2 dientes",
+        "perejil": "1 manojo",
+        "aceite de oliva": "2 cucharadas",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Pelar las gambas y reservar",
+        "Picar el ajo muy fino",
+        "Batir los huevos con una pizca de sal",
+        "Dorar el ajo en aceite",
+        "Añadir las gambas y cocinar 2 minutos",
+        "Verter los huevos y remover hasta cuajar",
+        "Espolvorear con perejil picado"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 28,
+        "carbs": 3,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 15,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800"
+    },
+    {
+      "nombre": "Ensalada de Atún y Garbanzos",
+      "descripción": "Ensalada nutritiva con atún, garbanzos y vegetales mediterráneos.",
+      "ingredientes": {
+        "atún en conserva": "1 lata (80g)",
+        "garbanzos cocidos": "150g",
+        "tomate": "1 unidad",
+        "pepino": "1/2 unidad",
+        "cebolla roja": "1/4 unidad",
+        "aceitunas": "8 unidades",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Escurrir los garbanzos y el atún",
+        "Cortar tomate, pepino y cebolla en dados",
+        "Mezclar todos los ingredientes en un bol",
+        "Añadir las aceitunas",
+        "Aliñar con aceite, sal y pimienta",
+        "Servir fresco"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 24,
+        "carbs": 28,
+        "grasa": 18
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 10,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800"
+    },
+    {
+      "nombre": "Pollo al Curry Ligero",
+      "descripción": "Pollo tierno en salsa de curry suave con leche de coco light.",
+      "ingredientes": {
+        "pechuga de pollo": "180g",
+        "cebolla": "1 unidad",
+        "pimiento rojo": "1/2 unidad",
+        "curry en polvo": "1 cucharada",
+        "leche de coco light": "200ml",
+        "aceite de oliva": "1 cucharada",
+        "arroz integral": "50g"
+      },
+      "instrucciones": [
+        "Cocer el arroz integral según instrucciones",
+        "Cortar el pollo en cubos",
+        "Pochar cebolla y pimiento picados",
+        "Añadir el pollo y dorar",
+        "Espolvorear el curry y remover",
+        "Agregar la leche de coco y cocinar 15 minutos",
+        "Servir sobre el arroz"
+      ],
+      "info_nutricional": {
+        "calorias": 450,
+        "proteina": 32,
+        "carbs": 38,
+        "grasa": 16
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 35,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Pulpo a la Gallega",
+      "descripción": "Pulpo tierno con pimentón, sal gorda y aceite de oliva virgen.",
+      "ingredientes": {
+        "pulpo": "200g",
+        "patata": "1 unidad mediana",
+        "pimentón dulce": "1 cucharadita",
+        "aceite de oliva": "3 cucharadas",
+        "sal gorda": "al gusto"
+      },
+      "instrucciones": [
+        "Cocer el pulpo en agua hirviendo 45 minutos",
+        "Dejar reposar 15 minutos en el agua",
+        "Cocer la patata con piel",
+        "Cortar el pulpo en rodajas",
+        "Colocar sobre patata en rodajas",
+        "Espolvorear con pimentón y sal gorda",
+        "Rociar con aceite de oliva"
+      ],
+      "info_nutricional": {
+        "calorias": 320,
+        "proteina": 26,
+        "carbs": 22,
+        "grasa": 14
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 60,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Hamburguesa de Lentejas",
+      "descripción": "Hamburguesa vegetariana de lentejas con ensalada fresca.",
+      "ingredientes": {
+        "lentejas cocidas": "200g",
+        "cebolla": "1/2 unidad",
+        "zanahoria": "1 unidad",
+        "pan rallado": "3 cucharadas",
+        "huevo": "1 unidad",
+        "lechuga": "50g",
+        "tomate": "1 unidad"
+      },
+      "instrucciones": [
+        "Triturar parcialmente las lentejas",
+        "Rallar la zanahoria y picar la cebolla",
+        "Mezclar todo con el huevo y pan rallado",
+        "Formar la hamburguesa",
+        "Cocinar en sartén con poco aceite 4 minutos por lado",
+        "Servir con ensalada fresca"
+      ],
+      "info_nutricional": {
+        "calorias": 360,
+        "proteina": 18,
+        "carbs": 42,
+        "grasa": 12
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1520072959219-c595dc870360?w=800"
+    },
+    {
+      "nombre": "Lubina a la Espalda",
+      "descripción": "Lubina fresca cocinada a la espalda con patatas panadera.",
+      "ingredientes": {
+        "lubina": "1 unidad (300g)",
+        "patatas": "2 unidades",
+        "cebolla": "1 unidad",
+        "vino blanco": "50ml",
+        "aceite de oliva": "3 cucharadas",
+        "perejil": "1 manojo"
+      },
+      "instrucciones": [
+        "Abrir la lubina por la espalda",
+        "Cortar patatas y cebolla en rodajas finas",
+        "Colocar en bandeja de horno",
+        "Rociar con aceite y vino blanco",
+        "Hornear 25 minutos a 200°C",
+        "Servir con perejil picado"
+      ],
+      "info_nutricional": {
+        "calorias": 420,
+        "proteina": 32,
+        "carbs": 28,
+        "grasa": 20
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 35,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800"
+    },
+    {
+      "nombre": "Salteado de Tofu y Verduras",
+      "descripción": "Tofu crujiente salteado con verduras wok y salsa de soja.",
+      "ingredientes": {
+        "tofu firme": "200g",
+        "brócoli": "100g",
+        "pimiento rojo": "1/2 unidad",
+        "zanahoria": "1 unidad",
+        "salsa de soja": "2 cucharadas",
+        "sésamo": "1 cucharada",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Escurrir y cortar el tofu en cubos",
+        "Dorar el tofu en sartén caliente",
+        "Cortar todas las verduras en juliana",
+        "Saltear las verduras 5 minutos",
+        "Añadir el tofu y la salsa de soja",
+        "Espolvorear con sésamo tostado"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 20,
+        "carbs": 18,
+        "grasa": 20
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800"
+    },
+    {
+      "nombre": "Calamares en su Tinta",
+      "descripción": "Calamares tiernos en salsa de tinta con cebolla y ajo.",
+      "ingredientes": {
+        "calamares": "250g",
+        "cebolla": "1 unidad",
+        "ajo": "3 dientes",
+        "tinta de calamar": "1 sobre",
+        "vino blanco": "50ml",
+        "aceite de oliva": "3 cucharadas"
+      },
+      "instrucciones": [
+        "Limpiar los calamares y cortar en anillas",
+        "Pochar cebolla y ajo picados",
+        "Añadir los calamares y dorar",
+        "Agrega el vino blanco y dejar reducir",
+        "Disolver la tinta en un poco de agua",
+        "Añadir la tinta y cocinar 20 minutos",
+        "Servir caliente"
+      ],
+      "info_nutricional": {
+        "calorias": 310,
+        "proteina": 26,
+        "carbs": 12,
+        "grasa": 16
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 35,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Ensalada Caprese",
+      "descripción": "Clásica ensalada italiana con tomate, mozzarella y albahaca.",
+      "ingredientes": {
+        "tomates rosa": "3 unidades",
+        "mozzarella fresca": "125g",
+        "albahaca fresca": "1 manojo",
+        "aceite de oliva virgen": "3 cucharadas",
+        "sal": "al gusto",
+        "pimienta negra": "al gusto"
+      },
+      "instrucciones": [
+        "Lavar y cortar los tomates en rodajas",
+        "Cortar la mozzarella en rodajas",
+        "Alternar rodajas de tomate y mozzarella",
+        "Colocar hojas de albahaca fresca",
+        "Aliñar con aceite, sal y pimienta",
+        "Servir inmediatamente"
+      ],
+      "info_nutricional": {
+        "calorias": 320,
+        "proteina": 16,
+        "carbs": 8,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 10,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1529312266912-b33cf6227e24?w=800"
+    },
+    {
+      "nombre": "Corvina al Horno",
+      "descripción": "Filete de corvina al horno con costra de hierbas aromáticas.",
+      "ingredientes": {
+        "corvina": "200g",
+        "pan rallado": "2 cucharadas",
+        "perejil": "1 manojo",
+        "ajo": "1 diente",
+        "limón": "1 unidad",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Mezclar pan rallado con perejil y ajo picados",
+        "Colocar el pescado en bandeja de horno",
+        "Cubrir con la mezcla de pan rallado",
+        "Rociar con aceite de oliva",
+        "Hornear 15 minutos a 200°C",
+        "Servir con rodajas de limón"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 30,
+        "carbs": 10,
+        "grasa": 18
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800"
+    },
+    {
+      "nombre": "Tacos de Lechuga con Pollo",
+      "descripción": "Tacos bajos en carbohidratos usando hojas de lechuga como tortilla.",
+      "ingredientes": {
+        "pechuga de pollo": "150g",
+        "lechuga iceberg": "4 hojas grandes",
+        "tomate": "1 unidad",
+        "aguacate": "1/2 unidad",
+        "yogur griego": "3 cucharadas",
+        "lima": "1 unidad",
+        "cilantro": "1 manojo"
+      },
+      "instrucciones": [
+        "Cocinar el pollo con especias y cortar en tiras",
+        "Lavar y secar las hojas de lechuga",
+        "Cortar tomate y aguacate en dados",
+        "Mezclar yogur con zumo de lima",
+        "Rellenar cada hoja con pollo y vegetales",
+        "Añadir la salsa de yogur y cilantro"
+      ],
+      "info_nutricional": {
+        "calorias": 290,
+        "proteina": 30,
+        "carbs": 12,
+        "grasa": 14
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800"
+    },
+    {
+      "nombre": "Sopa de Pescado",
+      "descripción": "Sopa tradicional de pescado con fideos y marisco.",
+      "ingredientes": {
+        "pescado blanco": "150g",
+        "gambas": "8 unidades",
+        "fideos": "50g",
+        "tomate": "1 unidad",
+        "pimiento": "1/2 unidad",
+        "caldo de pescado": "500ml",
+        "azafrán": "unas hebras"
+      },
+      "instrucciones": [
+        "Pochar tomate y pimiento picados",
+        "Añadir el caldo y llevar a ebullición",
+        "Agregar los fideos y cocinar 8 minutos",
+        "Incorporar el pescado en trozos",
+        "Añadir las gambas y azafrán",
+        "Cocinar 5 minutos más",
+        "Servir bien caliente"
+      ],
+      "info_nutricional": {
+        "calorias": 320,
+        "proteina": 26,
+        "carbs": 28,
+        "grasa": 10
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800"
+    },
+    {
+      "nombre": "Huevos Poché con Espárragos",
+      "descripción": "Huevos poché cremosos sobre cama de espárragos trigueros.",
+      "ingredientes": {
+        "huevos": "2 unidades",
+        "espárragos trigueros": "200g",
+        "jamón serrano": "30g",
+        "aceite de oliva": "2 cucharadas",
+        "vinagre": "1 cucharada",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Limpiar los espárragos",
+        "Saltear los espárragos con aceite 5 minutos",
+        "Hervir agua con vinagre",
+        "Pochear los huevos 3 minutos",
+        "Colocar espárragos en plato",
+        "Poner los huevos encima",
+        "Añadir taquitos de jamón crujiente"
+      ],
+      "info_nutricional": {
+        "calorias": 280,
+        "proteina": 18,
+        "carbs": 6,
+        "grasa": 20
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800"
+    },
+    {
+      "nombre": "Bacalao con Tomate",
+      "descripción": "Lomos de bacalao desalado en salsa de tomate casera.",
+      "ingredientes": {
+        "bacalao desalado": "200g",
+        "tomate triturado": "200g",
+        "cebolla": "1/2 unidad",
+        "ajo": "2 dientes",
+        "aceite de oliva": "3 cucharadas",
+        "aceitunas negras": "6 unidades"
+      },
+      "instrucciones": [
+        "Pochar cebolla y ajo picados",
+        "Añadir el tomate y cocinar 15 minutos",
+        "Incorporar el bacalao en trozos",
+        "Cocinar 10 minutos a fuego lento",
+        "Añadir las aceitunas",
+        "Servir caliente"
+      ],
+      "info_nutricional": {
+        "calorias": 360,
+        "proteina": 28,
+        "carbs": 12,
+        "grasa": 22
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800"
+    },
+    {
+      "nombre": "Ensalada de Quinoa",
+      "descripción": "Ensalada nutritiva de quinoa con vegetales mediterráneos.",
+      "ingredientes": {
+        "quinoa": "60g",
+        "pepino": "1/2 unidad",
+        "tomates cherry": "10 unidades",
+        "queso feta": "50g",
+        "aceitunas kalamata": "8 unidades",
+        "aceite de oliva": "2 cucharadas",
+        "limón": "1 unidad"
+      },
+      "instrucciones": [
+        "Cocer la quinoa según instrucciones",
+        "Dejar enfriar completamente",
+        "Cortar pepino y tomates",
+        "Mezclar todos los ingredientes",
+        "Aliñar con aceite y zumo de limón",
+        "Servir fresco"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 14,
+        "carbs": 38,
+        "grasa": 20
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800"
+    },
+    {
+      "nombre": "Rape en Salsa",
+      "descripción": "Rodajas de rape en salsa de almendras y azafrán.",
+      "ingredientes": {
+        "rape": "200g",
+        "almendras": "30g",
+        "azafrán": "unas hebras",
+        "vino blanco": "50ml",
+        "caldo de pescado": "200ml",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Tostar ligeramente las almendras",
+        "Dorar el rape en aceite",
+        "Añadir el vino blanco y reducir",
+        "Agregar el caldo y azafrán",
+        "Triturar las almendras y añadir",
+        "Cocinar 15 minutos a fuego lento"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 30,
+        "carbs": 8,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800"
+    },
+    {
+      "nombre": "Tortilla de Calabacín",
+      "descripción": "Tortilla ligera de calabacín con cebolla caramelizada.",
+      "ingredientes": {
+        "huevos": "3 unidades",
+        "calabacín": "2 unidades medianos",
+        "cebolla": "1 unidad",
+        "aceite de oliva": "3 cucharadas",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Cortar el calabacín en rodajas finas",
+        "Pochar la cebolla hasta dorar",
+        "Añadir el calabacín y cocinar 10 minutos",
+        "Batir los huevos con sal",
+        "Mezclar verduras con huevos",
+        "Cuajar la tortilla en sartén"
+      ],
+      "info_nutricional": {
+        "calorias": 310,
+        "proteina": 16,
+        "carbs": 12,
+        "grasa": 22
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1590412497706-e98f0916f6d8?w=800"
+    },
+    {
+      "nombre": "Brochetas de Pollo y Verduras",
+      "descripción": "Brochetas de pollo marinado con pimientos y cebolla.",
+      "ingredientes": {
+        "pechuga de pollo": "180g",
+        "pimiento rojo": "1 unidad",
+        "pimiento verde": "1 unidad",
+        "cebolla": "1 unidad",
+        "yogur": "3 cucharadas",
+        "pimentón": "1 cucharadita",
+        "limón": "1 unidad"
+      },
+      "instrucciones": [
+        "Cortar el pollo en cubos",
+        "Marinar con yogur, pimentón y limón 30 min",
+        "Cortar verduras en trozos grandes",
+        "Alternar pollo y verduras en brochetas",
+        "Cocinar en plancha o horno 15 minutos",
+        "Servir caliente"
+      ],
+      "info_nutricional": {
+        "calorias": 320,
+        "proteina": 32,
+        "carbs": 14,
+        "grasa": 12
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 45,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800"
+    },
+    {
+      "nombre": "Sardinas a la Plancha",
+      "descripción": "Sardinas frescas a la plancha con limón y perejil.",
+      "ingredientes": {
+        "sardinas": "6 unidades",
+        "limón": "1 unidad",
+        "perejil": "1 manojo",
+        "aceite de oliva": "2 cucharadas",
+        "sal gorda": "al gusto"
+      },
+      "instrucciones": [
+        "Limpiar las sardinas",
+        "Secar bien con papel",
+        "Calentar plancha muy caliente",
+        "Cocinar 3 minutos por lado",
+        "Espolvorear con sal gorda",
+        "Servir con limón y perejil"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 28,
+        "carbs": 2,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 15,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800"
+    },
+    {
+      "nombre": "Ensalada de Espinacas y Fresas",
+      "descripción": "Ensalada dulce-salada con espinacas baby y fresas frescas.",
+      "ingredientes": {
+        "espinacas baby": "150g",
+        "fresas": "100g",
+        "queso de cabra": "60g",
+        "nueces": "30g",
+        "miel": "1 cucharada",
+        "vinagre balsámico": "1 cucharada",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Lavar las espinacas y fresas",
+        "Cortar las fresas en láminas",
+        "Desmenuzar el queso de cabra",
+        "Mezclar todos los ingredientes",
+        "Hacer vinagreta con miel, vinagre y aceite",
+        "Aliñar al momento de servir"
+      ],
+      "info_nutricional": {
+        "calorias": 360,
+        "proteina": 12,
+        "carbs": 22,
+        "grasa": 26
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 15,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800"
+    },
+    {
+      "nombre": "Pollo Tikka Masala Ligero",
+      "descripción": "Versión ligera del clásico indio con yogur y especias.",
+      "ingredientes": {
+        "pechuga de pollo": "180g",
+        "yogur natural": "100g",
+        "tomate triturado": "150g",
+        "garam masala": "1 cucharada",
+        "jengibre": "10g",
+        "ajo": "2 dientes",
+        "nata ligera": "50ml"
+      },
+      "instrucciones": [
+        "Marinar pollo con yogur y especias 1 hora",
+        "Dorar el pollo en sartén",
+        "Pochar ajo y jengibre",
+        "Añadir tomate y cocinar 10 minutos",
+        "Incorporar pollo y nata",
+        "Cocinar 10 minutos más"
+      ],
+      "info_nutricional": {
+        "calorias": 420,
+        "proteina": 35,
+        "carbs": 18,
+        "grasa": 20
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 80,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Mejillones al Vapor",
+      "descripción": "Mejillones frescos al vapor con vino blanco y hierbas.",
+      "ingredientes": {
+        "mejillones": "500g",
+        "vino blanco": "100ml",
+        "cebolla": "1/2 unidad",
+        "perejil": "1 manojo",
+        "ajo": "2 dientes",
+        "laurel": "1 hoja"
+      },
+      "instrucciones": [
+        "Limpiar los mejillones bajo agua",
+        "Pochar cebolla y ajo picados",
+        "Añadir vino blanco y laurel",
+        "Incorporar mejillones y tapar",
+        "Cocinar 5-7 minutos hasta que se abran",
+        "Espolvorear con perejil picado"
+      ],
+      "info_nutricional": {
+        "calorias": 280,
+        "proteina": 24,
+        "carbs": 10,
+        "grasa": 8
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Tartar de Atún",
+      "descripción": "Atún rojo fresco en tartar con aguacate y sésamo.",
+      "ingredientes": {
+        "atún rojo": "180g",
+        "aguacate": "1 unidad",
+        "soja": "2 cucharadas",
+        "sésamo": "1 cucharada",
+        "lima": "1 unidad",
+        "cebollino": "1 manojo"
+      },
+      "instrucciones": [
+        "Cortar el atún en dados pequeños",
+        "Hacer lo mismo con el aguacate",
+        "Mezclar con soja y zumo de lima",
+        "Montar con aro en el plato",
+        "Espolvorear con sésamo y cebollino",
+        "Servir inmediatamente"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 26,
+        "carbs": 10,
+        "grasa": 28
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 15,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1553621042-f6e147245754?w=800"
+    },
+    {
+      "nombre": "Albóndigas de Pavo",
+      "descripción": "Albóndigas ligeras de pavo en salsa de tomate casera.",
+      "ingredientes": {
+        "carne de pavo": "200g",
+        "pan rallado": "2 cucharadas",
+        "huevo": "1 unidad",
+        "tomate triturado": "200g",
+        "cebolla": "1/2 unidad",
+        "ajo": "2 dientes"
+      },
+      "instrucciones": [
+        "Mezclar carne con pan rallado y huevo",
+        "Formar albóndigas pequeñas",
+        "Dorar en sartén con poco aceite",
+        "Pochar cebolla y ajo",
+        "Añadir tomate y cocinar 10 minutos",
+        "Incorporar albóndigas y cocinar 15 minutos"
+      ],
+      "info_nutricional": {
+        "calorias": 360,
+        "proteina": 32,
+        "carbs": 18,
+        "grasa": 16
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 35,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=800"
+    },
+    {
+      "nombre": "Espárragos con Salsa Holandesa",
+      "descripción": "Espárragos blancos con salsa holandesa ligera.",
+      "ingredientes": {
+        "espárragos blancos": "300g",
+        "yemas de huevo": "2 unidades",
+        "limón": "1 unidad",
+        "mantequilla": "30g",
+        "sal": "al gusto",
+        "pimienta blanca": "al gusto"
+      },
+      "instrucciones": [
+        "Cocer los espárragos 15 minutos",
+        "Batir yemas con zumo de limón",
+        "Añadir mantequilla derretida poco a poco",
+        "Calentar al baño maría sin cuajar",
+        "Escurrir espárragos",
+        "Servir con la salsa caliente"
+      ],
+      "info_nutricional": {
+        "calorias": 280,
+        "proteina": 8,
+        "carbs": 10,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1590412497706-e98f0916f6d8?w=800"
+    },
+    {
+      "nombre": "Carpaccio de Ternera",
+      "descripción": "Finas láminas de ternera cruda con rúcula y parmesano.",
+      "ingredientes": {
+        "solomillo de ternera": "150g",
+        "rúcula": "50g",
+        "parmesano": "40g",
+        "aceite de oliva": "3 cucharadas",
+        "limón": "1 unidad",
+        "pimienta negra": "al gusto"
+      },
+      "instrucciones": [
+        "Congelar la carne 30 minutos",
+        "Cortar en láminas muy finas",
+        "Disponer en plato extendido",
+        "Añadir rúcula y lascas de parmesano",
+        "Aliñar con aceite y limón",
+        "Terminar con pimienta recién molida"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 26,
+        "carbs": 3,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 40,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1544025162-d76690b6d012?w=800"
+    },
+    {
+      "nombre": "Gazpachuelo Malagueño",
+      "descripción": "Sopa fría andaluza con patata, pescado y mayonesa.",
+      "ingredientes": {
+        "merluza": "150g",
+        "patata": "1 unidad",
+        "huevo": "1 unidad",
+        "aceite de oliva": "4 cucharadas",
+        "limón": "1 unidad",
+        "perejil": "1 manojo"
+      },
+      "instrucciones": [
+        "Cocer patata en dados y pescado",
+        "Reservar el caldo de cocción",
+        "Hacer mayonesa con huevo, aceite y limón",
+        "Triturar patata con un poco de caldo",
+        "Mezclar con mayonesa",
+        "Añadir pescado desmenuzado"
+      ],
+      "info_nutricional": {
+        "calorias": 420,
+        "proteina": 22,
+        "carbs": 24,
+        "grasa": 28
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 35,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800"
+    },
+    {
+      "nombre": "Wok de Ternera",
+      "descripción": "Tiras de ternera salteadas con verduras y salsa teriyaki.",
+      "ingredientes": {
+        "solomillo de ternera": "150g",
+        "brócoli": "100g",
+        "pimiento": "1 unidad",
+        "zanahoria": "1 unidad",
+        "salsa teriyaki": "3 cucharadas",
+        "sésamo": "1 cucharada",
+        "jengibre": "10g"
+      },
+      "instrucciones": [
+        "Cortar la carne en tiras finas",
+        "Cortar todas las verduras en juliana",
+        "Saltear la carne muy caliente",
+        "Añadir verduras y saltear 5 minutos",
+        "Incorporar salsa teriyaki",
+        "Terminar con sésamo y jengibre"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 28,
+        "carbs": 22,
+        "grasa": 18
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=800"
+    },
+    {
+      "nombre": "Huevos Rotos con Jamón",
+      "descripción": "Huevos fritos sobre patatas panadera con jamón serrano.",
+      "ingredientes": {
+        "huevos": "2 unidades",
+        "patatas": "2 unidades",
+        "jamón serrano": "50g",
+        "aceite de oliva": "4 cucharadas",
+        "ajo": "1 diente"
+      },
+      "instrucciones": [
+        "Cortar patatas en rodajas finas",
+        "Freír patatas con ajo laminado",
+        "Hacer los huevos fritos",
+        "Colocar patatas en plato",
+        "Poner huevos encima y romper la yema",
+        "Añadir taquitos de jamón"
+      ],
+      "info_nutricional": {
+        "calorias": 480,
+        "proteina": 20,
+        "carbs": 32,
+        "grasa": 32
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800"
+    },
+    {
+      "nombre": "Ensalada de Pulpo",
+      "descripción": "Pulpo cocido con patata, pimiento y cebolla.",
+      "ingredientes": {
+        "pulpo cocido": "150g",
+        "patata": "1 unidad",
+        "pimiento rojo": "1/2 unidad",
+        "cebolla": "1/2 unidad",
+        "pimentón": "1 cucharadita",
+        "aceite de oliva": "3 cucharadas"
+      },
+      "instrucciones": [
+        "Cocer la patata con piel",
+        "Cortar todas las verduras en juliana",
+        "Cortar el pulpo en rodajas",
+        "Mezclar todos los ingredientes",
+        "Aliñar con aceite y pimentón",
+        "Servir templado"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 22,
+        "carbs": 26,
+        "grasa": 16
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Pescadilla en Salsa Verde",
+      "descripción": "Rodajas de pescadilla en salsa verde con almejas.",
+      "ingredientes": {
+        "pescadilla": "200g",
+        "almejas": "100g",
+        "perejil": "1 manojo",
+        "ajo": "3 dientes",
+        "vino blanco": "50ml",
+        "harina": "1 cucharada"
+      },
+      "instrucciones": [
+        "Limpiar las almejas",
+        "Dorar ajo en aceite",
+        "Añadir harina y remover",
+        "Agrega vino y caldo",
+        "Incorporar pescado y almejas",
+        "Cocinar 15 minutos con perejil"
+      ],
+      "info_nutricional": {
+        "calorias": 320,
+        "proteina": 28,
+        "carbs": 12,
+        "grasa": 14
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800"
+    },
+    {
+      "nombre": "Pimientos del Piquillo Rellenos",
+      "descripción": "Pimientos del piquillo rellenos de bacalao y bechamel.",
+      "ingredientes": {
+        "pimientos del piquillo": "6 unidades",
+        "bacalao desalado": "100g",
+        "leche": "200ml",
+        "harina": "2 cucharadas",
+        "mantequilla": "20g",
+        "nuez moscada": "al gusto"
+      },
+      "instrucciones": [
+        "Desmenuzar el bacalao",
+        "Hacer bechamel con leche, harina y mantequilla",
+        "Mezclar bacalao con bechamel",
+        "Rellenar los pimientos",
+        "Colocar en fuente de horno",
+        "Gratinar 10 minutos"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 18,
+        "carbs": 24,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 40,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1590412497706-e98f0916f6d8?w=800"
+    },
+    {
+      "nombre": "Atún a la Plancha con Pimientos",
+      "descripción": "Lomo de atún fresco con pimientos asados.",
+      "ingredientes": {
+        "lomo de atún": "180g",
+        "pimiento rojo": "1 unidad",
+        "pimiento verde": "1 unidad",
+        "aceite de oliva": "2 cucharadas",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Asar los pimientos hasta quemar la piel",
+        "Pelar y cortar en tiras",
+        "Hacer el atún a la plancha 2 minutos por lado",
+        "Dejar poco hecho en el centro",
+        "Servir con los pimientos",
+        "Aliñar con aceite y sal"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 32,
+        "carbs": 10,
+        "grasa": 18
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 25,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800"
+    },
+    {
+      "nombre": "Crema de Guisantes",
+      "descripción": "Crema suave de guisantes con menta fresca.",
+      "ingredientes": {
+        "guisantes": "300g",
+        "cebolla": "1/2 unidad",
+        "menta fresca": "1 manojo",
+        "caldo de verduras": "400ml",
+        "nata": "2 cucharadas",
+        "aceite de oliva": "1 cucharada"
+      },
+      "instrucciones": [
+        "Pochar la cebolla picada",
+        "Añadir guisantes y caldo",
+        "Cocinar 15 minutos",
+        "Triturar con la menta",
+        "Pasar por el chino si se prefiere fina",
+        "Servir con nata y menta fresca"
+      ],
+      "info_nutricional": {
+        "calorias": 240,
+        "proteina": 10,
+        "carbs": 24,
+        "grasa": 12
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 25,
+      "raciones": 2,
+      "imagen_url": "https://images.unsplash.com/photo-1476718408415-c0805d168554?w=800"
+    },
+    {
+      "nombre": "Lomo de Cerdo a la Mostaza",
+      "descripción": "Medallones de lomo de cerdo con salsa de mostaza y miel.",
+      "ingredientes": {
+        "lomo de cerdo": "180g",
+        "mostaza Dijon": "2 cucharadas",
+        "miel": "1 cucharada",
+        "nata": "50ml",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Cortar el lomo en medallones",
+        "Dorar en sartén caliente",
+        "Mezclar mostaza, miel y nata",
+        "Añadir la salsa a la carne",
+        "Cocinar 5 minutos más",
+        "Servir con la salsa"
+      ],
+      "info_nutricional": {
+        "calorias": 420,
+        "proteina": 30,
+        "carbs": 14,
+        "grasa": 28
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=800"
+    },
+    {
+      "nombre": "Ensalada de Bogavante",
+      "descripción": "Ensalada gourmet con bogavante, aguacate y cítricos.",
+      "ingredientes": {
+        "bogavante cocido": "150g",
+        "aguacate": "1 unidad",
+        "naranja": "1 unidad",
+        "canónigos": "50g",
+        "aceite de oliva": "2 cucharadas",
+        "vinagre de Módena": "1 cucharada"
+      },
+      "instrucciones": [
+        "Sacar la carne del bogavante",
+        "Cortar el aguacate en gajos",
+        "Pelar la naranja a lo vivo",
+        "Mezclar con los canónigos",
+        "Aliñar con aceite y vinagre",
+        "Servir fresco"
+      ],
+      "info_nutricional": {
+        "calorias": 380,
+        "proteina": 22,
+        "carbs": 14,
+        "grasa": 28
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800"
+    },
+    {
+      "nombre": "Tortilla de Alcachofas",
+      "descripción": "Tortilla española con corazones de alcachofa tiernos.",
+      "ingredientes": {
+        "huevos": "3 unidades",
+        "alcachofas": "4 unidades",
+        "cebolla": "1/2 unidad",
+        "aceite de oliva": "3 cucharadas",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Limpiar y cortar las alcachofas",
+        "Pochar con cebolla hasta tiernas",
+        "Batir los huevos con sal",
+        "Mezclar verduras con huevos",
+        "Cuajar la tortilla en sartén",
+        "Servir templada"
+      ],
+      "info_nutricional": {
+        "calorias": 340,
+        "proteina": 16,
+        "carbs": 14,
+        "grasa": 26
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1590412497706-e98f0916f6d8?w=800"
+    },
+    {
+      "nombre": "Rodaballo al Horno",
+      "descripción": "Filete de rodaballo al horno con patatas y limón.",
+      "ingredientes": {
+        "rodaballo": "200g",
+        "patatas": "2 unidades",
+        "limón": "1 unidad",
+        "vino blanco": "50ml",
+        "aceite de oliva": "3 cucharadas",
+        "perejil": "1 manojo"
+      },
+      "instrucciones": [
+        "Cortar patatas en rodajas finas",
+        "Colocar en bandeja de horno",
+        "Poner el pescado encima",
+        "Rociar con vino y aceite",
+        "Hornear 20 minutos a 180°C",
+        "Servir con limón y perejil"
+      ],
+      "info_nutricional": {
+        "calorias": 420,
+        "proteina": 30,
+        "carbs": 28,
+        "grasa": 22
+      },
+      "categoria": "cena",
+      "supermercado": "Carrefour",
+      "tiempo_preparacion": 30,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800"
+    },
+    {
+      "nombre": "Revuelto de Setas",
+      "descripción": "Huevos revueltos cremosos con mezcla de setas silvestres.",
+      "ingredientes": {
+        "huevos": "3 unidades",
+        "setas variadas": "200g",
+        "ajo": "2 dientes",
+        "perejil": "1 manojo",
+        "aceite de oliva": "2 cucharadas",
+        "sal": "al gusto"
+      },
+      "instrucciones": [
+        "Limpiar y laminar las setas",
+        "Saltear con ajo picado",
+        "Batir los huevos",
+        "Añadir a las setas",
+        "Remover hasta cuajar cremoso",
+        "Espolvorear con perejil"
+      ],
+      "info_nutricional": {
+        "calorias": 320,
+        "proteina": 18,
+        "carbs": 6,
+        "grasa": 24
+      },
+      "categoria": "cena",
+      "supermercado": "Lidl",
+      "tiempo_preparacion": 15,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800"
+    },
+    {
+      "nombre": "Ensalada de Endibias con Nueces",
+      "descripción": "Endibias rellenas de queso azul y nueces caramelizadas.",
+      "ingredientes": {
+        "endibias": "3 unidades",
+        "queso azul": "60g",
+        "nueces": "40g",
+        "miel": "1 cucharada",
+        "peras": "1 unidad",
+        "aceite de oliva": "2 cucharadas"
+      },
+      "instrucciones": [
+        "Separar las hojas de endibia",
+        "Desmenuzar el queso azul",
+        "Caramelizar nueces con miel",
+        "Cortar la pera en láminas",
+        "Rellenar hojas con queso y nueces",
+        "Servir con láminas de pera"
+      ],
+      "info_nutricional": {
+        "calorias": 360,
+        "proteina": 12,
+        "carbs": 24,
+        "grasa": 26
+      },
+      "categoria": "cena",
+      "supermercado": "Mercadona",
+      "tiempo_preparacion": 20,
+      "raciones": 1,
+      "imagen_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800"
+    }
+  ]
+}

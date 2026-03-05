@@ -1,1183 +1,1538 @@
-// Diet Tracker App - JavaScript
+// Diet Tracker FIT - Frontend Completo
 // API Base URL
-const API_BASE = 'https://diet-tracker-app-ten.vercel.app/api';
+const API_BASE = 'https://diet-tracker-app-chi.vercel.app/api';
 
 // Estado global
 let user = null;
+let isDark = false;
 let currentPlan = null;
 let currentDay = 1;
 let weightChart = null;
+let onboardingStep = 0;
+let onboardingData = {};
+
+// ==================== INICIALIZACIÓN ====================
+
+document.addEventListener('DOMContentLoaded', function() {
+    initDarkMode();
+    checkAuth();
+    renderLandingPage();
+});
 
 // ==================== MODO OSCURO ====================
 
-// Inicializar modo oscuro
 function initDarkMode() {
-  const savedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  
-  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-    document.documentElement.classList.add('dark');
-    updateDarkModeToggle('🌙');
-  } else {
-    document.documentElement.classList.remove('dark');
-    updateDarkModeToggle('☀️');
-  }
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    isDark = (savedTheme === 'dark' || (!savedTheme && prefersDark));
+    
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+    }
+    
+    updateDarkIcon();
 }
 
-// Alternar modo oscuro/claro
 function toggleDark() {
-  const isDark = document.documentElement.classList.toggle('dark');
-  localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  updateDarkModeToggle(isDark ? '🌙' : '☀️');
-  
-  // Actualizar gráfico si existe
-  if (weightChart) {
-    updateChartTheme();
-  }
-  
-  // Mostrar feedback
-  showToast(`Modo ${isDark ? 'oscuro' : 'claro'} activado`, 'info');
+    isDark = !isDark;
+    
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateDarkIcon();
+    showToast('Modo ' + (isDark ? 'oscuro' : 'claro') + ' activado', 'info');
+    
+    // Actualizar gráfico si existe
+    if (weightChart) {
+        updateChartTheme();
+    }
 }
 
-// Actualizar icono del toggle
-function updateDarkModeToggle(icon) {
-  const toggleBtn = document.querySelector('button[onclick="toggleDark()"]');
-  if (toggleBtn) {
-    toggleBtn.textContent = icon;
-    toggleBtn.setAttribute('aria-label', icon === '🌙' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-  }
+function updateDarkIcon() {
+    const el = document.getElementById('dark-icon');
+    if (el) {
+        el.textContent = isDark ? '☀️' : '🌙';
+    }
 }
 
-// Actualizar tema del gráfico
 function updateChartTheme() {
-  if (!weightChart) return;
-  
-  const isDark = document.documentElement.classList.contains('dark');
-  const gridColor = isDark ? '#334155' : '#e2e8f0';
-  const tickColor = isDark ? '#94a3b8' : '#64748b';
-  const tooltipBg = isDark ? '#1e293b' : '#fff';
-  const tooltipTitle = isDark ? '#f1f5f9' : '#0f172a';
-  const tooltipBody = isDark ? '#cbd5e1' : '#475569';
-  const borderColor = isDark ? '#475569' : '#e2e8f0';
-  
-  weightChart.options.plugins.tooltip.backgroundColor = tooltipBg;
-  weightChart.options.plugins.tooltip.titleColor = tooltipTitle;
-  weightChart.options.plugins.tooltip.bodyColor = tooltipBody;
-  weightChart.options.plugins.tooltip.borderColor = borderColor;
-  
-  weightChart.options.scales.y.grid.color = gridColor;
-  weightChart.options.scales.y.ticks.color = tickColor;
-  weightChart.options.scales.x.ticks.color = tickColor;
-  
-  weightChart.update();
+    if (!weightChart) return;
+    
+    const gridColor = isDark ? '#334155' : '#e2e8f0';
+    const tickColor = isDark ? '#94a3b8' : '#64748b';
+    const tooltipBg = isDark ? '#1e293b' : '#fff';
+    const tooltipTitle = isDark ? '#f1f5f9' : '#0f172a';
+    const tooltipBody = isDark ? '#cbd5e1' : '#475569';
+    
+    weightChart.options.scales.y.grid.color = gridColor;
+    weightChart.options.scales.y.ticks.color = tickColor;
+    weightChart.options.scales.x.ticks.color = tickColor;
+    weightChart.options.plugins.tooltip.backgroundColor = tooltipBg;
+    weightChart.options.plugins.tooltip.titleColor = tooltipTitle;
+    weightChart.options.plugins.tooltip.bodyColor = tooltipBody;
+    
+    weightChart.update();
 }
 
-// ==================== AUTENTICACIÓN ====================
+// ==================== NAVEGACIÓN ====================
 
-// Mostrar/ocultar modales
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    menu.classList.toggle('hidden');
+}
+
+function scrollToSection(id) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// ==================== RENDERIZADO LANDING PAGE ====================
+
+function renderLandingPage() {
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = `
+        <!-- Hero Section -->
+        <section id="inicio" class="min-h-[80vh] flex items-center justify-center text-center px-4 py-20">
+            <div class="max-w-4xl mx-auto">
+                <div class="inline-block px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full text-purple-600 dark:text-purple-400 font-semibold text-sm mb-6">
+                    🎯 +350 recetas saludables
+                </div>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 dark:text-white leading-tight">
+                    Tu mejor versión <br>
+                    <span class="gradient-text">comienza aquí</span>
+                </h1>
+                <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+                    Planificación nutricional personalizada, seguimiento de progreso y recetas deliciosas. 
+                    Todo lo que necesitas para alcanzar tus objetivos de salud.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <button onclick="showModal('register')" class="btn-primary text-white px-8 py-4 rounded-2xl font-bold text-lg w-full sm:w-auto touch-target">
+                        🚀 Comenzar gratis
+                    </button>
+                    <button onclick="showModal('login')" class="glass px-8 py-4 rounded-2xl font-bold text-lg text-gray-900 dark:text-white w-full sm:w-auto touch-target hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        👤 Ya tengo cuenta
+                    </button>
+                </div>
+                <div class="mt-12 flex items-center justify-center gap-8 text-sm text-gray-500 dark:text-gray-400">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                        <span>Sin tarjeta requerida</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                        <span>Cancela cuando quieras</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 px-4 bg-white dark:bg-gray-900">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-black mb-4 dark:text-white">
+                        Todo lo que necesitas
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                        Herramientas poderosas diseñadas para hacer tu viaje de salud más fácil y efectivo
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                    <!-- Feature 1 -->
+                    <div class="glass-card rounded-2xl p-6 sm:p-8 card-hover">
+                        <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+                            📊
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 dark:text-white">Seguimiento de Calorías</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Control preciso de tu ingesta diaria con contador visual y metas personalizadas.</p>
+                    </div>
+                    
+                    <!-- Feature 2 -->
+                    <div class="glass-card rounded-2xl p-6 sm:p-8 card-hover">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+                            🥗
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 dark:text-white">350+ Recetas</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Recetas saludables y deliciosas con información nutricional detallada.</p>
+                    </div>
+                    
+                    <!-- Feature 3 -->
+                    <div class="glass-card rounded-2xl p-6 sm:p-8 card-hover">
+                        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+                            📈
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 dark:text-white">Progreso de Peso</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Gráficos de evolución para visualizar tu transformación semana a semana.</p>
+                    </div>
+                    
+                    <!-- Feature 4 -->
+                    <div class="glass-card rounded-2xl p-6 sm:p-8 card-hover">
+                        <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+                            🛒
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 dark:text-white">Lista de Compras</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Lista automática agrupada por supermercado para facilitar tus compras.</p>
+                    </div>
+                    
+                    <!-- Feature 5 -->
+                    <div class="glass-card rounded-2xl p-6 sm:p-8 card-hover">
+                        <div class="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+                            🎯
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 dark:text-white">Metas Personalizadas</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Planes adaptados a tus objetivos: perder peso, ganar músculo o mantener.</p>
+                    </div>
+                    
+                    <!-- Feature 6 -->
+                    <div class="glass-card rounded-2xl p-6 sm:p-8 card-hover">
+                        <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+                            📱
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 dark:text-white">100% Mobile First</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Diseño responsive optimizado para usar desde cualquier dispositivo.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Beneficios Section -->
+        <section id="beneficios" class="py-20 px-4">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-black mb-4 dark:text-white">
+                        Beneficios que marcan la diferencia
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                        Más que una app de conteo de calorías, tu compañero de transformación
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="glass-card rounded-2xl p-8 flex gap-6 items-start">
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                            ⚡
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-2 dark:text-white">Resultados Rápidos</h3>
+                            <p class="text-gray-600 dark:text-gray-400">Nuestros usuarios ven resultados en las primeras 2-3 semanas con consistencia.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-8 flex gap-6 items-start">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                            🧠
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-2 dark:text-white">Sin Estrés</h3>
+                            <p class="text-gray-600 dark:text-gray-400">Olvídate de contar manualmente. Todo automatizado y fácil de seguir.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-8 flex gap-6 items-start">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                            🎓
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-2 dark:text-white">Aprende a Comer</h3>
+                            <p class="text-gray-600 dark:text-gray-400">Entiende tus macros y desarrolla hábitos saludables para siempre.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-8 flex gap-6 items-start">
+                        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                            💪
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-2 dark:text-white">Comunidad Activa</h3>
+                            <p class="text-gray-600 dark:text-gray-400">Únete a miles de personas que ya están transformando su vida.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonios Section -->
+        <section class="py-20 px-4 bg-white dark:bg-gray-900">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-black mb-4 dark:text-white">
+                        Historias de éxito
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-400">Personas reales, resultados reales</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                                M
+                            </div>
+                            <div>
+                                <p class="font-bold dark:text-white">María G.</p>
+                                <p class="text-sm text-gray-500">-8kg en 2 meses</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 italic">"La mejor inversión en mi salud. Las recetas son increíbles y el seguimiento es súper fácil."</p>
+                        <div class="flex gap-1 mt-4 text-yellow-500">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                                C
+                            </div>
+                            <div>
+                                <p class="font-bold dark:text-white">Carlos R.</p>
+                                <p class="text-sm text-gray-500">+5kg músculo en 3 meses</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 italic">"Perfecto para ganar masa muscular. Los macros están perfectamente calculados."</p>
+                        <div class="flex gap-1 mt-4 text-yellow-500">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                                L
+                            </div>
+                            <div>
+                                <p class="font-bold dark:text-white">Laura M.</p>
+                                <p class="text-sm text-gray-500">-15kg en 4 meses</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 italic">"Cambió mi vida. Ahora entiendo cómo comer y mantengo mi peso sin esfuerzo."</p>
+                        <div class="flex gap-1 mt-4 text-yellow-500">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" class="py-20 px-4">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-black mb-4 dark:text-white">
+                        Planes simples y transparentes
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-400">Elige el plan que mejor se adapte a ti</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <!-- Free Plan -->
+                    <div class="glass-card rounded-2xl p-8 border-2 border-transparent">
+                        <h3 class="text-2xl font-black mb-2 dark:text-white">Gratis</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">Para empezar</p>
+                        <div class="mb-6">
+                            <span class="text-5xl font-black dark:text-white">€0</span>
+                            <span class="text-gray-500">/mes</span>
+                        </div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Seguimiento básico</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">50 recetas</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">1 objetivo</span>
+                            </li>
+                        </ul>
+                        <button onclick="showModal('register')" class="w-full py-3 rounded-xl font-bold border-2 border-purple-500 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                            Comenzar gratis
+                        </button>
+                    </div>
+                    
+                    <!-- Pro Plan -->
+                    <div class="glass-card rounded-2xl p-8 border-2 border-purple-500 relative transform scale-105">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-1 rounded-full text-sm font-bold">
+                            MÁS POPULAR
+                        </div>
+                        <h3 class="text-2xl font-black mb-2 dark:text-white">Pro</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">Para resultados serios</p>
+                        <div class="mb-6">
+                            <span class="text-5xl font-black dark:text-white">€9</span>
+                            <span class="text-gray-500">/mes</span>
+                        </div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Todo lo de Gratis</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">350+ recetas</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Objetivos ilimitados</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Lista de compras</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Soporte prioritario</span>
+                            </li>
+                        </ul>
+                        <button onclick="showModal('register')" class="btn-primary w-full py-3 rounded-xl font-bold text-white touch-target">
+                            Comenzar Pro
+                        </button>
+                    </div>
+                    
+                    <!-- Premium Plan -->
+                    <div class="glass-card rounded-2xl p-8 border-2 border-transparent">
+                        <h3 class="text-2xl font-black mb-2 dark:text-white">Premium</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">Máximo rendimiento</p>
+                        <div class="mb-6">
+                            <span class="text-5xl font-black dark:text-white">€19</span>
+                            <span class="text-gray-500">/mes</span>
+                        </div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Todo lo de Pro</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Coach personalizado</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Planes avanzados</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="dark:text-gray-300">Comunidad VIP</span>
+                            </li>
+                        </ul>
+                        <button onclick="showModal('register')" class="w-full py-3 rounded-xl font-bold border-2 border-purple-500 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                            Comenzar Premium
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="py-20 px-4 bg-white dark:bg-gray-900">
+            <div class="container mx-auto max-w-4xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-black mb-4 dark:text-white">
+                        Preguntas frecuentes
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-400">Resolvemos tus dudas</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex items-center justify-between dark:text-white font-semibold">
+                            <span>¿Necesito experiencia previa?</span>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="hidden px-6 pb-4 text-gray-600 dark:text-gray-400">
+                            <p>¡Para nada! La app está diseñada para principiantes y expertos. El onboarding te guiará paso a paso.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex items-center justify-between dark:text-white font-semibold">
+                            <span>¿Puedo cancelar cuando quiera?</span>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="hidden px-6 pb-4 text-gray-600 dark:text-gray-400">
+                            <p>Sí, puedes cancelar tu suscripción en cualquier momento sin preguntas ni cargos ocultos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex items-center justify-between dark:text-white font-semibold">
+                            <span>¿Las recetas son aptas para vegetarianos?</span>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="hidden px-6 pb-4 text-gray-600 dark:text-gray-400">
+                            <p>Sí, tenemos más de 100 recetas vegetarianas y veganas. Puedes filtrar por preferencias dietéticas.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex items-center justify-between dark:text-white font-semibold">
+                            <span>¿Funciona en móviles?</span>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="hidden px-6 pb-4 text-gray-600 dark:text-gray-400">
+                            <p>¡Sí! La app es 100% responsive y funciona perfectamente en cualquier dispositivo móvil, tablet o escritorio.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex items-center justify-between dark:text-white font-semibold">
+                            <span>¿Hay garantía de devolución?</span>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="hidden px-6 pb-4 text-gray-600 dark:text-gray-400">
+                            <p>Ofrecemos 14 días de garantía de devolución si no estás satisfecho con los resultados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-12 px-4 border-t border-gray-200 dark:border-gray-800">
+            <div class="container mx-auto max-w-6xl">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-2xl">🥗</div>
+                            <span class="text-xl font-black gradient-text">Diet Tracker FIT</span>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">
+                            Tu compañero de transformación nutricional.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold mb-4 dark:text-white">Producto</h4>
+                        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <li><a href="#features" class="hover:text-purple-500">Características</a></li>
+                            <li><a href="#pricing" class="hover:text-purple-500">Precios</a></li>
+                            <li><a href="#" class="hover:text-purple-500">Recetas</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold mb-4 dark:text-white">Compañía</h4>
+                        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <li><a href="#" class="hover:text-purple-500">Sobre nosotros</a></li>
+                            <li><a href="#" class="hover:text-purple-500">Blog</a></li>
+                            <li><a href="#" class="hover:text-purple-500">Contacto</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold mb-4 dark:text-white">Legal</h4>
+                        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <li><a href="#" class="hover:text-purple-500">Privacidad</a></li>
+                            <li><a href="#" class="hover:text-purple-500">Términos</a></li>
+                            <li><a href="#" class="hover:text-purple-500">Cookies</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-gray-500">© 2025 Diet Tracker FIT. Todos los derechos reservados.</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-purple-500 transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-purple-500 transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-purple-500 transition-colors">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    `;
+}
+
+// Toggle FAQ
+function toggleFaq(button) {
+    const content = button.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    content.classList.toggle('hidden');
+    icon.classList.toggle('rotate-180');
+}
+
+// ==================== MODALES DE AUTENTICACIÓN ====================
+
 function showModal(type) {
-  const modal = document.getElementById(`${type}-modal`);
-  if (!modal) return;
-  
-  modal.classList.remove('hidden');
-  modal.setAttribute('aria-hidden', 'false');
-  
-  // Animación de entrada con GSAP
-  const modalContent = modal.querySelector('.glass-card');
-  if (modalContent) {
-    gsap.fromTo(modalContent,
-      {
-        opacity: 0,
-        scale: 0.9,
-        y: 20
-      },
-      {
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        duration: 0.4,
-        ease: "back.out(1.7)"
-      }
-    );
-  }
-  
-  // Animar backdrop
-  const backdrop = modal.querySelector('.fixed.inset-0.bg-black');
-  if (backdrop) {
-    gsap.fromTo(backdrop,
-      { opacity: 0 },
-      { opacity: 0.6, duration: 0.3 }
-    );
-  }
-  
-  // Bloquear scroll
-  document.body.style.overflow = 'hidden';
-  
-  // Enfocar primer campo
-  setTimeout(() => {
-    const firstInput = document.querySelector(`#${type}-modal input`);
-    if (firstInput) firstInput.focus();
-  }, 100);
+    const container = document.getElementById('auth-modals');
+    
+    if (type === 'login') {
+        container.innerHTML = `
+            <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="hideModal(event)">
+                <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-8 relative slide-enter" onclick="event.stopPropagation()">
+                    <button onclick="document.getElementById('auth-modals').innerHTML=''" class="absolute top-4 right-4 touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">👋</div>
+                        <h2 class="text-2xl font-black mb-2 dark:text-white">¡Bienvenido!</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Inicia sesión para continuar</p>
+                    </div>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Email</label>
+                            <input type="email" id="login-email" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Contraseña</label>
+                            <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <button type="submit" class="btn-primary w-full text-white py-3 rounded-xl font-bold text-lg touch-target">Entrar</button>
+                    </form>
+                    <p class="text-center mt-6 text-sm dark:text-gray-400">
+                        ¿No tienes cuenta? <button onclick="showModal('register')" class="text-purple-500 font-bold hover:underline">Regístrate</button>
+                    </p>
+                    <p class="text-center mt-2 text-sm">
+                        <button onclick="showModal('forgot')" class="text-purple-500 font-bold hover:underline text-sm">¿Olvidaste tu contraseña?</button>
+                    </p>
+                </div>
+            </div>
+        `;
+    } else if (type === 'register') {
+        container.innerHTML = `
+            <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="hideModal(event)">
+                <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-8 relative slide-enter" onclick="event.stopPropagation()">
+                    <button onclick="document.getElementById('auth-modals').innerHTML=''" class="absolute top-4 right-4 touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">🎯</div>
+                        <h2 class="text-2xl font-black mb-2 dark:text-white">Crea tu cuenta</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">Comienza tu transformación hoy</p>
+                    </div>
+                    <form onsubmit="handleRegister(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Usuario</label>
+                            <input type="text" id="register-username" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Email</label>
+                            <input type="email" id="register-email" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Contraseña</label>
+                            <input type="password" id="register-password" required minlength="6" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Confirmar contraseña</label>
+                            <input type="password" id="register-confirm" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <button type="submit" class="btn-primary w-full text-white py-3 rounded-xl font-bold text-lg touch-target">Crear cuenta</button>
+                    </form>
+                    <p class="text-center mt-6 text-sm dark:text-gray-400">
+                        ¿Ya tienes cuenta? <button onclick="showModal('login')" class="text-purple-500 font-bold hover:underline">Entra</button>
+                    </p>
+                </div>
+            </div>
+        `;
+    } else if (type === 'forgot') {
+        container.innerHTML = `
+            <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="hideModal(event)">
+                <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-8 relative slide-enter" onclick="event.stopPropagation()">
+                    <button onclick="document.getElementById('auth-modals').innerHTML=''" class="absolute top-4 right-4 touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">🔑</div>
+                        <h2 class="text-2xl font-black mb-2 dark:text-white">Recuperar contraseña</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Te enviaremos un email</p>
+                    </div>
+                    <form onsubmit="handleForgotPassword(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Email</label>
+                            <input type="email" id="forgot-email" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <button type="submit" class="btn-primary w-full text-white py-3 rounded-xl font-bold text-lg touch-target">Enviar email</button>
+                    </form>
+                    <p class="text-center mt-6 text-sm">
+                        <button onclick="showModal('login')" class="text-purple-500 font-bold hover:underline">← Volver</button>
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+    
+    document.body.style.overflow = 'hidden';
 }
 
-function hideModal(type) {
-  const modal = document.getElementById(`${type}-modal`);
-  if (!modal) return;
-  
-  // Animación de salida con GSAP
-  const modalContent = modal.querySelector('.glass-card');
-  if (modalContent) {
-    gsap.to(modalContent,
-      {
-        opacity: 0,
-        scale: 0.9,
-        y: 20,
-        duration: 0.3,
-        ease: "power2.in",
-        onComplete: () => {
-          modal.classList.add('hidden');
-          modal.setAttribute('aria-hidden', 'true');
-          document.body.style.overflow = '';
-        }
-      }
-    );
-  } else {
-    modal.classList.add('hidden');
-    modal.setAttribute('aria-hidden', 'true');
+function hideModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
     document.body.style.overflow = '';
-  }
 }
 
-// Registro
-async function register() {
-  const username = document.getElementById('reg-username').value.trim();
-  const password = document.getElementById('reg-password').value.trim();
-  const weight = parseFloat(document.getElementById('reg-weight').value);
-  const height = parseInt(document.getElementById('reg-height').value);
-  const age = parseInt(document.getElementById('reg-age').value);
-  const activity = document.getElementById('reg-activity').value;
-  const goal = document.getElementById('reg-goal').value;
+// ==================== MANEJO DE AUTENTICACIÓN ====================
 
-  if (!username || !password || !weight || !height || !age || !activity || !goal) {
-    showToast('Por favor completa todos los campos', 'error');
-    return;
-  }
-
-  if (password.length < 6) {
-    showToast('La contraseña debe tener al menos 6 caracteres', 'error');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, weight, height, age, activity, goal })
-    });
-
-    const data = await response.json();
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
     
-    if (response.ok) {
-      // Si la API devuelve token, usarlo; si no, usar user id como token
-      const token = data.token || (data.user && data.user.id ? data.user.id.toString() : null);
-      user = { username, token: token, id: data.user?.id };
-      localStorage.setItem('user', JSON.stringify(user));
-      document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
-      document.getElementById('user-name').textContent = username;
-      
-      hideModal('register');
-      showToast('¡Cuenta creada con éxito!', 'success');
-      loadDash();
-    } else {
-      showToast(data.error || 'Error en el registro', 'error');
-    }
-  } catch (err) {
-    showToast('Error de conexión', 'error');
-    console.error(err);
-  }
-}
-
-// Login
-async function login() {
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value.trim();
-
-  if (!username || !password) {
-    showToast('Por favor completa todos los campos', 'error');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-
-    const data = await response.json();
+    showToast('Iniciando sesión...', 'info');
     
-    if (response.ok) {
-      // Si la API devuelve token, usarlo; si no, usar user id como token
-      const token = data.token || (data.user && data.user.id ? data.user.id.toString() : null);
-      user = { username, token: token, id: data.user?.id };
-      localStorage.setItem('user', JSON.stringify(user));
-      document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
-      document.getElementById('user-name').textContent = username;
-      
-      hideModal('login');
-      showToast(`¡Bienvenido de nuevo, ${username}!`, 'success');
-      loadDash();
-    } else {
-      showToast(data.error || 'Credenciales incorrectas', 'error');
+    try {
+        const res = await fetch(API_BASE + '/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            user = data.user;
+            localStorage.setItem('user', JSON.stringify(user));
+            document.getElementById('auth-modals').innerHTML = '';
+            document.body.style.overflow = '';
+            showToast('¡Bienvenido!', 'success');
+            checkAuth();
+        } else {
+            showToast(data.error || 'Error al iniciar sesión', 'error');
+        }
+    } catch (err) {
+        showToast('Error de conexión', 'error');
+        console.error(err);
     }
-  } catch (err) {
-    showToast('Error de conexión', 'error');
-    console.error(err);
-  }
 }
 
-// Logout
+async function handleRegister(e) {
+    e.preventDefault();
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirm = document.getElementById('register-confirm').value;
+    
+    if (password !== confirm) {
+        showToast('❌ Las contraseñas no coinciden', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+        return;
+    }
+    
+    showToast('Creando cuenta...', 'info');
+    
+    try {
+        const res = await fetch(API_BASE + '/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: username, email: email, password: password })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            user = data.user;
+            localStorage.setItem('user', JSON.stringify(user));
+            document.getElementById('auth-modals').innerHTML = '';
+            document.body.style.overflow = '';
+            showToast('✅ ¡Cuenta creada! Redirigiendo...', 'success');
+            setTimeout(() => {
+                checkAuth();
+            }, 1500);
+        } else {
+            showToast(data.error || 'Error al registrar', 'error');
+        }
+    } catch (err) {
+        showToast('Error de conexión', 'error');
+        console.error(err);
+    }
+}
+
+async function handleForgotPassword(e) {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value;
+    
+    showToast('📧 Email enviado', 'success');
+    document.getElementById('auth-modals').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+function checkAuth() {
+    const saved = localStorage.getItem('user');
+    
+    if (saved) {
+        user = JSON.parse(saved);
+        
+        // Show dashboard
+        document.getElementById('main-content').classList.add('hidden');
+        document.getElementById('dashboard-content').classList.remove('hidden');
+        
+        // Update nav
+        document.getElementById('nav-auth').classList.add('hidden');
+        document.getElementById('nav-auth').classList.remove('flex');
+        document.getElementById('nav-user').classList.remove('hidden');
+        document.getElementById('nav-user').classList.add('flex');
+        
+        document.getElementById('user-name').textContent = user.name || user.email;
+        document.getElementById('user-avatar').textContent = (user.name || 'U')[0].toUpperCase();
+        
+        showToast('✅ Sesión iniciada', 'success');
+        
+        // Load dashboard
+        loadDashboard();
+    } else {
+        // Show landing
+        document.getElementById('main-content').classList.remove('hidden');
+        document.getElementById('dashboard-content').classList.add('hidden');
+        
+        // Update nav
+        document.getElementById('nav-auth').classList.remove('hidden');
+        document.getElementById('nav-auth').classList.add('flex');
+        document.getElementById('nav-user').classList.add('hidden');
+        document.getElementById('nav-user').classList.remove('flex');
+    }
+}
+
 function logout() {
-  user = null;
-  localStorage.removeItem('user');
-  document.getElementById('welcome').classList.remove('hidden');
-  document.getElementById('dashboard').classList.add('hidden');
-  document.getElementById('nav-auth').classList.remove('hidden');
-  document.getElementById('nav-user').classList.add('hidden');
-  showToast('Sesión cerrada', 'info');
+    localStorage.removeItem('user');
+    user = null;
+    checkAuth();
+    showToast('Sesión cerrada', 'info');
 }
 
 // ==================== DASHBOARD ====================
 
-// Cargar dashboard
-async function loadDash() {
-  if (!user) return;
-  
-  document.getElementById('welcome').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  document.getElementById('nav-auth').classList.add('hidden');
-  document.getElementById('nav-user').classList.remove('hidden');
-  
-  // Mostrar loader
-  document.getElementById('dashboard-loader').classList.remove('hidden');
-  
-  try {
-    // Cargar plan actual
-    const userId = user.id || user.token; // user.id guardado en registro, token puede ser el id
-    const planRes = await fetch(`${API_BASE}/plan/current?user_id=${userId}`, {
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    });
+async function loadDashboard() {
+    if (!user) return;
     
-    if (!planRes.ok) throw new Error('Error cargando plan');
-    
-    currentPlan = await planRes.json();
-    
-    // Cargar historial de peso
-    const historyRes = await fetch(`${API_BASE}/weight/history?user_id=${userId}`, {
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    });
-    
-    const history = historyRes.ok ? await historyRes.json() : [];
-    
-    // Actualizar UI
-    updateDashboard(currentPlan, history);
-    
-    // Ocultar loader
-    document.getElementById('dashboard-loader').classList.add('hidden');
-    
-  } catch (err) {
-    console.error('Error loading dashboard:', err);
-    showToast('Error cargando datos del plan', 'error');
-    document.getElementById('dashboard-loader').classList.add('hidden');
-  }
-}
-
-// Actualizar dashboard
-function updateDashboard(plan, history) {
-  // Calorías objetivo
-  document.getElementById('dash-cals').textContent = plan.daily_calories.toLocaleString();
-  
-  // Peso actual
-  const latestWeight = history.length > 0 ? history[history.length - 1].weight : plan.current_weight;
-  document.getElementById('dash-weight').textContent = `${latestWeight} kg`;
-  
-  // Progreso (simulado)
-  const progress = Math.min(Math.floor((Math.random() * 30) + 70), 100);
-  document.getElementById('dash-progress').textContent = `${progress}%`;
-  document.getElementById('progress-bar').style.width = `${progress}%`;
-  
-  // Número de semana
-  const weekNum = Math.floor((new Date() - new Date(plan.created_at)) / (7 * 24 * 60 * 60 * 1000)) + 1;
-  document.getElementById('week-number').textContent = weekNum;
-  
-  // Actualizar gráfico de peso
-  updateWeightChart(history);
-  
-  // Cargar comidas del día actual
-  loadMeals(currentDay);
-}
-
-// Actualizar gráfico de peso
-function updateWeightChart(history) {
-  const ctx = document.getElementById('weightChart').getContext('2d');
-  
-  if (weightChart) weightChart.destroy();
-  
-  const isDark = document.documentElement.classList.contains('dark');
-  
-  weightChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: history.map(h => new Date(h.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })),
-      datasets: [{
-        label: 'Peso (kg)',
-        data: history.map(h => h.weight),
-        borderColor: '#8b5cf6',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#8b5cf6',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: isDark ? '#1e293b' : '#fff',
-          titleColor: isDark ? '#f1f5f9' : '#0f172a',
-          bodyColor: isDark ? '#cbd5e1' : '#475569',
-          borderColor: isDark ? '#475569' : '#e2e8f0',
-          borderWidth: 1,
-          padding: 12,
-          displayColors: false,
-          callbacks: {
-            label: (ctx) => `${ctx.parsed.y} kg`
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: false,
-          grid: { color: isDark ? '#334155' : '#e2e8f0' },
-          ticks: { color: isDark ? '#94a3b8' : '#64748b' }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: isDark ? '#94a3b8' : '#64748b' }
-        }
-      }
-    }
-  });
-}
-
-// ==================== COMIDAS ====================
-
-// Establecer día
-function setDay(day) {
-  currentDay = day;
-  
-  // Actualizar botones activos
-  document.querySelectorAll('.day-btn').forEach((btn, idx) => {
-    const isActive = idx === day - 1;
-    btn.classList.toggle('gradient', isActive);
-    btn.classList.toggle('text-white', isActive);
-    btn.classList.toggle('scale-105', isActive);
-    btn.classList.toggle('bg-white', !isActive);
-    btn.classList.toggle('dark:bg-gray-800', !isActive);
-    btn.classList.toggle('text-gray-700', !isActive);
-    btn.classList.toggle('dark:text-gray-300', !isActive);
-    btn.setAttribute('aria-pressed', isActive);
-  });
-  
-  // Cargar comidas
-  loadMeals(day);
-}
-
-// Cargar comidas del día
-async function loadMeals(day) {
-  if (!currentPlan || !user) return;
-  
-  const mealsContainer = document.getElementById('meals');
-  mealsContainer.innerHTML = '<div class="text-center py-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-gray-500 dark:text-gray-400">Cargando comidas...</p></div>';
-  
-  try {
-    // Obtener opciones de comida
-    const optionsRes = await fetch(`${API_BASE}/food-bank/options`, {
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    });
-    
-    if (!optionsRes.ok) throw new Error('Error cargando opciones');
-    
-    const options = await optionsRes.json();
-    
-    // Filtrar comidas para el día actual
-    const dayMeals = options.filter(meal => meal.day_of_week === day);
-    
-    // Renderizar comidas
-    renderMeals(dayMeals, mealsContainer);
-    
-  } catch (err) {
-    console.error('Error loading meals:', err);
-    mealsContainer.innerHTML = '<div class="text-center py-8 text-red-500">Error cargando las comidas</div>';
-  }
-}
-
-// Renderizar comidas
-function renderMeals(meals, container) {
-  if (meals.length === 0) {
-    container.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No hay comidas programadas para hoy</div>';
-    return;
-  }
-  
-  // Agrupar por tipo de comida
-  const mealsByType = {
-    breakfast: meals.filter(m => m.meal_type === 'breakfast'),
-    lunch: meals.filter(m => m.meal_type === 'lunch'),
-    dinner: meals.filter(m => m.meal_type === 'dinner'),
-    snack: meals.filter(m => m.meal_type === 'snack')
-  };
-  
-  const mealTypes = [
-    { id: 'breakfast', name: 'Desayuno', icon: '☕' },
-    { id: 'lunch', name: 'Almuerzo', icon: '🍽️' },
-    { id: 'dinner', name: 'Cena', icon: '🌙' },
-    { id: 'snack', name: 'Snack', icon: '🍎' }
-  ];
-  
-  let html = '';
-  
-  mealTypes.forEach(type => {
-    const typeMeals = mealsByType[type.id];
-    if (typeMeals.length === 0) return;
-    
-    // Calcular calorías totales para este tipo
-    const totalCalories = typeMeals.reduce((sum, meal) => sum + meal.calories, 0);
-    
-    html += `
-      <div class="glass-card rounded-3xl shadow-xl border border-white/30 dark:border-gray-700/50 overflow-hidden card-hover">
-        <div class="p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 gradient rounded-2xl flex items-center justify-center text-2xl shadow-lg">${type.icon}</div>
-              <div>
-                <h3 class="font-black text-lg text-gray-900 dark:text-white">${type.name}</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">${totalCalories} kcal total</p>
-              </div>
+    const dashboard = document.getElementById('dashboard-content');
+    dashboard.innerHTML = `
+        <div class="flex items-center justify-center min-h-[60vh]">
+            <div class="text-center">
+                <div class="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p class="font-bold dark:text-white">Cargando tu dashboard...</p>
             </div>
-            <span class="text-xs font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-3 py-1.5 rounded-full">
-              ${typeMeals.length} ${typeMeals.length === 1 ? 'opción' : 'opciones'}
-            </span>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${typeMeals.map(meal => renderMealCard(meal)).join('')}
-          </div>
         </div>
-      </div>
     `;
-  });
-  
-  container.innerHTML = html || '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No hay comidas programadas para hoy</div>';
-}
-
-// Renderizar tarjeta de comida
-function renderMealCard(meal) {
-  // Colores de placeholder basados en tipo de comida
-  const placeholderColors = {
-    breakfast: 'from-yellow-400 to-orange-500',
-    lunch: 'from-green-400 to-teal-500',
-    dinner: 'from-blue-400 to-indigo-500',
-    snack: 'from-pink-400 to-rose-500'
-  };
-  
-  const colorClass = placeholderColors[meal.meal_type] || 'from-gray-400 to-gray-600';
-  
-  // Calcular porcentajes de macros
-  const totalMacros = meal.protein + meal.carbs + meal.fat;
-  const proteinPercent = totalMacros > 0 ? (meal.protein / totalMacros * 100).toFixed(0) : 33;
-  const carbsPercent = totalMacros > 0 ? (meal.carbs / totalMacros * 100).toFixed(0) : 33;
-  const fatPercent = totalMacros > 0 ? (meal.fat / totalMacros * 100).toFixed(0) : 33;
-  
-  return `
-    <div class="recipe-card-3d glass-card rounded-3xl overflow-hidden border border-white/20 dark:border-gray-700/50 transition-all duration-300 hover:shadow-2xl">
-      <div class="relative h-48 overflow-hidden">
-        ${meal.image_url ? 
-          `<img src="${meal.image_url}" 
-                alt="${meal.name}" 
-                class="w-full h-full object-cover transition-transform duration-500 hover:scale-110 recipe-image" 
-                loading="lazy"
-                onload="this.classList.remove('skeleton')"
-                onerror="this.src='data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 300\"><rect width=\"400\" height=\"300\" fill=\"%23f0f0f0\"/><text x=\"200\" y=\"150\" font-family=\"Arial\" font-size=\"24\" text-anchor=\"middle\" fill=\"%23999\">🥗</text></svg>'; this.classList.remove('skeleton')">` :
-          `<div class="w-full h-full ${colorClass} bg-gradient-to-br flex items-center justify-center">
-            <span class="text-5xl text-white opacity-90 animate__animated animate__pulse">${getMealIcon(meal.meal_type)}</span>
-          </div>`
-        }
-        <!-- Skeleton loading overlay -->
-        <div class="absolute inset-0 skeleton" id="skeleton-${meal.id}"></div>
-        
-        <!-- Calorías badge -->
-        <div class="absolute top-4 right-4">
-          <span class="text-sm font-black text-white bg-gradient-to-r from-primary-500 to-accent-500 px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm">
-            ${meal.calories} kcal
-          </span>
-        </div>
-        
-        <!-- Tipo de comida -->
-        <div class="absolute bottom-4 left-4">
-          <span class="text-xs font-bold text-white bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full">
-            <i class="fas ${getMealIconFA(meal.meal_type)} mr-1"></i>
-            ${getMealTypeText(meal.meal_type)}
-          </span>
-        </div>
-      </div>
-      
-      <div class="p-6">
-        <h4 class="font-black text-xl text-gray-900 dark:text-white mb-3 line-clamp-1 gradient-text">
-          ${meal.name}
-        </h4>
-        
-        <!-- Visualización de macros -->
-        <div class="mb-4">
-          <div class="flex justify-between text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-            <span>Macronutrientes</span>
-            <span>${meal.protein}P • ${meal.carbs}C • ${meal.fat}G</span>
-          </div>
-          <div class="flex h-2 rounded-full overflow-hidden">
-            <div class="macro-protein" style="width: ${proteinPercent}%"></div>
-            <div class="macro-carbs" style="width: ${carbsPercent}%"></div>
-            <div class="macro-fat" style="width: ${fatPercent}%"></div>
-          </div>
-          <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-            <span>Proteínas</span>
-            <span>Carbos</span>
-            <span>Grasas</span>
-          </div>
-        </div>
-        
-        <!-- Acciones -->
-        <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button onclick="showRecipeDetails('${meal.id}')" 
-                  class="text-sm font-bold text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors flex items-center gap-2">
-            <i class="fas fa-info-circle"></i>
-            Detalles
-          </button>
-          <button onclick="addToShoppingList('${meal.id}')" 
-                  class="gradient text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform btn-premium flex items-center gap-2">
-            <i class="fas fa-cart-plus"></i>
-            Añadir
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// Función para obtener icono de Font Awesome por tipo de comida
-function getMealIconFA(mealType) {
-  const icons = {
-    breakfast: 'fa-coffee',
-    lunch: 'fa-utensils',
-    dinner: 'fa-moon',
-    snack: 'fa-apple-alt'
-  };
-  return icons[mealType] || 'fa-utensils';
-}
-
-// Función para obtener texto del tipo de comida
-function getMealTypeText(mealType) {
-  const texts = {
-    breakfast: 'Desayuno',
-    lunch: 'Almuerzo',
-    dinner: 'Cena',
-    snack: 'Snack'
-  };
-  return texts[mealType] || 'Comida';
-}
-
-// Obtener icono por tipo de comida
-function getMealIcon(mealType) {
-  const icons = {
-    breakfast: '☕',
-    lunch: '🍽️',
-    dinner: '🌙',
-    snack: '🍎'
-  };
-  return icons[mealType] || '🍴';
-}
-
-// ==================== LISTA DE COMPRAS ====================
-
-// Añadir a lista de compras
-async function addToShoppingList(mealId) {
-  if (!user) {
-    showToast('Inicia sesión para usar la lista de compras', 'warning');
-    return;
-  }
-  
-  try {
-    const response = await fetch(`${API_BASE}/shopping/add`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify({ meal_id: mealId })
-    });
     
-    if (response.ok) {
-      showToast('Añadido a la lista de compras', 'success');
-    } else {
-      showToast('Error añadiendo a la lista', 'error');
-    }
-  } catch (err) {
-    console.error('Error adding to shopping list:', err);
-    showToast('Error de conexión', 'error');
-  }
-}
-
-// Mostrar lista de compras
-async function showShoppingList() {
-  if (!user) {
-    showToast('Inicia sesión para ver tu lista', 'warning');
-    return;
-  }
-  
-  try {
-    const response = await fetch(`${API_BASE}/shopping/list`, {
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    });
-    
-    if (!response.ok) throw new Error('Error cargando lista');
-    
-    const shoppingList = await response.json();
-    renderShoppingList(shoppingList);
-    showModal('shopping');
-    
-  } catch (err) {
-    console.error('Error loading shopping list:', err);
-    showToast('Error cargando lista de compras', 'error');
-  }
-}
-
-// Renderizar lista de compras
-function renderShoppingList(list) {
-  const container = document.getElementById('shopping-list-content');
-  if (!container) return;
-  
-  if (!list || list.length === 0) {
-    container.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">Tu lista de compras está vacía</div>';
-    return;
-  }
-  
-  // Agrupar por supermercado
-  const byStore = list.reduce((acc, item) => {
-    const store = item.store || 'general';
-    if (!acc[store]) acc[store] = [];
-    acc[store].push(item);
-    return acc;
-  }, {});
-  
-  let html = '';
-  
-  Object.entries(byStore).forEach(([store, items]) => {
-    html += `
-      <div class="mb-6">
-        <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-          <span class="text-xl">${getStoreIcon(store)}</span>
-          ${store.charAt(0).toUpperCase() + store.slice(1)}
-        </h4>
-        <div class="space-y-2">
-          ${items.map(item => `
-            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <div class="flex items-center gap-3">
-                <input type="checkbox" class="w-5 h-5 rounded border-gray-300 dark:border-gray-600" 
-                       onchange="toggleShoppingItem('${item.id}', this.checked)">
-                <span class="text-gray-900 dark:text-white">${item.name}</span>
-              </div>
-              <span class="text-sm text-gray-500 dark:text-gray-400">${item.quantity || '1 unidad'}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  });
-  
-  container.innerHTML = html;
-}
-
-// Obtener icono de supermercado
-function getStoreIcon(store) {
-  const icons = {
-    mercadona: '🛒',
-    lidl: '🏪',
-    carrefour: '🛍️',
-    general: '📋'
-  };
-  return icons[store] || '🛒';
-}
-
-// Alternar item de compra
-async function toggleShoppingItem(itemId, checked) {
-  try {
-    const response = await fetch(`${API_BASE}/shopping/toggle`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify({ item_id: itemId, checked })
-    });
-    
-    if (!response.ok) {
-      showToast('Error actualizando item', 'error');
-    }
-  } catch (err) {
-    console.error('Error toggling shopping item:', err);
-  }
-}
-
-// ==================== REGISTRO DE PESO ====================
-
-// Registrar peso
-async function registerWeight() {
-  const weightInput = document.getElementById('weight-input');
-  const weight = parseFloat(weightInput.value);
-  
-  if (!weight || weight < 30 || weight > 300) {
-    showToast('Por favor ingresa un peso válido (30-300 kg)', 'error');
-    weightInput.classList.add('error-shake');
-    setTimeout(() => weightInput.classList.remove('error-shake'), 500);
-    return;
-  }
-  
-  try {
-    const response = await fetch(`${API_BASE}/weight/checkin`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify({ weight })
-    });
-    
-    if (response.ok) {
-      showToast(`Peso registrado: ${weight} kg`, 'success');
-      weightInput.value = '';
-      hideModal('edit');
-      loadDash(); // Recargar dashboard para actualizar gráfico
-    } else {
-      showToast('Error registrando peso', 'error');
-    }
-  } catch (err) {
-    console.error('Error registering weight:', err);
-    showToast('Error de conexión', 'error');
-  }
-}
-
-// ==================== NOTIFICACIONES ====================
-
-// Mostrar notificación toast
-function showToast(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  
-  const types = {
-    success: { bg: 'bg-green-500', icon: '✅' },
-    error: { bg: 'bg-red-500', icon: '❌' },
-    warning: { bg: 'bg-yellow-500', icon: '⚠️' },
-    info: { bg: 'bg-blue-500', icon: 'ℹ️' }
-  };
-  
-  const config = types[type] || types.info;
-  
-  toast.className = `${config.bg} text-white px-5 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-3 animate-slide-up max-w-sm toast`;
-  toast.innerHTML = `
-    <span class="text-xl">${config.icon}</span>
-    <span>${message}</span>
-    <button onclick="this.parentElement.remove()" class="ml-auto text-white/80 hover:text-white text-lg" aria-label="Cerrar">×</button>
-  `;
-  
-  container.appendChild(toast);
-  
-  // Auto-remover después de 5 segundos
-  setTimeout(() => {
-    if (toast.parentElement) {
-      toast.remove();
-    }
-  }, 5000);
-}
-
-// ==================== INICIALIZACIÓN ====================
-
-// Inicializar aplicación
-function initApp() {
-  // Inicializar modo oscuro
-  initDarkMode();
-  
-  // Cargar usuario si existe
-  const saved = localStorage.getItem('user');
-  if (saved) {
     try {
-      user = JSON.parse(saved);
-      document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase();
-      document.getElementById('user-name').textContent = user.username;
-      loadDash();
+        // Load user plan
+        const userId = user.id || user.token;
+        const planRes = await fetch(API_BASE + '/plan/current?user_id=' + userId, {
+            headers: { 'Authorization': 'Bearer ' + user.token }
+        });
+        
+        if (!planRes.ok) throw new Error('Error cargando plan');
+        
+        currentPlan = await planRes.json();
+        
+        // Load weight history
+        const historyRes = await fetch(API_BASE + '/weight/history?user_id=' + userId, {
+            headers: { 'Authorization': 'Bearer ' + user.token }
+        });
+        
+        const history = historyRes.ok ? await historyRes.json() : [];
+        
+        renderDashboard(currentPlan, history);
+        
     } catch (err) {
-      console.error('Error loading saved user:', err);
-      localStorage.removeItem('user');
+        console.error('Error loading dashboard:', err);
+        showToast('Error cargando datos', 'error');
+        renderDashboardError();
     }
-  }
-  
-  // Configurar listeners para tecla Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      ['login', 'register', 'edit', 'options', 'shopping'].forEach(hideModal);
-    }
-  });
-  
-  // Configurar año actual en footer
-  document.getElementById('current-year').textContent = new Date().getFullYear();
 }
 
-// ==================== ANIMACIONES Y EFECTOS MEJORADOS ====================
-
-// Efectos de sonido (simulados con vibración en móviles)
-function playSoundEffect(type) {
-  if ('vibrate' in navigator) {
-    switch(type) {
-      case 'modalOpen':
-        navigator.vibrate(50);
-        break;
-      case 'buttonClick':
-        navigator.vibrate(30);
-        break;
-      case 'success':
-        navigator.vibrate([50, 30, 50]);
-        break;
-      case 'error':
-        navigator.vibrate([100, 50, 100]);
-        break;
-    }
-  }
-}
-
-// Animación de entrada para elementos
-function animateElement(element, animation = 'fadeIn') {
-  if (!element) return;
-  
-  const animations = {
-    fadeIn: {
-      from: { opacity: 0, y: 20 },
-      to: { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
-    },
-    scaleIn: {
-      from: { opacity: 0, scale: 0.9 },
-      to: { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)" }
-    },
-    slideLeft: {
-      from: { opacity: 0, x: -50 },
-      to: { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }
-    },
-    slideRight: {
-      from: { opacity: 0, x: 50 },
-      to: { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }
-    }
-  };
-  
-  const anim = animations[animation];
-  if (anim) {
-    gsap.fromTo(element, anim.from, anim.to);
-  }
-}
-
-// Efecto de confeti para logros
-function showConfetti() {
-  const confettiCount = 100;
-  const colors = ['#d946ef', '#3b82f6', '#10b981', '#f59e0b'];
-  
-  for (let i = 0; i < confettiCount; i++) {
-    const confetti = document.createElement('div');
-    confetti.className = 'confetti';
-    confetti.style.cssText = `
-      position: fixed;
-      width: 10px;
-      height: 10px;
-      background: ${colors[Math.floor(Math.random() * colors.length)]};
-      border-radius: 2px;
-      z-index: 9999;
-      pointer-events: none;
-      top: -20px;
-      left: ${Math.random() * 100}vw;
-    `;
+function renderDashboard(plan, history) {
+    const dashboard = document.getElementById('dashboard-content');
     
-    document.body.appendChild(confetti);
+    const dailyCalories = plan.daily_calories || 2000;
+    const currentWeight = plan.current_weight || 70;
+    const goalWeight = plan.goal_weight || 65;
     
-    gsap.to(confetti, {
-      y: window.innerHeight + 20,
-      rotation: Math.random() * 360,
-      duration: 1 + Math.random(),
-      ease: "power2.out",
-      onComplete: () => confetti.remove()
-    });
-  }
-}
-
-// Mejorar toast notifications con animaciones
-function showToastEnhanced(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-  
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type} glass-card rounded-2xl p-4 max-w-sm shadow-2xl`;
-  toast.innerHTML = `
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-full flex items-center justify-center text-white ${
-        type === 'success' ? 'bg-gradient-to-r from-green-500 to-teal-500' :
-        type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-500' :
-        'bg-gradient-to-r from-blue-500 to-indigo-500'
-      }">
-        <i class="fas ${
-          type === 'success' ? 'fa-check' :
-          type === 'error' ? 'fa-exclamation' :
-          'fa-info-circle'
-        }"></i>
-      </div>
-      <div class="flex-1">
-        <p class="font-bold text-gray-900 dark:text-white">${message}</p>
-      </div>
-      <button onclick="this.parentElement.parentElement.remove()" 
-              class="text-gray-500 hover:text-gray-900 dark:hover:text-white">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-  `;
-  
-  container.appendChild(toast);
-  
-  // Animación de entrada
-  gsap.fromTo(toast,
-    { opacity: 0, y: 20, scale: 0.9 },
-    { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.7)" }
-  );
-  
-  // Auto-remover después de 5 segundos
-  setTimeout(() => {
-    if (toast.parentElement) {
-      gsap.to(toast,
-        {
-          opacity: 0,
-          y: -20,
-          scale: 0.9,
-          duration: 0.3,
-          ease: "power2.in",
-          onComplete: () => toast.remove()
-        }
-      );
-    }
-  }, 5000);
-  
-  // Efecto de sonido
-  playSoundEffect(type === 'success' ? 'success' : type === 'error' ? 'error' : 'buttonClick');
-}
-
-// Sobreescribir showToast original
-const originalShowToast = window.showToast;
-window.showToast = showToastEnhanced;
-
-// Función para mostrar detalles de receta
-function showRecipeDetails(mealId) {
-  // Buscar la receta en el plan actual
-  const meal = currentPlan?.meals?.find(m => m.id === mealId);
-  if (!meal) {
-    showToast('Receta no encontrada', 'error');
-    return;
-  }
-  
-  // Crear modal de detalles
-  const modalHTML = `
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-xl" onclick="hideRecipeDetails()"></div>
-      <div class="relative glass-card rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
-        <div class="sticky top-0 glass-card rounded-t-3xl p-6 border-b border-white/20">
-          <div class="flex justify-between items-center">
-            <div>
-              <h2 class="text-2xl font-black text-gray-900 dark:text-white gradient-text">${meal.name}</h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                <i class="fas ${getMealIconFA(meal.meal_type)} mr-2"></i>
-                ${getMealTypeText(meal.meal_type)} • ${meal.calories} kcal
-              </p>
-            </div>
-            <button onclick="hideRecipeDetails()" 
-                    class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl hover:scale-105 transition-transform btn-premium">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
+    dashboard.innerHTML = `
+        <!-- Welcome Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl sm:text-3xl font-black dark:text-white mb-2">¡Hola, ${user.name || user.email}! 👋</h1>
+            <p class="text-gray-600 dark:text-gray-400">Aquí está tu resumen de hoy</p>
         </div>
         
-        <div class="p-6">
-          ${meal.image_url ? `
-            <div class="mb-6 rounded-2xl overflow-hidden">
-              <img src="${meal.image_url}" alt="${meal.name}" class="w-full h-64 object-cover">
-            </div>
-          ` : ''}
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="text-center p-4 glass-card rounded-2xl">
-              <div class="text-3xl text-primary-500 mb-2">
-                <i class="fas fa-dumbbell"></i>
-              </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Proteínas</p>
-              <p class="text-2xl font-black text-gray-900 dark:text-white">${meal.protein}g</p>
+        <!-- Main Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <!-- Calories Card -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold dark:text-white">Calorías</h3>
+                    <span class="text-2xl">🔥</span>
+                </div>
+                <div class="relative w-32 h-32 mx-auto mb-4">
+                    <svg class="w-32 h-32 progress-circle" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" stroke-width="10" class="dark:stroke-gray-700"/>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="141"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#a855f7"/>
+                                <stop offset="100%" stop-color="#3b82f6"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center flex-col">
+                        <span class="text-2xl font-black dark:text-white">0</span>
+                        <span class="text-xs text-gray-500">/ ${dailyCalories}</span>
+                    </div>
+                </div>
+                <p class="text-center text-sm text-gray-500 dark:text-gray-400">kcal consumidas</p>
             </div>
             
-            <div class="text-center p-4 glass-card rounded-2xl">
-              <div class="text-3xl text-green-500 mb-2">
-                <i class="fas fa-bread-slice"></i>
-              </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Carbohidratos</p>
-              <p class="text-2xl font-black text-gray-900 dark:text-white">${meal.carbs}g</p>
+            <!-- Macros Card -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold dark:text-white">Macros</h3>
+                    <span class="text-2xl">🥑</span>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="dark:text-gray-300">Proteínas</span>
+                            <span class="font-bold dark:text-white">0g / 150g</span>
+                        </div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="dark:text-gray-300">Carbos</span>
+                            <span class="font-bold dark:text-white">0g / 200g</span>
+                        </div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="dark:text-gray-300">Grasas</span>
+                            <span class="font-bold dark:text-white">0g / 65g</span>
+                        </div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="text-center p-4 glass-card rounded-2xl">
-              <div class="text-3xl text-yellow-500 mb-2">
-                <i class="fas fa-oil-can"></i>
-              </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Grasas</p>
-              <p class="text-2xl font-black text-gray-900 dark:text-white">${meal.fat}g</p>
+            <!-- Weight Card -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold dark:text-white">Peso</h3>
+                    <span class="text-2xl">⚖️</span>
+                </div>
+                <div class="text-center mb-4">
+                    <p class="text-4xl font-black dark:text-white mb-1">${currentWeight}</p>
+                    <p class="text-sm text-gray-500">kg actuales</p>
+                </div>
+                <div class="h-32">
+                    <canvas id="weight-chart"></canvas>
+                </div>
             </div>
-          </div>
-          
-          ${meal.ingredients ? `
-            <div class="mb-6">
-              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">
-                <i class="fas fa-list-check mr-2"></i>
-                Ingredientes
-              </h3>
-              <div class="glass-card rounded-2xl p-4">
-                <ul class="space-y-2">
-                  ${meal.ingredients.split(',').map(ing => `
-                    <li class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                      <i class="fas fa-check text-primary-500"></i>
-                      <span>${ing.trim()}</span>
-                    </li>
-                  `).join('')}
-                </ul>
-              </div>
+            
+            <!-- Actions Card -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold dark:text-white">Acciones</h3>
+                    <span class="text-2xl">⚡</span>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="openFoodModal()" class="w-full btn-primary text-white py-3 rounded-xl font-bold touch-target">
+                        <i class="fas fa-utensils mr-2"></i> Registrar comida
+                    </button>
+                    <button onclick="openWeightModal()" class="w-full glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
+                        <i class="fas fa-weight mr-2"></i> Registrar peso
+                    </button>
+                    <button onclick="showShoppingList()" class="w-full glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
+                        <i class="fas fa-shopping-cart mr-2"></i> Lista de compras
+                    </button>
+                    <button onclick="startOnboarding()" class="w-full glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
+                        <i class="fas fa-redo mr-2"></i> Ver plan semanal
+                    </button>
+                </div>
             </div>
-          ` : ''}
-          
-          ${meal.instructions ? `
-            <div class="mb-6">
-              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">
-                <i class="fas fa-book-open mr-2"></i>
-                Instrucciones
-              </h3>
-              <div class="glass-card rounded-2xl p-4">
-                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">${meal.instructions}</p>
-              </div>
-            </div>
-          ` : ''}
-          
-          <div class="flex gap-3">
-            <button onclick="addToShoppingList('${meal.id}')" 
-                    class="flex-1 gradient text-white py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform btn-premium flex items-center justify-center gap-2">
-              <i class="fas fa-cart-plus"></i>
-              Añadir a lista
-            </button>
-            <button onclick="showToast('Función de favoritos próximamente', 'info')" 
-                    class="glass-card text-gray-900 dark:text-white px-6 py-3 rounded-xl font-bold border-2 border-transparent hover:border-primary-500 transition-all btn-premium">
-              <i class="fas fa-heart"></i>
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
-  `;
-  
-  // Crear contenedor de modal
-  let modalContainer = document.getElementById('recipe-details-modal');
-  if (!modalContainer) {
-    modalContainer = document.createElement('div');
-    modalContainer.id = 'recipe-details-modal';
-    document.body.appendChild(modalContainer);
-  }
-  
-  modalContainer.innerHTML = modalHTML;
-  document.body.style.overflow = 'hidden';
+        
+        <!-- Weekly Plan Section -->
+        <div class="glass-card rounded-2xl p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-black dark:text-white">📅 Plan Semanal</h2>
+                <div class="flex gap-2">
+                    <button onclick="changeDay(-1)" class="touch-target w-10 h-10 rounded-xl glass flex items-center justify-center dark:text-white">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button onclick="changeDay(1)" class="touch-target w-10 h-10 rounded-xl glass flex items-center justify-center dark:text-white">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 overflow-x-auto pb-4 mb-6" id="day-selector">
+                ${renderDaySelector()}
+            </div>
+            
+            <div id="meals-container" class="space-y-4">
+                ${renderMealsPlaceholder()}
+            </div>
+        </div>
+    `;
+    
+    // Initialize weight chart
+    initWeightChart(history);
 }
 
-function hideRecipeDetails() {
-  const modalContainer = document.getElementById('recipe-details-modal');
-  if (modalContainer) {
-    const modalContent = modalContainer.querySelector('.glass-card');
-    if (modalContent) {
-      gsap.to(modalContent,
-        {
-          opacity: 0,
-          scale: 0.9,
-          y: 20,
-          duration: 0.3,
-          ease: "power2.in",
-          onComplete: () => {
-            modalContainer.remove();
-            document.body.style.overflow = '';
-          }
+function renderDaySelector() {
+    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    return days.map((day, index) => `
+        <button onclick="selectDay(${index + 1})" 
+                class="px-4 py-2 rounded-xl font-bold whitespace-nowrap touch-target transition-all ${currentDay === index + 1 ? 'btn-primary text-white' : 'glass dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'}">
+            ${day}
+        </button>
+    `).join('');
+}
+
+function renderMealsPlaceholder() {
+    return `
+        <div class="text-center py-12">
+            <div class="text-6xl mb-4">🍽️</div>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Tu plan para el día ${currentDay}</p>
+            <button onclick="openFoodModal()" class="btn-primary text-white px-6 py-3 rounded-xl font-bold touch-target">
+                + Añadir comida
+            </button>
+        </div>
+    `;
+}
+
+function initWeightChart(history) {
+    const ctx = document.getElementById('weight-chart');
+    if (!ctx) return;
+    
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    
+    weightChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: history.length > 0 ? history.map(h => new Date(h.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })) : ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+            datasets: [{
+                label: 'Peso (kg)',
+                data: history.length > 0 ? history.map(h => h.weight) : [70, 69.5, 69, 68.5],
+                borderColor: '#a855f7',
+                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#a855f7',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: isDarkMode ? '#1e293b' : '#fff',
+                    titleColor: isDarkMode ? '#f1f5f9' : '#0f172a',
+                    bodyColor: isDarkMode ? '#cbd5e1' : '#475569',
+                    borderColor: isDarkMode ? '#475569' : '#e2e8f0',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: { color: isDarkMode ? '#334155' : '#e2e8f0' },
+                    ticks: { color: isDarkMode ? '#94a3b8' : '#64748b' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: isDarkMode ? '#94a3b8' : '#64748b' }
+                }
+            }
         }
-      );
-    } else {
-      modalContainer.remove();
-      document.body.style.overflow = '';
+    });
+}
+
+function changeDay(delta) {
+    currentDay += delta;
+    if (currentDay < 1) currentDay = 7;
+    if (currentDay > 7) currentDay = 1;
+    
+    const selector = document.getElementById('day-selector');
+    if (selector) {
+        selector.innerHTML = renderDaySelector();
     }
-  }
 }
 
-// Inicializar animaciones GSAP
-function initAnimations() {
-  // Animación de entrada para elementos principales
-  gsap.from('nav', { duration: 0.8, y: -50, opacity: 0, ease: 'power3.out' });
-  gsap.from('#welcome', { duration: 1, y: 30, opacity: 0, delay: 0.3, ease: 'power3.out' });
-  
-  // Efecto hover para tarjetas
-  document.querySelectorAll('.card-hover').forEach(card => {
-    card.addEventListener('mouseenter', () => {
-      gsap.to(card, { duration: 0.3, scale: 1.02, y: -5, ease: 'power2.out' });
-    });
-    card.addEventListener('mouseleave', () => {
-      gsap.to(card, { duration: 0.3, scale: 1, y: 0, ease: 'power2.out' });
-    });
-  });
-  
-  // Efecto para botones premium
-  document.querySelectorAll('.btn-premium').forEach(btn => {
-    btn.addEventListener('mousedown', () => {
-      gsap.to(btn, { duration: 0.1, scale: 0.95, ease: 'power2.out' });
-    });
-    btn.addEventListener('mouseup', () => {
-      gsap.to(btn, { duration: 0.1, scale: 1, ease: 'power2.out' });
-    });
-    btn.addEventListener('mouseleave', () => {
-      gsap.to(btn, { duration: 0.1, scale: 1, ease: 'power2.out' });
-    });
-  });
+function selectDay(day) {
+    currentDay = day;
+    const selector = document.getElementById('day-selector');
+    if (selector) {
+        selector.innerHTML = renderDaySelector();
+    }
 }
 
-// Actualizar initApp para incluir animaciones
-const originalInitApp = window.initApp;
-window.initApp = function() {
-  originalInitApp();
-  initAnimations();
-};
+function renderDashboardError() {
+    const dashboard = document.getElementById('dashboard-content');
+    dashboard.innerHTML = `
+        <div class="text-center py-20">
+            <div class="text-6xl mb-4">😕</div>
+            <h2 class="text-2xl font-bold dark:text-white mb-4">Error al cargar datos</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">No pudimos cargar tu plan. Por favor, intenta de nuevo.</p>
+            <button onclick="loadDashboard()" class="btn-primary text-white px-6 py-3 rounded-xl font-bold touch-target">
+                Reintentar
+            </button>
+        </div>
+    `;
+}
 
-// Iniciar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
+// ==================== ONBOARDING FLOW ====================
+
+function startOnboarding() {
+    onboardingStep = 0;
+    onboardingData = {};
+    renderOnboardingStep();
+    document.getElementById('onboarding-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeOnboarding() {
+    document.getElementById('onboarding-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function renderOnboardingStep() {
+    const container = document.getElementById('onboarding-content');
+    
+    const steps = [
+        {
+            title: '¡Bienvenido a Diet Tracker FIT! 🎉',
+            content: `
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Vamos a crear tu plan personalizado en 4 pasos simples.</p>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">📊</div>
+                        <p class="text-sm font-semibold dark:text-white">Tus datos</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">🎯</div>
+                        <p class="text-sm font-semibold dark:text-white">Tu objetivo</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">🏃</div>
+                        <p class="text-sm font-semibold dark:text-white">Actividad</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">🍽️</div>
+                        <p class="text-sm font-semibold dark:text-white">Tu plan</p>
+                    </div>
+                </div>
+            `,
+            button: 'Comenzar'
+        },
+        {
+            title: 'Tus datos personales 📝',
+            content: `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Peso (kg)</label>
+                        <input type="number" id="onboarding-weight" value="${onboardingData.weight || 70}" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Altura (cm)</label>
+                        <input type="number" id="onboarding-height" value="${onboardingData.height || 170}" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Edad</label>
+                        <input type="number" id="onboarding-age" value="${onboardingData.age || 30}" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Género</label>
+                        <select id="onboarding-gender" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                            <option value="male" ${onboardingData.gender === 'male' ? 'selected' : ''}>Hombre</option>
+                            <option value="female" ${onboardingData.gender === 'female' ? 'selected' : ''}>Mujer</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            button: 'Continuar',
+            prev: true
+        },
+        {
+            title: '¿Cuál es tu objetivo? 🎯',
+            content: `
+                <div class="space-y-3">
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="goal" value="lose" ${onboardingData.goal === 'lose' ? 'checked' : ''} class="w-5 h-5">
+                        <div>
+                            <p class="font-bold dark:text-white">Perder peso</p>
+                            <p class="text-sm text-gray-500">Quemar grasa y definir</p>
+                        </div>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="goal" value="maintain" ${onboardingData.goal === 'maintain' ? 'checked' : ''} class="w-5 h-5">
+                        <div>
+                            <p class="font-bold dark:text-white">Mantener peso</p>
+                            <p class="text-sm text-gray-500">Estabilizar y cuidar salud</p>
+                        </div>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="goal" value="gain" ${onboardingData.goal === 'gain' ? 'checked' : ''} class="w-5 h-5">
+                        <div>
+                            <p class="font-bold dark:text-white">Ganar músculo</p>
+                            <p class="text-sm text-gray-500">Aumentar masa muscular</p>
+                        </div>
+                    </label>
+                </div>
+            `,
+            button: 'Continuar',
+            prev: true
+        },
+        {
+            title: 'Nivel de actividad 🏃',
+            content: `
+                <div class="space-y-3">
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="activity" value="sedentary" ${onboardingData.activity === 'sedentary' ? 'checked' : ''} class="w-5 h-5">
+                        <div>
+                            <p class="font-bold dark:text-white">Sedentario</p>
+                            <p class="text-sm text-gray-500">Poco o nada de ejercicio</p>
+                        </div>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="activity" value="light" ${onboardingData.activity === 'light' ? 'checked' : ''} class="w-5 h-5">
+                        <div>
+                            <p class="font-bold dark:text-white">Ligero</p>
+                            <p class="text-sm text-gray-500">Ejercicio 1-3 días/semana</p>
+                        </div>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="activity" value="moderate" ${onboardingData.activity === 'moderate' ? 'checked' : ''} class="w-5 h-5">
+                        <div>
+                            <p class="font-bold dark:text-white">Moderado</p>
+                            <p class="text-sm text-gray-500">Ejercicio 3-5 días/semana</p>
+                        </div>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="activity" value="active" ${onboardingData.activity === 'active' ? 'checked' : ''} class="w-5 h-5">
+                        <div>
+                            <p class="font-bold dark:text-white">Activo</p>
+                            <p class="text-sm text-gray-500">Ejercicio 6-7 días/semana</p>
+                        </div>
+                    </label>
+                </div>
+            `,
+            button: 'Calcular mi plan',
+            prev: true
+        },
+        {
+            title: '¡Tu plan está listo! 🎉',
+            content: `
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">✓</div>
+                    <div class="glass-card rounded-2xl p-6 mb-6">
+                        <p class="text-sm text-gray-500 mb-2">Tu TMB (Tasa Metabólica Basal)</p>
+                        <p class="text-4xl font-black gradient-text mb-4" id="bmr-result">--</p>
+                        <p class="text-sm text-gray-500 mb-2">Tu TDEE (Gasto Energético Total)</p>
+                        <p class="text-4xl font-black gradient-text mb-4" id="tdee-result">--</p>
+                        <p class="text-sm text-gray-500 mb-2">Calorías diarias recomendadas</p>
+                        <p class="text-5xl font-black gradient-text" id="calories-result">--</p>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-400">Este es el punto de partida para alcanzar tu objetivo.</p>
+                </div>
+            `,
+            button: '¡Comenzar!',
+            onShow: calculateResults
+        }
+    ];
+    
+    const step = steps[onboardingStep];
+    
+    container.innerHTML = `
+        <div class="fade-in">
+            <div class="mb-6">
+                <div class="flex gap-2 mb-4">
+                    ${steps.map((_, i) => `
+                        <div class="h-2 flex-1 rounded-full ${i <= onboardingStep ? 'bg-purple-500' : 'bg-gray-200 dark:bg-gray-700'}"></div>
+                    `).join('')}
+                </div>
+                <h2 class="text-2xl font-black dark:text-white">${step.title}</h2>
+            </div>
+            
+            ${step.content}
+            
+            <div class="flex gap-4 mt-8">
+                ${step.prev ? `
+                    <button onclick="prevOnboardingStep()" class="flex-1 py-3 rounded-xl font-bold border-2 border-gray-200 dark:border-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
+                        Atrás
+                    </button>
+                ` : '<div class="flex-1"></div>'}
+                <button onclick="nextOnboardingStep()" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold touch-target">
+                    ${step.button}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    if (step.onShow) {
+        setTimeout(step.onShow, 100);
+    }
+}
+
+function prevOnboardingStep() {
+    if (onboardingStep > 0) {
+        saveOnboardingData();
+        onboardingStep--;
+        renderOnboardingStep();
+    }
+}
+
+function nextOnboardingStep() {
+    saveOnboardingData();
+    
+    if (onboardingStep < 4) {
+        onboardingStep++;
+        renderOnboardingStep();
+    } else {
+        closeOnboarding();
+        showToast('¡Plan personalizado creado!', 'success');
+    }
+}
+
+function saveOnboardingData() {
+    if (onboardingStep === 1) {
+        onboardingData.weight = parseFloat(document.getElementById('onboarding-weight').value);
+        onboardingData.height = parseFloat(document.getElementById('onboarding-height').value);
+        onboardingData.age = parseFloat(document.getElementById('onboarding-age').value);
+        onboardingData.gender = document.getElementById('onboarding-gender').value;
+    } else if (onboardingStep === 2) {
+        const goal = document.querySelector('input[name="goal"]:checked');
+        if (goal) onboardingData.goal = goal.value;
+    } else if (onboardingStep === 3) {
+        const activity = document.querySelector('input[name="activity"]:checked');
+        if (activity) onboardingData.activity = activity.value;
+    }
+}
+
+function calculateResults() {
+    // Calculate BMR (Mifflin-St Jeor)
+    let bmr = 10 * onboardingData.weight + 6.25 * onboardingData.height - 5 * onboardingData.age;
+    bmr += onboardingData.gender === 'male' ? 5 : -161;
+    
+    // Activity multipliers
+    const activityMultipliers = {
+        sedentary: 1.2,
+        light: 1.375,
+        moderate: 1.55,
+        active: 1.725
+    };
+    
+    const tdee = bmr * (activityMultipliers[onboardingData.activity] || 1.2);
+    
+    // Goal adjustments
+    let calories = tdee;
+    if (onboardingData.goal === 'lose') calories -= 500;
+    if (onboardingData.goal === 'gain') calories += 300;
+    
+    document.getElementById('bmr-result').textContent = Math.round(bmr) + ' kcal';
+    document.getElementById('tdee-result').textContent = Math.round(tdee) + ' kcal';
+    document.getElementById('calories-result').textContent = Math.round(calories) + ' kcal';
+}
+
+// ==================== FOOD REGISTRATION ====================
+
+function openFoodModal() {
+    document.getElementById('food-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    renderFoodSearch();
+}
+
+function closeFoodModal() {
+    document.getElementById('food-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function renderFoodSearch() {
+    const container = document.getElementById('food-content');
+    
+    container.innerHTML = `
+        <div class="fade-in">
+            <h2 class="text-2xl font-black dark:text-white mb-6">🍽️ Registrar comida</h2>
+            
+            <!-- Search -->
+            <div class="mb-6">
+                <div class="relative">
+                    <input type="text" id="food-search" placeholder="Buscar alimento o receta..." 
+                           class="w-full px-4 py-3 pl-12 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target"
+                           oninput="searchFood(this.value)">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- Quick Add -->
+            <div class="mb-6">
+                <h3 class="font-bold dark:text-white mb-3">Añadir rápido</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <button onclick="quickAdd('Desayuno', 400)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <div class="text-2xl mb-1">🌅</div>
+                        <p class="text-sm font-semibold dark:text-white">Desayuno</p>
+                        <p class="text-xs text-gray-500">~400 kcal</p>
+                    </button>
+                    <button onclick="quickAdd('Comida', 600)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <div class="text-2xl mb-1">☀️</div>
+                        <p class="text-sm font-semibold dark:text-white">Comida</p>
+                        <p class="text-xs text-gray-500">~600 kcal</p>
+                    </button>
+                    <button onclick="quickAdd('Merienda', 200)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <div class="text-2xl mb-1">🍎</div>
+                        <p class="text-sm font-semibold dark:text-white">Merienda</p>
+                        <p class="text-xs text-gray-500">~200 kcal</p>
+                    </button>
+                    <button onclick="quickAdd('Cena', 500)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <div class="text-2xl mb-1">🌙</div>
+                        <p class="text-sm font-semibold dark:text-white">Cena</p>
+                        <p class="text-xs text-gray-500">~500 kcal</p>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div id="food-results" class="space-y-3">
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-search text-3xl mb-2"></i>
+                    <p>Busca alimentos para ver resultados</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function searchFood(query) {
+    const resultsContainer = document.getElementById('food-results');
+    
+    if (!query || query.length < 2) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-search text-3xl mb-2"></i>
+                <p>Busca alimentos para ver resultados</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Mock results (in real app, fetch from API)
+    const mockFoods = [
+        { name: 'Pechuga de pollo', calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+        { name: 'Arroz blanco', calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+        { name: 'Brócoli', calories: 34, protein: 2.8, carbs: 7, fat: 0.4 },
+        { name: 'Salmón', calories: 208, protein: 20, carbs: 0, fat: 13 },
+        { name: 'Huevo', calories: 155, protein: 13, carbs: 1.1, fat: 11 },
+        { name: 'Avena', calories: 389, protein: 17, carbs: 66, fat: 7 },
+        { name: 'Plátano', calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
+        { name: 'Aguacate', calories: 160, protein: 2, carbs: 9, fat: 15 }
+    ];
+    
+    const filtered = mockFoods.filter(f => f.name.toLowerCase().includes(query.toLowerCase()));
+    
+    if (filtered.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-utensils text-3xl mb-2"></i>
+                <p>No se encontraron resultados</p>
+            </div>
+        `;
+        return;
+    }
+    
+    resultsContainer.innerHTML = filtered.map(food => `
+        <div class="glass-card rounded-xl p-4 flex items-center justify-between">
+            <div>
+                <p class="font-bold dark:text-white">${food.name}</p>
+                <p class="text-sm text-gray-500">${food.calories} kcal • P: ${food.protein}g • C: ${food.carbs}g • G: ${food.fat}g</p>
+            </div>
+            <button onclick="addFood('${food.name}', ${food.calories})" class="btn-primary text-white px-4 py-2 rounded-xl font-bold text-sm touch-target">
+                Añadir
+            </button>
+        </div>
+    `).join('');
+}
+
+function quickAdd(meal, calories) {
+    showToast(`✓ ${meal} añadido (${calories} kcal)`, 'success');
+}
+
+function addFood(name, calories) {
+    showToast(`✓ ${name} añadido (${calories} kcal)`, 'success');
+}
+
+// ==================== WEIGHT MODAL ====================
+
+function openWeightModal() {
+    showToast('Función de registro de peso próximamente', 'info');
+}
+
+// ==================== SHOPPING LIST ====================
+
+function showShoppingList() {
+    showToast('Lista de compras próximamente', 'info');
+}
+
+// ==================== TOAST NOTIFICATIONS ====================
+
+function showToast(message, type) {
+    if (!type) type = 'info';
+    
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    
+    const colors = {
+        success: 'from-green-500 to-emerald-600',
+        error: 'from-red-500 to-rose-600',
+        info: 'from-purple-500 to-blue-600'
+    };
+    
+    const icons = {
+        success: '✓',
+        error: '✕',
+        info: 'ℹ'
+    };
+    
+    toast.className = `bg-gradient-to-r ${colors[type]} text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 slide-enter`;
+    toast.innerHTML = `
+        <span class="text-lg font-bold">${icons[type]}</span>
+        <span class="font-medium">${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }

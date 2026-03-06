@@ -1131,8 +1131,11 @@ function renderDashboard(data, history) {
                     <button onclick="showShoppingList()" class="w-full glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
                         <i class="fas fa-shopping-cart mr-2"></i> Lista de compras
                     </button>
-                    <button onclick="startOnboarding()" class="w-full glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
-                        <i class="fas fa-redo mr-2"></i> Ver plan semanal
+                    <button onclick="showProfile()" class="w-full glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
+                        <i class="fas fa-user mr-2"></i> Mi perfil
+                    </button>
+                    <button onclick="showSettings()" class="w-full glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
+                        <i class="fas fa-cog mr-2"></i> Configuración
                     </button>
                 </div>
             </div>
@@ -1694,13 +1697,370 @@ function addFood(name, calories) {
 // ==================== WEIGHT MODAL ====================
 
 function openWeightModal() {
-    showToast('Función de registro de peso próximamente', 'info');
+    const container = document.getElementById('auth-modals');
+    container.innerHTML = `
+        <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeWeightModal(event)">
+            <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-8 relative slide-enter" onclick="event.stopPropagation()">
+                <button onclick="closeWeightModal()" class="absolute top-4 right-4 touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">⚖️</div>
+                    <h2 class="text-2xl font-black mb-2 dark:text-white">Registrar peso</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Actualiza tu peso actual</p>
+                </div>
+                <form onsubmit="handleWeightSubmit(event)">
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Peso (kg)</label>
+                        <input type="number" id="weight-input" step="0.1" min="30" max="300" required 
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-green-500 focus:outline-none touch-target">
+                    </div>
+                    <button type="submit" class="btn-primary w-full text-white py-3 rounded-xl font-bold text-lg touch-target">
+                        Guardar peso
+                    </button>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeWeightModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+async function handleWeightSubmit(e) {
+    e.preventDefault();
+    const weight = parseFloat(document.getElementById('weight-input').value);
+    
+    if (!weight || weight < 30 || weight > 300) {
+        showToast('❌ Peso inválido (30-300 kg)', 'error');
+        return;
+    }
+    
+    showToast('Registrando peso...', 'info');
+    
+    try {
+        const token = user.token;
+        const res = await fetch(API_BASE + '/weight', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ weight: weight })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            closeWeightModal();
+            showToast('✅ Peso registrado: ' + weight + ' kg', 'success');
+            // Reload dashboard to show updated data
+            loadDashboard();
+        } else {
+            showToast('❌ ' + (data.error || 'Error al registrar peso'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+        console.error('Weight error:', err);
+    }
 }
 
 // ==================== SHOPPING LIST ====================
 
-function showShoppingList() {
-    showToast('Lista de compras próximamente', 'info');
+async function showShoppingList() {
+    showToast('Cargando lista de compras...', 'info');
+    
+    try {
+        const token = user.token;
+        const res = await fetch(API_BASE + '/shopping-list', {
+            headers: { 
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            const container = document.getElementById('auth-modals');
+            const ingredients = data.ingredients || [];
+            
+            if (ingredients.length === 0) {
+                showToast('📋 No hay ingredientes para esta semana', 'info');
+                return;
+            }
+            
+            // Group ingredients by category (simple implementation)
+            const grouped = {};
+            ingredients.forEach(ing => {
+                const firstLetter = ing.charAt(0).toUpperCase();
+                if (!grouped[firstLetter]) grouped[firstLetter] = [];
+                grouped[firstLetter].push(ing);
+            });
+            
+            container.innerHTML = `
+                <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeShoppingList(event)">
+                    <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl">🛒</div>
+                                <div>
+                                    <h2 class="text-xl font-black dark:text-white">Lista de Compras</h2>
+                                    <p class="text-sm text-gray-500">Semana ${data.week_number || '--'} • ${ingredients.length} ingredientes</p>
+                                </div>
+                            </div>
+                            <button onclick="closeShoppingList()" class="touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="p-6 overflow-y-auto flex-1">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                ${Object.entries(grouped).map(([letter, items]) => `
+                                    <div class="glass rounded-xl p-4">
+                                        <h3 class="font-bold text-purple-500 mb-2">${letter}</h3>
+                                        <ul class="space-y-1">
+                                            ${items.map(item => `
+                                                <li class="flex items-center gap-2 text-sm dark:text-gray-300">
+                                                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-purple-500 focus:ring-purple-500">
+                                                    ${item}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                            <button onclick="printShoppingList()" class="flex-1 glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
+                                <i class="fas fa-print mr-2"></i> Imprimir
+                            </button>
+                            <button onclick="closeShoppingList()" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold touch-target">
+                                Hecho
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.style.overflow = 'hidden';
+        } else {
+            showToast('❌ ' + (data.error || 'Error al cargar lista'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+        console.error('Shopping list error:', err);
+    }
+}
+
+function closeShoppingList(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+function printShoppingList() {
+    window.print();
+}
+
+// ==================== PROFILE PAGE ====================
+
+async function showProfile() {
+    showToast('Cargando perfil...', 'info');
+    
+    try {
+        const token = user.token;
+        const res = await fetch(API_BASE + '/profile', {
+            headers: { 
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            const container = document.getElementById('auth-modals');
+            container.innerHTML = `
+                <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeProfile(event)">
+                    <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-xl font-bold text-white">
+                                    ${(user.name || 'U')[0].toUpperCase()}
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-black dark:text-white">Mi Perfil</h2>
+                                    <p class="text-sm text-gray-500">${user.email}</p>
+                                </div>
+                            </div>
+                            <button onclick="closeProfile()" class="touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="p-6 overflow-y-auto flex-1">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Edad</p>
+                                    <p class="text-2xl font-black dark:text-white">${data.age || '--'}</p>
+                                </div>
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Género</p>
+                                    <p class="text-2xl font-black dark:text-white">${data.gender ? (data.gender === 'male' ? 'Hombre' : 'Mujer') : '--'}</p>
+                                </div>
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Altura</p>
+                                    <p class="text-2xl font-black dark:text-white">${data.height || '--'} cm</p>
+                                </div>
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Peso actual</p>
+                                    <p class="text-2xl font-black dark:text-white">${data.current_weight || '--'} kg</p>
+                                </div>
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Peso objetivo</p>
+                                    <p class="text-2xl font-black dark:text-white">${data.goal_weight || '--'} kg</p>
+                                </div>
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Objetivo</p>
+                                    <p class="text-lg font-bold dark:text-white">${data.goal_type ? (data.goal_type === 'lose' ? 'Perder peso' : data.goal_type === 'gain' ? 'Ganar músculo' : 'Mantener') : '--'}</p>
+                                </div>
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Actividad</p>
+                                    <p class="text-lg font-bold dark:text-white">${data.activity_level ? data.activity_level.replace('_', ' ') : '--'}</p>
+                                </div>
+                                <div class="glass rounded-xl p-4">
+                                    <p class="text-sm text-gray-500 mb-1">Comidas/día</p>
+                                    <p class="text-2xl font-black dark:text-white">${data.meals_per_day || '--'}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-card rounded-xl p-4 mb-4">
+                                <h3 class="font-bold dark:text-white mb-3">📊 Métricas</h3>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="text-center">
+                                        <p class="text-xs text-gray-500 mb-1">TMB</p>
+                                        <p class="text-lg font-black gradient-text">${data.tmb || '--'} kcal</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-xs text-gray-500 mb-1">TDEE</p>
+                                        <p class="text-lg font-black gradient-text">${data.tdee || '--'} kcal</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-xs text-gray-500 mb-1">Objetivo</p>
+                                        <p class="text-lg font-black gradient-text">${data.target_calories || '--'} kcal</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${(data.allergies || data.disliked_foods) ? `
+                                <div class="glass-card rounded-xl p-4">
+                                    <h3 class="font-bold dark:text-white mb-3">⚠️ Preferencias</h3>
+                                    ${data.allergies ? `<p class="text-sm dark:text-gray-300 mb-2"><strong>Alergias:</strong> ${data.allergies}</p>` : ''}
+                                    ${data.disliked_foods ? `<p class="text-sm dark:text-gray-300"><strong>Comidas que no me gustan:</strong> ${data.disliked_foods}</p>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                            <button onclick="closeProfile()" class="w-full btn-primary text-white py-3 rounded-xl font-bold touch-target">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.style.overflow = 'hidden';
+        } else {
+            showToast('❌ ' + (data.error || 'Error al cargar perfil'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+        console.error('Profile error:', err);
+    }
+}
+
+function closeProfile(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+// ==================== SETTINGS PAGE ====================
+
+function showSettings() {
+    const container = document.getElementById('auth-modals');
+    container.innerHTML = `
+        <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeSettings(event)">
+            <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full" onclick="event.stopPropagation()">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-700 rounded-xl flex items-center justify-center text-2xl">⚙️</div>
+                        <div>
+                            <h2 class="text-xl font-black dark:text-white">Configuración</h2>
+                            <p class="text-sm text-gray-500">Preferencias de la app</p>
+                        </div>
+                    </div>
+                    <button onclick="closeSettings()" class="touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <button onclick="toggleDark(); closeSettings()" class="w-full glass p-4 rounded-xl flex items-center justify-between touch-target">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${isDark ? '☀️' : '🌙'}</span>
+                            <div class="text-left">
+                                <p class="font-bold dark:text-white">Modo oscuro</p>
+                                <p class="text-sm text-gray-500">${isDark ? 'Activado' : 'Desactivado'}</p>
+                            </div>
+                        </div>
+                        <div class="w-12 h-6 bg-gray-300 dark:bg-purple-500 rounded-full relative transition-colors">
+                            <div class="w-5 h-5 bg-white rounded-full absolute top-0.5 ${isDark ? 'right-0.5' : 'left-0.5'} transition-all"></div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showProfile(); closeSettings()" class="w-full glass p-4 rounded-xl flex items-center gap-3 touch-target">
+                        <span class="text-2xl">👤</span>
+                        <div class="text-left">
+                            <p class="font-bold dark:text-white">Mi perfil</p>
+                            <p class="text-sm text-gray-500">Ver mis datos y métricas</p>
+                        </div>
+                    </button>
+                    
+                    <button onclick="exportData()" class="w-full glass p-4 rounded-xl flex items-center gap-3 touch-target">
+                        <span class="text-2xl">📥</span>
+                        <div class="text-left">
+                            <p class="font-bold dark:text-white">Exportar datos</p>
+                            <p class="text-sm text-gray-500">Descargar mi progreso</p>
+                        </div>
+                    </button>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <button onclick="logout(); closeSettings()" class="w-full glass p-4 rounded-xl flex items-center gap-3 touch-target hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            <span class="text-2xl">🚪</span>
+                            <div class="text-left">
+                                <p class="font-bold text-red-500">Cerrar sesión</p>
+                                <p class="text-sm text-gray-500">Salir de tu cuenta</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSettings(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+function exportData() {
+    showToast('📥 Preparando exportación...', 'info');
+    // TODO: Implement data export
+    setTimeout(() => {
+        showToast('✅ Datos exportados (próximamente)', 'success');
+    }, 1000);
 }
 
 // ==================== TOAST NOTIFICATIONS MEJORADOS ====================

@@ -56,7 +56,7 @@ class WeightRequest(BaseModel):
     weight: float = Field(..., ge=30, le=300)
 
 class FoodLogRequest(BaseModel):
-    recipe_id: int
+    recipe_id: str  # UUID
     meal_type: str
     calories: float
     protein: float
@@ -65,8 +65,8 @@ class FoodLogRequest(BaseModel):
     notes: Optional[str] = ""
 
 class PlanSwapRequest(BaseModel):
-    plan_id: int
-    new_recipe_id: int
+    plan_id: str  # UUID
+    new_recipe_id: str  # UUID
 
 # ==================== UTILIDADES ====================
 
@@ -208,9 +208,9 @@ def onboarding():
             'age': onboarding_data.age,
             'gender': onboarding_data.gender,
             'height_cm': onboarding_data.height,
-            'current_weight_kg': onboarding_data.current_weight,
-            'goal_weight_kg': onboarding_data.goal_weight,
-            'goal_type': onboarding_data.goal_type,
+            'weight_kg': onboarding_data.current_weight,
+            'target_weight_kg': onboarding_data.goal_weight,
+            'goal': onboarding_data.goal_type,
             'activity_level': onboarding_data.activity_level,
             'meals_per_day': onboarding_data.meals_per_day,
             'allergies': onboarding_data.allergies or '',
@@ -270,14 +270,14 @@ def get_profile():
             profile['age'],
             profile['gender'],
             profile['height_cm'],
-            profile['current_weight_kg']
+            profile['weight_kg']
         )
         tdee = calculate_tdee(tmb, profile['activity_level'])
         target_calories = calculate_target_calories(
             tdee,
-            profile['goal_type'],
-            profile['current_weight_kg'],
-            profile['goal_weight_kg']
+            profile['goal'],
+            profile['weight_kg'],
+            profile['target_weight_kg']
         )
         
         return jsonify({
@@ -285,9 +285,9 @@ def get_profile():
             'age': profile['age'],
             'gender': profile['gender'],
             'height': profile['height_cm'],
-            'current_weight': profile['current_weight_kg'],
-            'goal_weight': profile['goal_weight_kg'],
-            'goal_type': profile['goal_type'],
+            'current_weight': profile['weight_kg'],
+            'goal_weight': profile['target_weight_kg'],
+            'goal_type': profile['goal'],
             'activity_level': profile['activity_level'],
             'meals_per_day': profile['meals_per_day'],
             'allergies': profile.get('allergies', ''),
@@ -332,11 +332,11 @@ def update_profile():
         
         for field, value in update_data.dict(exclude_none=True).items():
             if field == 'current_weight':
-                update_fields['current_weight_kg'] = value
+                update_fields['weight_kg'] = value
             elif field == 'height':
                 update_fields['height_cm'] = value
             elif field == 'goal_weight':
-                update_fields['goal_weight_kg'] = value
+                update_fields['target_weight_kg'] = value
             else:
                 update_fields[field] = value
             
@@ -350,9 +350,9 @@ def update_profile():
         # Recalcular si es necesario
         if needs_recalc:
             updated = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute().data[0]
-            tmb = calculate_tmb(updated['age'], updated['gender'], updated['height_cm'], updated['current_weight_kg'])
+            tmb = calculate_tmb(updated['age'], updated['gender'], updated['height_cm'], updated['weight_kg'])
             tdee = calculate_tdee(tmb, updated['activity_level'])
-            target = calculate_target_calories(tdee, updated['goal_type'], updated['current_weight_kg'], updated['goal_weight_kg'])
+            target = calculate_target_calories(tdee, updated['goal'], updated['weight_kg'], updated['target_weight_kg'])
             
             return jsonify({
                 'message': 'Perfil actualizado',
@@ -550,7 +550,7 @@ def register_weight():
         
         # Actualizar peso en perfil
         supabase.table('user_profiles').update({
-            'current_weight_kg': weight_data.weight
+            'weight_kg': weight_data.weight
         }).eq('user_id', user_id).execute()
         
         # Recalcular calorías objetivo
@@ -559,7 +559,7 @@ def register_weight():
             profile = profile_result.data[0]
             tmb = calculate_tmb(profile['age'], profile['gender'], profile['height_cm'], weight_data.weight)
             tdee = calculate_tdee(tmb, profile['activity_level'])
-            target = calculate_target_calories(tdee, profile['goal_type'], weight_data.weight, profile['goal_weight_kg'])
+            target = calculate_target_calories(tdee, profile['goal'], weight_data.weight, profile['target_weight_kg'])
             
             return jsonify({
                 'message': 'Peso registrado',
@@ -594,10 +594,10 @@ def get_stats():
         profile = profile_result.data[0]
         
         # Calcular progreso
-        start_weight = weight_history[-1]['weight_kg'] if weight_history else profile['current_weight_kg']
-        current_weight = profile['current_weight_kg']
+        start_weight = weight_history[-1]['weight_kg'] if weight_history else profile['weight_kg']
+        current_weight = profile['weight_kg']
         weight_change = current_weight - start_weight
-        goal_progress = ((start_weight - current_weight) / (start_weight - profile['goal_weight_kg']) * 100) if start_weight != profile['goal_weight_kg'] else 0
+        goal_progress = ((start_weight - current_weight) / (start_weight - profile['target_weight_kg']) * 100) if start_weight != profile['target_weight_kg'] else 0
         
         # Food log de esta semana
         week_number = datetime.now().isocalendar()[1]
@@ -609,7 +609,7 @@ def get_stats():
         
         return jsonify({
             'current_weight': current_weight,
-            'goal_weight': profile['goal_weight_kg'],
+            'goal_weight': profile['target_weight_kg'],
             'weight_change': round(weight_change, 2),
             'goal_progress_percent': round(max(0, min(100, goal_progress)), 1),
             'weight_history': weight_history,
@@ -702,7 +702,7 @@ def get_dashboard():
         
         # Último peso
         weight_result = supabase.table('weight_history').select('weight_kg, created_at').eq('user_id', user_id).order('created_at', desc=True).limit(1).execute()
-        last_weight = (weight_result.data or [{}])[0].get('weight_kg', profile['current_weight_kg'])
+        last_weight = (weight_result.data or [{}])[0].get('weight_kg', profile['weight_kg'])
         
         # Progreso
         all_weights = supabase.table('weight_history').select('weight_kg').eq('user_id', user_id).order('created_at').execute()
@@ -713,7 +713,7 @@ def get_dashboard():
             'profile': {
                 'age': profile['age'],
                 'gender': profile['gender'],
-                'goal_type': profile['goal_type'],
+                'goal_type': profile['goal'],
                 'activity_level': profile['activity_level'],
                 'meals_per_day': profile['meals_per_day']
             },
@@ -722,7 +722,7 @@ def get_dashboard():
                 'tdee': profile.get('tdee', 0),
                 'target_calories': profile.get('target_calories', 0),
                 'current_weight': last_weight,
-                'goal_weight': profile['goal_weight_kg'],
+                'goal_weight': profile['target_weight_kg'],
                 'weight_change': round(weight_change, 2)
             },
             'today': {

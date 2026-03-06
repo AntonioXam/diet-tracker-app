@@ -767,8 +767,10 @@ def register():
         
         hashed = hash_password(password)
         result = supabase.table('users').insert({
-            'name': name, 'email': email,
-            'password_hash': f"{hashed['hash']}:{hashed['salt']}"
+            'name': name, 
+            'email': email,
+            'password_hash': hashed['hash'],
+            'salt': hashed['salt']
         }).execute()
         
         if result.data:
@@ -802,8 +804,12 @@ def login():
         
         user = result.data[0]
         password_hash = user.get('password_hash', '')
+        salt = user.get('salt', '')
         
-        if ':' in password_hash:
+        # Compatibilidad: si no hay columna salt, usar formato hash:salt
+        if salt:
+            stored_hash = password_hash
+        elif ':' in password_hash:
             stored_hash, salt = password_hash.split(':', 1)
         else:
             return jsonify({'error': 'Formato de contraseña inválido'}), 500

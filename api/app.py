@@ -7,6 +7,7 @@ import hashlib
 import base64
 import secrets
 import time
+import random
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
@@ -51,6 +52,9 @@ class ProfileUpdateRequest(BaseModel):
     meals_per_day: Optional[int] = Field(None, ge=3, le=5)
     allergies: Optional[str] = None
     disliked_foods: Optional[str] = None
+    budget: Optional[str] = Field(None, pattern="^(low|medium|high)$")
+    preferences: Optional[list] = None
+    target_calories: Optional[int] = Field(None, ge=1000, le=5000)
 
 class WeightRequest(BaseModel):
     weight: float = Field(..., ge=30, le=300)
@@ -67,6 +71,11 @@ class FoodLogRequest(BaseModel):
 class PlanSwapRequest(BaseModel):
     plan_id: str  # UUID
     new_recipe_id: str  # UUID
+
+class GeneratePlanRequest(BaseModel):
+    user_id: Optional[str] = None  # Optional, uses token if not provided
+    target_calories: Optional[int] = None  # Uses profile if not provided
+    preferences: Optional[dict] = None  # Optional preferences override
 
 # ==================== UTILIDADES ====================
 
@@ -148,6 +157,227 @@ def get_meal_types_for_count(meals_per_day: int) -> list:
     elif meals_per_day == 5:
         return ['desayuno', 'almuerzo', 'comida', 'merienda', 'cena']
     return ['desayuno', 'comida', 'cena']
+
+def distribute_macros(calories: float, goal_type: str) -> dict:
+    """
+    Distribuye macros según objetivo:
+    - lose: 40% protein, 30% carbs, 30% fat (high protein for satiety)
+    - gain: 30% protein, 45% carbs, 25% fat (more carbs for energy)
+    - maintain: 30% protein, 40% carbs, 30% fat (balanced)
+    
+    Returns grams of protein, carbs, fat per day.
+    """
+    calories = max(1200, min(4000, calories))  # Safety bounds
+    
+    if goal_type == 'lose':
+        protein_ratio, carbs_ratio, fat_ratio = 0.40, 0.30, 0.30
+    elif goal_type == 'gain':
+        protein_ratio, carbs_ratio, fat_ratio = 0.30, 0.45, 0.25
+    else:  # maintain
+        protein_ratio, carbs_ratio, fat_ratio = 0.30, 0.40, 0.30
+    
+    # Calculate grams (protein: 4 cal/g, carbs: 4 cal/g, fat: 9 cal/g)
+    protein_g = round((calories * protein_ratio) / 4, 1)
+    carbs_g = round((calories * carbs_ratio) / 4, 1)
+    fat_g = round((calories * fat_ratio) / 9, 1)
+    
+    return {
+        'protein': protein_g,
+        'carbs': carbs_g,
+        'fat': fat_g,
+        'calories': round(calories)
+    }
+
+def distribute_meal_calories(total_calories: float, meals_per_day: int) -> dict:
+    """
+    Distribute calories across meals based on meals_per_day.
+    Typical distribution (approximate):
+    - 3 meals: Breakfast 30%, Lunch 40%, Dinner 30%
+    - 4 meals: Breakfast 25%, Lunch 35%, Snack 15%, Dinner 25%
+    - 5 meals: Breakfast 20%, Morning snack 10%, Lunch 30%, Afternoon snack 15%, Dinner 25%
+    """
+    if meals_per_day == 3:
+        distribution = {'desayuno': 0.30, 'comida': 0.40, 'cena': 0.30}
+    elif meals_per_day == 4:
+        distribution = {'desayuno': 0.25, 'comida': 0.35, 'merienda': 0.15, 'cena': 0.25}
+    elif meals_per_day == 5:
+        distribution = {
+            'desayuno': 0.20,
+            'almuerzo': 0.10,
+            'comida': 0.30,
+            'merienda': 0.15,
+            'cena': 0.25
+        }
+    else:
+        # Default to 4 meals
+        distribution = {'desayuno': 0.25, 'comida': 0.35, 'merienda': 0.15, 'cena': 0.25}
+    
+    return {
+        meal: round(total_calories * ratio)
+        for meal, ratio in distribution.items()
+    }
+
+def select_recipes(supabase, meal_type: str, preferences: dict, target_calories: float, limit: int = 5) -> list:
+    """
+    Select suitable recipes for a meal type based on preferences and calorie target.
+    
+    Args:
+        supabase: Supabase client
+        meal_type: Type of meal (desayuno, comida, cena, etc.)
+        preferences: dict with allergies, disliked_foods, goal_type
+        target_calories: Target calories for this meal
+        limit: Max number of recipes to return
+    
+    Returns:
+        List of suitable recipe dicts
+    """
+    # Calorie range: +/- 20% of target
+    min_cal = target_calories * 0.80
+    max_cal = target_calories * 1.20
+    
+    try:
+        # Base query for meal type
+        query = supabase.table('master_recipes').select('*').eq('meal_type', meal_type)
+        
+        # Filter by calorie range
+        query = query.gte('calories', min_cal).lte('calories', max_cal)
+        
+        # Execute query
+        result = query.limit(limit * 2).execute()  # Get extra for filtering
+        recipes = result.data or []
+        
+        # Filter by allergies and disliked foods
+        allergies = preferences.get('allergies', '').lower() if preferences else ''
+        disliked = preferences.get('disliked_foods', '').lower() if preferences else ''
+        
+        filtered = []
+        for recipe in recipes:
+            ingredients = recipe.get('ingredients', '').lower()
+            
+            # Skip if contains allergens
+            if allergies:
+                allergen_list = [a.strip() for a in allergies.split(',') if a.strip()]
+                if any(allergen in ingredients for allergen in allergen_list):
+                    continue
+            
+            # Skip if contains disliked foods
+            if disliked:
+                disliked_list = [d.strip() for d in disliked.split(',') if d.strip()]
+                if any(food in ingredients for food in disliked_list):
+                    continue
+            
+            filtered.append(recipe)
+            
+            if len(filtered) >= limit:
+                break
+        
+        # If not enough recipes after filtering, return what we have
+        return filtered[:limit] if filtered else recipes[:limit]
+        
+    except Exception as e:
+        print(f"Error selecting recipes: {e}")
+        return []
+
+def generate_weekly_plan(supabase, user_id: str, profile: dict, target_calories: int = None) -> dict:
+    """
+    Generate a complete weekly meal plan for a user.
+    
+    Args:
+        supabase: Supabase client
+        user_id: User UUID
+        profile: User profile dict with preferences
+        target_calories: Optional override for calories
+    
+    Returns:
+        dict with plan_id, week_number, days structure
+    """
+    import random
+    
+    # Get profile values
+    meals_per_day = profile.get('meals_per_day', 4)
+    goal_type = profile.get('goal', 'maintain')
+    
+    # Use provided calories or get from profile
+    if target_calories is None:
+        target_calories = profile.get('target_calories', 2000)
+    
+    # Calculate macros
+    macros = distribute_macros(target_calories, goal_type)
+    
+    # Distribute calories per meal
+    meal_calories = distribute_meal_calories(target_calories, meals_per_day)
+    meal_types = get_meal_types_for_count(meals_per_day)
+    
+    # Prepare preferences
+    preferences = {
+        'allergies': profile.get('allergies', ''),
+        'disliked_foods': profile.get('disliked_foods', ''),
+        'goal_type': goal_type
+    }
+    
+    # Get current week number
+    week_number = datetime.now().isocalendar()[1]
+    
+    # Delete existing plan for this week
+    try:
+        supabase.table('weekly_plans').delete().eq('user_id', user_id).eq('week_number', week_number).execute()
+    except:
+        pass  # Continue even if delete fails
+    
+    # Generate plan for each day (7 days)
+    days_of_week = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
+    weekly_plan = {}
+    all_meals = []
+    
+    for day_idx, day_name in enumerate(days_of_week):
+        day_meals = []
+        
+        for meal_type in meal_types:
+            target = meal_calories.get(meal_type, target_calories / len(meal_types))
+            
+            # Select recipes for this meal
+            recipes = select_recipes(supabase, meal_type, preferences, target, limit=10)
+            
+            if recipes:
+                # Pick a random recipe from suitable ones
+                selected_recipe = random.choice(recipes)
+                
+                meal_entry = {
+                    'user_id': user_id,
+                    'week_number': week_number,
+                    'day_of_week': day_idx,
+                    'meal_type': meal_type,
+                    'selected_recipe_id': selected_recipe['id'],
+                    'calories': selected_recipe.get('calories', target),
+                    'protein': selected_recipe.get('protein', 0),
+                    'carbs': selected_recipe.get('carbs', 0),
+                    'fat': selected_recipe.get('fat', 0),
+                    'recipe_name': selected_recipe.get('name', ''),
+                    'recipe_image': selected_recipe.get('image_url', '')
+                }
+                
+                day_meals.append(meal_entry)
+                all_meals.append(meal_entry)
+        
+        weekly_plan[day_name] = day_meals
+    
+    # Batch insert all meals
+    created_entries = []
+    if all_meals:
+        try:
+            insert_result = supabase.table('weekly_plans').insert(all_meals).execute()
+            created_entries = insert_result.data or []
+        except Exception as e:
+            print(f"Error inserting meals: {e}")
+    
+    return {
+        'user_id': user_id,
+        'week_number': week_number,
+        'days': weekly_plan,
+        'total_entries': len(created_entries),
+        'macros_target': macros,
+        'meal_calories': meal_calories
+    }
 
 # ==================== ENDPOINTS ====================
 
@@ -337,11 +567,18 @@ def update_profile():
                 update_fields['height_cm'] = value
             elif field == 'goal_weight':
                 update_fields['target_weight_kg'] = value
+            elif field == 'preferences':
+                # Convertir lista a string para almacenar
+                update_fields['preferences'] = ','.join(value) if value else ''
             else:
                 update_fields[field] = value
             
             if field in recalc_fields:
                 needs_recalc = True
+        
+        # Guardar target_calories si viene del frontend
+        if 'target_calories' in data:
+            update_fields['target_calories'] = data['target_calories']
         
         if update_fields:
             update_fields['user_id'] = user_id
@@ -914,6 +1151,90 @@ def reset_password():
         
     except Exception as e:
         return jsonify({'error': f'Error al resetear contraseña: {str(e)}'}), 500
+
+# 12. POST /api/generate-plan - Genera plan semanal automático
+@app.route('/api/generate-plan', methods=['POST'])
+@token_required
+def generate_plan():
+    """
+    Genera un plan semanal de comidas automático basado en preferencias y calorías objetivo.
+    
+    Input (opcional):
+        - user_id: Si no se proporciona, usa el del token
+        - target_calories: Si no se proporciona, usa el del perfil
+        - preferences: Override de preferencias (allergies, disliked_foods)
+    
+    Output:
+        - Plan semanal completo (7 días x N comidas)
+        - Macros objetivo distribuidas
+        - IDs de recetas seleccionadas
+    """
+    try:
+        user_id = request.current_user['user_id']
+        data = request.get_json() or {}
+        
+        # Validate input if provided
+        try:
+            request_data = GeneratePlanRequest(**data) if data else GeneratePlanRequest()
+        except Exception as e:
+            return jsonify({'error': f'Datos inválidos: {str(e)}'}), 400
+        
+        # Override user_id if provided (for admin use)
+        effective_user_id = request_data.user_id or user_id
+        
+        # Get user profile
+        profile_result = supabase.table('user_profiles').select('*').eq('user_id', effective_user_id).execute()
+        if not profile_result.data:
+            return jsonify({'error': 'Perfil no encontrado. Completa el onboarding primero.'}), 404
+        
+        profile = profile_result.data[0]
+        
+        # Get target calories
+        target_calories = request_data.target_calories or profile.get('target_calories', 2000)
+        
+        # Override preferences if provided
+        if request_data.preferences:
+            profile['allergies'] = request_data.preferences.get('allergies', profile.get('allergies', ''))
+            profile['disliked_foods'] = request_data.preferences.get('disliked_foods', profile.get('disliked_foods', ''))
+            profile['goal'] = request_data.preferences.get('goal_type', profile.get('goal', 'maintain'))
+        
+        # Generate the weekly plan
+        plan = generate_weekly_plan(supabase, effective_user_id, profile, target_calories)
+        
+        # Calculate daily totals for verification
+        meals_per_day = profile.get('meals_per_day', 4)
+        meal_types = get_meal_types_for_count(meals_per_day)
+        
+        daily_totals = {
+            'calories': sum(m.get('calories', 0) for m in plan['days'].get('lunes', [])),
+            'protein': sum(m.get('protein', 0) for m in plan['days'].get('lunes', [])),
+            'carbs': sum(m.get('carbs', 0) for m in plan['days'].get('lunes', [])),
+            'fat': sum(m.get('fat', 0) for m in plan['days'].get('lunes', []))
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Plan semanal generado correctamente',
+            'user_id': effective_user_id,
+            'week_number': plan['week_number'],
+            'target_calories': target_calories,
+            'macros_target': plan['macros_target'],
+            'meal_distribution': plan['meal_calories'],
+            'days': plan['days'],
+            'summary': {
+                'total_entries': plan['total_entries'],
+                'meals_per_day': meals_per_day,
+                'estimated_daily_calories': daily_totals['calories'],
+                'estimated_daily_macros': {
+                    'protein': daily_totals['protein'],
+                    'carbs': daily_totals['carbs'],
+                    'fat': daily_totals['fat']
+                }
+            }
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': f'Error al generar plan: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

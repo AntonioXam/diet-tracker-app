@@ -1315,11 +1315,50 @@ function renderDashboardWithFallback() {
     renderDashboard(fallbackData, fallbackHistory);
 }
 
-// ==================== ONBOARDING FLOW ====================
+// ==================== ONBOARDING FLOW COMPLETO ====================
+
+// Listas de preferencias y alergias
+const DIETARY_PREFERENCES = [
+    { id: 'vegan', name: 'Vegano', icon: '🌱' },
+    { id: 'vegetarian', name: 'Vegetariano', icon: '🥗' },
+    { id: 'pescatarian', name: 'Pescatariano', icon: '🐟' },
+    { id: 'keto', name: 'Keto', icon: '🥑' },
+    { id: 'paleo', name: 'Paleo', icon: '🍖' },
+    { id: 'gluten_free', name: 'Sin gluten', icon: '🌾' },
+    { id: 'lactose_free', name: 'Sin lactosa', icon: '🥛' },
+    { id: 'low_carb', name: 'Bajo en carbohidratos', icon: '🍚' },
+    { id: 'mediterranean', name: 'Mediterránea', icon: '🫒' }
+];
+
+const COMMON_ALLERGIES = [
+    { id: 'gluten', name: 'Gluten', icon: '🌾' },
+    { id: 'lactose', name: 'Lácteos', icon: '🥛' },
+    { id: 'nuts', name: 'Frutos secos', icon: '🥜' },
+    { id: 'shellfish', name: 'Mariscos', icon: '🦐' },
+    { id: 'eggs', name: 'Huevos', icon: '🥚' },
+    { id: 'soy', name: 'Soja', icon: '🫘' },
+    { id: 'fish', name: 'Pescado', icon: '🐟' },
+    { id: 'peanuts', name: 'Cacahuetes', icon: '🥜' }
+];
+
+const BUDGET_OPTIONS = [
+    { id: 'low', name: 'Económico', desc: 'Comidas sencillas y económicas', icon: '💰' },
+    { id: 'medium', name: 'Medio', desc: 'Balance entre calidad y precio', icon: '💵' },
+    { id: 'high', name: 'Premium', desc: 'Ingredientes de alta calidad', icon: '💎' }
+];
+
+const MEALS_OPTIONS = [
+    { id: 3, name: '3 comidas', desc: 'Desayuno, comida y cena', icon: '🍽️' },
+    { id: 4, name: '4 comidas', desc: 'Desayuno, snack, comida y cena', icon: '🍱' },
+    { id: 5, name: '5 comidas', desc: 'Desayuno, snack, comida, snack y cena', icon: '🥗' }
+];
 
 function startOnboarding() {
     onboardingStep = 0;
-    onboardingData = {};
+    onboardingData = {
+        preferences: [],
+        allergies: []
+    };
     renderOnboardingStep();
     document.getElementById('onboarding-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -1334,144 +1373,351 @@ function renderOnboardingStep() {
     const container = document.getElementById('onboarding-content');
     
     const steps = [
+        // PASO 1: Bienvenida
         {
             title: '¡Bienvenido a Diet Tracker FIT! 🎉',
             content: `
-                <p class="text-gray-600 dark:text-gray-400 mb-6">Vamos a crear tu plan personalizado en 4 pasos simples.</p>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="glass p-4 rounded-xl text-center">
-                        <div class="text-3xl mb-2">📊</div>
-                        <p class="text-sm font-semibold dark:text-white">Tus datos</p>
-                    </div>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Vamos a crear tu plan nutricional personalizado en 7 pasos simples.</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                     <div class="glass p-4 rounded-xl text-center">
                         <div class="text-3xl mb-2">🎯</div>
-                        <p class="text-sm font-semibold dark:text-white">Tu objetivo</p>
+                        <p class="text-xs font-semibold dark:text-white">Objetivo</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">📊</div>
+                        <p class="text-xs font-semibold dark:text-white">Datos</p>
                     </div>
                     <div class="glass p-4 rounded-xl text-center">
                         <div class="text-3xl mb-2">🏃</div>
-                        <p class="text-sm font-semibold dark:text-white">Actividad</p>
+                        <p class="text-xs font-semibold dark:text-white">Actividad</p>
                     </div>
                     <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">🥗</div>
+                        <p class="text-xs font-semibold dark:text-white">Preferencias</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">⚠️</div>
+                        <p class="text-xs font-semibold dark:text-white">Alergias</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl text-center">
+                        <div class="text-3xl mb-2">💰</div>
+                        <p class="text-xs font-semibold dark:text-white">Presupuesto</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl text-center col-span-2 sm:col-span-1">
                         <div class="text-3xl mb-2">🍽️</div>
-                        <p class="text-sm font-semibold dark:text-white">Tu plan</p>
+                        <p class="text-xs font-semibold dark:text-white">Comidas/día</p>
                     </div>
                 </div>
             `,
-            button: 'Comenzar'
+            button: 'Comenzar configuración'
         },
+        // PASO 2: Objetivo
         {
-            title: 'Tus datos personales 📝',
+            title: 'Paso 1: ¿Cuál es tu objetivo? 🎯',
+            content: `
+                <div class="space-y-3">
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="goal" value="lose" ${onboardingData.goal === 'lose' ? 'checked' : ''} class="w-5 h-5 accent-purple-500">
+                        <div class="flex-1">
+                            <p class="font-bold dark:text-white">🔥 Perder peso</p>
+                            <p class="text-sm text-gray-500">Quemar grasa y reducir medidas</p>
+                        </div>
+                        <span class="text-2xl">📉</span>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="goal" value="maintain" ${onboardingData.goal === 'maintain' ? 'checked' : ''} class="w-5 h-5 accent-purple-500">
+                        <div class="flex-1">
+                            <p class="font-bold dark:text-white">⚖️ Mantener peso</p>
+                            <p class="text-sm text-gray-500">Conservar y estabilizar tu figura</p>
+                        </div>
+                        <span class="text-2xl">🎯</span>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="goal" value="gain" ${onboardingData.goal === 'gain' ? 'checked' : ''} class="w-5 h-5 accent-purple-500">
+                        <div class="flex-1">
+                            <p class="font-bold dark:text-white">💪 Ganar músculo</p>
+                            <p class="text-sm text-gray-500">Aumentar masa muscular y fuerza</p>
+                        </div>
+                        <span class="text-2xl">📈</span>
+                    </label>
+                </div>
+            `,
+            button: 'Continuar',
+            prev: true,
+            validate: () => {
+                const goal = document.querySelector('input[name="goal"]:checked');
+                if (!goal) {
+                    showToast('❌ Por favor selecciona un objetivo', 'error');
+                    return false;
+                }
+                return true;
+            }
+        },
+        // PASO 3: Datos personales
+        {
+            title: 'Paso 2: Tus datos personales 📊',
             content: `
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Peso (kg)</label>
-                        <input type="number" id="onboarding-weight" value="${onboardingData.weight || 70}" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Altura (cm)</label>
-                        <input type="number" id="onboarding-height" value="${onboardingData.height || 170}" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
-                    </div>
-                    <div>
                         <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Edad</label>
-                        <input type="number" id="onboarding-age" value="${onboardingData.age || 30}" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        <input type="number" id="onboarding-age" value="${onboardingData.age || 30}" min="15" max="100" 
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target"
+                               placeholder="Años">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Género</label>
                         <select id="onboarding-gender" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
-                            <option value="male" ${onboardingData.gender === 'male' ? 'selected' : ''}>Hombre</option>
-                            <option value="female" ${onboardingData.gender === 'female' ? 'selected' : ''}>Mujer</option>
+                            <option value="male" ${onboardingData.gender === 'male' ? 'selected' : ''}>👨 Hombre</option>
+                            <option value="female" ${onboardingData.gender === 'female' ? 'selected' : ''}>👩 Mujer</option>
                         </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Peso actual (kg)</label>
+                        <input type="number" id="onboarding-weight" value="${onboardingData.weight || 70}" min="30" max="300" step="0.1"
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target"
+                               placeholder="Ej: 70">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Peso objetivo (kg)</label>
+                        <input type="number" id="onboarding-goal-weight" value="${onboardingData.goal_weight || 65}" min="30" max="300" step="0.1"
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target"
+                               placeholder="Ej: 65">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Altura (cm)</label>
+                        <input type="number" id="onboarding-height" value="${onboardingData.height || 170}" min="100" max="250"
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target"
+                               placeholder="Ej: 170">
                     </div>
                 </div>
             `,
             button: 'Continuar',
-            prev: true
+            prev: true,
+            validate: () => {
+                const age = parseFloat(document.getElementById('onboarding-age').value);
+                const weight = parseFloat(document.getElementById('onboarding-weight').value);
+                const height = parseFloat(document.getElementById('onboarding-height').value);
+                const goalWeight = parseFloat(document.getElementById('onboarding-goal-weight').value);
+                
+                if (!age || age < 15 || age > 100) {
+                    showToast('❌ Edad debe estar entre 15 y 100 años', 'error');
+                    return false;
+                }
+                if (!weight || weight < 30 || weight > 300) {
+                    showToast('❌ Peso debe estar entre 30 y 300 kg', 'error');
+                    return false;
+                }
+                if (!height || height < 100 || height > 250) {
+                    showToast('❌ Altura debe estar entre 100 y 250 cm', 'error');
+                    return false;
+                }
+                return true;
+            }
         },
+        // PASO 4: Actividad física
         {
-            title: '¿Cuál es tu objetivo? 🎯',
+            title: 'Paso 3: Nivel de actividad física 🏃',
             content: `
                 <div class="space-y-3">
                     <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <input type="radio" name="goal" value="lose" ${onboardingData.goal === 'lose' ? 'checked' : ''} class="w-5 h-5">
-                        <div>
-                            <p class="font-bold dark:text-white">Perder peso</p>
-                            <p class="text-sm text-gray-500">Quemar grasa y definir</p>
+                        <input type="radio" name="activity" value="sedentary" ${onboardingData.activity === 'sedentary' ? 'checked' : ''} class="w-5 h-5 accent-purple-500">
+                        <div class="flex-1">
+                            <p class="font-bold dark:text-white">🪑 Sedentario</p>
+                            <p class="text-sm text-gray-500">Trabajo de oficina, poco ejercicio</p>
                         </div>
                     </label>
                     <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <input type="radio" name="goal" value="maintain" ${onboardingData.goal === 'maintain' ? 'checked' : ''} class="w-5 h-5">
-                        <div>
-                            <p class="font-bold dark:text-white">Mantener peso</p>
-                            <p class="text-sm text-gray-500">Estabilizar y cuidar salud</p>
+                        <input type="radio" name="activity" value="light" ${onboardingData.activity === 'light' ? 'checked' : ''} class="w-5 h-5 accent-purple-500">
+                        <div class="flex-1">
+                            <p class="font-bold dark:text-white">🚶 Ligero</p>
+                            <p class="text-sm text-gray-500">Ejercicio 1-3 días por semana</p>
                         </div>
                     </label>
                     <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <input type="radio" name="goal" value="gain" ${onboardingData.goal === 'gain' ? 'checked' : ''} class="w-5 h-5">
-                        <div>
-                            <p class="font-bold dark:text-white">Ganar músculo</p>
-                            <p class="text-sm text-gray-500">Aumentar masa muscular</p>
+                        <input type="radio" name="activity" value="moderate" ${onboardingData.activity === 'moderate' ? 'checked' : ''} class="w-5 h-5 accent-purple-500">
+                        <div class="flex-1">
+                            <p class="font-bold dark:text-white">🏃 Moderado</p>
+                            <p class="text-sm text-gray-500">Ejercicio 3-5 días por semana</p>
+                        </div>
+                    </label>
+                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                        <input type="radio" name="activity" value="active" ${onboardingData.activity === 'active' ? 'checked' : ''} class="w-5 h-5 accent-purple-500">
+                        <div class="flex-1">
+                            <p class="font-bold dark:text-white">💪 Activo</p>
+                            <p class="text-sm text-gray-500">Ejercicio intenso 6-7 días por semana</p>
                         </div>
                     </label>
                 </div>
             `,
             button: 'Continuar',
+            prev: true,
+            validate: () => {
+                const activity = document.querySelector('input[name="activity"]:checked');
+                if (!activity) {
+                    showToast('❌ Por favor selecciona tu nivel de actividad', 'error');
+                    return false;
+                }
+                return true;
+            }
+        },
+        // PASO 5: Preferencias alimentarias
+        {
+            title: 'Paso 4: Preferencias alimentarias 🥗',
+            content: `
+                <p class="text-sm text-gray-500 mb-4">Selecciona tus preferencias dietéticas (puedes elegir varias)</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    ${DIETARY_PREFERENCES.map(pref => `
+                        <label class="glass p-3 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target ${onboardingData.preferences?.includes(pref.id) ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 border-2' : ''}">
+                            <input type="checkbox" name="preference" value="${pref.id}" 
+                                   ${onboardingData.preferences?.includes(pref.id) ? 'checked' : ''} 
+                                   class="hidden preference-checkbox"
+                                   onchange="togglePreference('${pref.id}', this)">
+                            <span class="text-xl">${pref.icon}</span>
+                            <span class="text-sm font-medium dark:text-white">${pref.name}</span>
+                        </label>
+                    `).join('')}
+                </div>
+                <div class="mt-4 p-3 glass rounded-xl">
+                    <p class="text-sm text-gray-500 mb-2">¿Tienes alguna restricción adicional?</p>
+                    <input type="text" id="onboarding-other-preferences" 
+                           value="${onboardingData.other_preferences || ''}"
+                           placeholder="Ej: Sin azúcar, baja en sal..."
+                           class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                </div>
+            `,
+            button: 'Continuar',
             prev: true
         },
+        // PASO 6: Alergias
         {
-            title: 'Nivel de actividad 🏃',
+            title: 'Paso 5: Alergias alimentarias ⚠️',
             content: `
+                <p class="text-sm text-gray-500 mb-4">Selecciona cualquier alergia que tengas (se evitarán estos ingredientes)</p>
+                <div class="grid grid-cols-2 gap-3">
+                    ${COMMON_ALLERGIES.map(allergy => `
+                        <label class="glass p-3 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors touch-target ${onboardingData.allergies?.includes(allergy.id) ? 'bg-red-50 dark:bg-red-900/30 border-red-500 border-2' : ''}">
+                            <input type="checkbox" name="allergy" value="${allergy.id}" 
+                                   ${onboardingData.allergies?.includes(allergy.id) ? 'checked' : ''} 
+                                   class="hidden allergy-checkbox"
+                                   onchange="toggleAllergy('${allergy.id}', this)">
+                            <span class="text-xl">${allergy.icon}</span>
+                            <span class="text-sm font-medium dark:text-white">${allergy.name}</span>
+                        </label>
+                    `).join('')}
+                </div>
+                <div class="mt-4 p-3 glass rounded-xl">
+                    <p class="text-sm text-gray-500 mb-2">¿Otras alergias?</p>
+                    <input type="text" id="onboarding-other-allergies" 
+                           value="${onboardingData.other_allergies || ''}"
+                           placeholder="Ej: Mostaza, apio, sulfitos..."
+                           class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                </div>
+            `,
+            button: 'Continuar',
+            prev: true
+        },
+        // PASO 7: Presupuesto
+        {
+            title: 'Paso 6: Presupuesto semanal 💰',
+            content: `
+                <p class="text-sm text-gray-500 mb-4">¿Cuánto quieres gastar en comida por semana?</p>
                 <div class="space-y-3">
-                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <input type="radio" name="activity" value="sedentary" ${onboardingData.activity === 'sedentary' ? 'checked' : ''} class="w-5 h-5">
-                        <div>
-                            <p class="font-bold dark:text-white">Sedentario</p>
-                            <p class="text-sm text-gray-500">Poco o nada de ejercicio</p>
-                        </div>
-                    </label>
-                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <input type="radio" name="activity" value="light" ${onboardingData.activity === 'light' ? 'checked' : ''} class="w-5 h-5">
-                        <div>
-                            <p class="font-bold dark:text-white">Ligero</p>
-                            <p class="text-sm text-gray-500">Ejercicio 1-3 días/semana</p>
-                        </div>
-                    </label>
-                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <input type="radio" name="activity" value="moderate" ${onboardingData.activity === 'moderate' ? 'checked' : ''} class="w-5 h-5">
-                        <div>
-                            <p class="font-bold dark:text-white">Moderado</p>
-                            <p class="text-sm text-gray-500">Ejercicio 3-5 días/semana</p>
-                        </div>
-                    </label>
-                    <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <input type="radio" name="activity" value="active" ${onboardingData.activity === 'active' ? 'checked' : ''} class="w-5 h-5">
-                        <div>
-                            <p class="font-bold dark:text-white">Activo</p>
-                            <p class="text-sm text-gray-500">Ejercicio 6-7 días/semana</p>
-                        </div>
-                    </label>
+                    ${BUDGET_OPTIONS.map(budget => `
+                        <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target ${onboardingData.budget === budget.id ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 border-2' : ''}">
+                            <input type="radio" name="budget" value="${budget.id}" 
+                                   ${onboardingData.budget === budget.id ? 'checked' : ''} 
+                                   class="w-5 h-5 accent-purple-500">
+                            <div class="flex-1">
+                                <p class="font-bold dark:text-white">${budget.icon} ${budget.name}</p>
+                                <p class="text-sm text-gray-500">${budget.desc}</p>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            `,
+            button: 'Continuar',
+            prev: true,
+            validate: () => {
+                const budget = document.querySelector('input[name="budget"]:checked');
+                if (!budget) {
+                    showToast('❌ Por favor selecciona tu presupuesto', 'error');
+                    return false;
+                }
+                return true;
+            }
+        },
+        // PASO 8: Comidas por día
+        {
+            title: 'Paso 7: Comidas por día 🍽️',
+            content: `
+                <p class="text-sm text-gray-500 mb-4">¿Cuántas comidas principales quieres hacer al día?</p>
+                <div class="space-y-3">
+                    ${MEALS_OPTIONS.map(meals => `
+                        <label class="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target ${onboardingData.meals_per_day === meals.id ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 border-2' : ''}">
+                            <input type="radio" name="meals" value="${meals.id}" 
+                                   ${onboardingData.meals_per_day === meals.id ? 'checked' : ''} 
+                                   class="w-5 h-5 accent-purple-500">
+                            <div class="flex-1">
+                                <p class="font-bold dark:text-white">${meals.icon} ${meals.name}</p>
+                                <p class="text-sm text-gray-500">${meals.desc}</p>
+                            </div>
+                        </label>
+                    `).join('')}
                 </div>
             `,
             button: 'Calcular mi plan',
-            prev: true
+            prev: true,
+            validate: () => {
+                const meals = document.querySelector('input[name="meals"]:checked');
+                if (!meals) {
+                    showToast('❌ Por favor selecciona el número de comidas', 'error');
+                    return false;
+                }
+                return true;
+            }
         },
+        // PASO 9: Resultados y generación de plan
         {
             title: '¡Tu plan está listo! 🎉',
             content: `
                 <div class="text-center">
-                    <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">✓</div>
-                    <div class="glass-card rounded-2xl p-6 mb-6">
-                        <p class="text-sm text-gray-500 mb-2">Tu TMB (Tasa Metabólica Basal)</p>
-                        <p class="text-4xl font-black gradient-text mb-4" id="bmr-result">--</p>
-                        <p class="text-sm text-gray-500 mb-2">Tu TDEE (Gasto Energético Total)</p>
-                        <p class="text-4xl font-black gradient-text mb-4" id="tdee-result">--</p>
-                        <p class="text-sm text-gray-500 mb-2">Calorías diarias recomendadas</p>
-                        <p class="text-5xl font-black gradient-text" id="calories-result">--</p>
+                    <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 animate-bounce">✓</div>
+                    
+                    <div class="glass-card rounded-2xl p-6 mb-4">
+                        <h3 class="font-bold dark:text-white mb-4">📊 Tus métricas calculadas</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-3 glass rounded-xl">
+                                <p class="text-xs text-gray-500 mb-1">TMB (Metabolismo Basal)</p>
+                                <p class="text-2xl font-black gradient-text" id="bmr-result">--</p>
+                            </div>
+                            <div class="text-center p-3 glass rounded-xl">
+                                <p class="text-xs text-gray-500 mb-1">TDEE (Gasto Total)</p>
+                                <p class="text-2xl font-black gradient-text" id="tdee-result">--</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center p-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl">
+                            <p class="text-xs text-white/80 mb-1">Calorías diarias objetivo</p>
+                            <p class="text-4xl font-black text-white" id="calories-result">--</p>
+                        </div>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-400">Este es el punto de partida para alcanzar tu objetivo.</p>
+                    
+                    <div id="plan-generation-status" class="text-sm text-gray-500">
+                        <div class="flex items-center justify-center gap-2">
+                            <div class="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Generando tu plan personalizado...</span>
+                        </div>
+                    </div>
+                    <div id="plan-preview" class="hidden mt-4 text-left">
+                        <h4 class="font-bold dark:text-white mb-2">🍽️ Vista previa del plan:</h4>
+                        <div id="plan-content" class="glass rounded-xl p-4 max-h-40 overflow-y-auto text-sm dark:text-gray-300"></div>
+                    </div>
                 </div>
             `,
-            button: '¡Comenzar!',
-            onShow: calculateResults
+            button: '¡Comenzar mi transformación!',
+            prev: true,
+            onShow: calculateAndGeneratePlan
         }
     ];
     
@@ -1480,10 +1726,13 @@ function renderOnboardingStep() {
     container.innerHTML = `
         <div class="fade-in">
             <div class="mb-6">
-                <div class="flex gap-2 mb-4">
+                <div class="flex gap-1 mb-4">
                     ${steps.map((_, i) => `
-                        <div class="h-2 flex-1 rounded-full ${i <= onboardingStep ? 'bg-purple-500' : 'bg-gray-200 dark:bg-gray-700'}"></div>
+                        <div class="h-2 flex-1 rounded-full transition-all ${i <= onboardingStep ? 'bg-gradient-to-r from-purple-500 to-blue-500' : 'bg-gray-200 dark:bg-gray-700'}"></div>
                     `).join('')}
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                    <span>Paso ${onboardingStep} de ${steps.length - 1}</span>
                 </div>
                 <h2 class="text-2xl font-black dark:text-white">${step.title}</h2>
             </div>
@@ -1493,11 +1742,12 @@ function renderOnboardingStep() {
             <div class="flex gap-4 mt-8">
                 ${step.prev ? `
                     <button onclick="prevOnboardingStep()" class="flex-1 py-3 rounded-xl font-bold border-2 border-gray-200 dark:border-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
-                        Atrás
+                        ← Atrás
                     </button>
                 ` : '<div class="flex-1"></div>'}
-                <button onclick="nextOnboardingStep()" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold touch-target">
+                <button onclick="nextOnboardingStep()" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold touch-target flex items-center justify-center gap-2" id="onboarding-next-btn">
                     ${step.button}
+                    ${onboardingStep < steps.length - 1 ? '<i class="fas fa-arrow-right"></i>' : ''}
                 </button>
             </div>
         </div>
@@ -1505,6 +1755,43 @@ function renderOnboardingStep() {
     
     if (step.onShow) {
         setTimeout(step.onShow, 100);
+    }
+}
+
+// Funciones auxiliares para checkboxes
+function togglePreference(id, checkbox) {
+    if (!onboardingData.preferences) onboardingData.preferences = [];
+    if (checkbox.checked) {
+        if (!onboardingData.preferences.includes(id)) {
+            onboardingData.preferences.push(id);
+        }
+    } else {
+        onboardingData.preferences = onboardingData.preferences.filter(p => p !== id);
+    }
+    // Actualizar estilo visual
+    const label = checkbox.closest('label');
+    if (checkbox.checked) {
+        label.classList.add('bg-purple-50', 'dark:bg-purple-900/30', 'border-purple-500', 'border-2');
+    } else {
+        label.classList.remove('bg-purple-50', 'dark:bg-purple-900/30', 'border-purple-500', 'border-2');
+    }
+}
+
+function toggleAllergy(id, checkbox) {
+    if (!onboardingData.allergies) onboardingData.allergies = [];
+    if (checkbox.checked) {
+        if (!onboardingData.allergies.includes(id)) {
+            onboardingData.allergies.push(id);
+        }
+    } else {
+        onboardingData.allergies = onboardingData.allergies.filter(a => a !== id);
+    }
+    // Actualizar estilo visual
+    const label = checkbox.closest('label');
+    if (checkbox.checked) {
+        label.classList.add('bg-red-50', 'dark:bg-red-900/30', 'border-red-500', 'border-2');
+    } else {
+        label.classList.remove('bg-red-50', 'dark:bg-red-900/30', 'border-red-500', 'border-2');
     }
 }
 
@@ -1517,38 +1804,83 @@ function prevOnboardingStep() {
 }
 
 function nextOnboardingStep() {
+    // Guardar datos del paso actual
     saveOnboardingData();
     
-    if (onboardingStep < 4) {
+    // Validar si existe validación
+    const container = document.getElementById('onboarding-content');
+    const steps = getOnboardingSteps();
+    const currentStep = steps[onboardingStep];
+    
+    if (currentStep.validate && !currentStep.validate()) {
+        return;
+    }
+    
+    const totalSteps = steps.length - 1;
+    
+    if (onboardingStep < totalSteps) {
         onboardingStep++;
         renderOnboardingStep();
     } else {
-        closeOnboarding();
-        showToast('¡Plan personalizado creado!', 'success');
+        // Último paso: cerrar y mostrar dashboard
+        completeOnboarding();
     }
+}
+
+function getOnboardingSteps() {
+    // Retorna el array de pasos para validación
+    return Array(9).fill(null); // 9 pasos totales
 }
 
 function saveOnboardingData() {
+    // Paso 1: Bienvenida - no hay datos
     if (onboardingStep === 1) {
-        onboardingData.weight = parseFloat(document.getElementById('onboarding-weight').value);
-        onboardingData.height = parseFloat(document.getElementById('onboarding-height').value);
-        onboardingData.age = parseFloat(document.getElementById('onboarding-age').value);
-        onboardingData.gender = document.getElementById('onboarding-gender').value;
-    } else if (onboardingStep === 2) {
         const goal = document.querySelector('input[name="goal"]:checked');
         if (goal) onboardingData.goal = goal.value;
-    } else if (onboardingStep === 3) {
+    }
+    // Paso 2: Datos personales
+    else if (onboardingStep === 2) {
+        onboardingData.age = parseFloat(document.getElementById('onboarding-age').value);
+        onboardingData.gender = document.getElementById('onboarding-gender').value;
+        onboardingData.weight = parseFloat(document.getElementById('onboarding-weight').value);
+        onboardingData.height = parseFloat(document.getElementById('onboarding-height').value);
+        onboardingData.goal_weight = parseFloat(document.getElementById('onboarding-goal-weight').value);
+    }
+    // Paso 3: Actividad
+    else if (onboardingStep === 3) {
         const activity = document.querySelector('input[name="activity"]:checked');
         if (activity) onboardingData.activity = activity.value;
     }
+    // Paso 4: Preferencias - ya se guardan con togglePreference
+    else if (onboardingStep === 4) {
+        const otherPrefs = document.getElementById('onboarding-other-preferences');
+        if (otherPrefs) onboardingData.other_preferences = otherPrefs.value;
+    }
+    // Paso 5: Alergias - ya se guardan con toggleAllergy
+    else if (onboardingStep === 5) {
+        const otherAllergies = document.getElementById('onboarding-other-allergies');
+        if (otherAllergies) onboardingData.other_allergies = otherAllergies.value;
+    }
+    // Paso 6: Presupuesto
+    else if (onboardingStep === 6) {
+        const budget = document.querySelector('input[name="budget"]:checked');
+        if (budget) onboardingData.budget = budget.value;
+    }
+    // Paso 7: Comidas por día
+    else if (onboardingStep === 7) {
+        const meals = document.querySelector('input[name="meals"]:checked');
+        if (meals) onboardingData.meals_per_day = parseInt(meals.value);
+    }
 }
 
-function calculateResults() {
-    // Calculate BMR (Mifflin-St Jeor)
+// ==================== CÁLCULO DE CALORÍAS ====================
+
+function calculateCalories() {
+    // Calcular TMB usando la fórmula Mifflin-St Jeor
     let bmr = 10 * onboardingData.weight + 6.25 * onboardingData.height - 5 * onboardingData.age;
     bmr += onboardingData.gender === 'male' ? 5 : -161;
     
-    // Activity multipliers
+    // Multiplicadores de actividad
     const activityMultipliers = {
         sedentary: 1.2,
         light: 1.375,
@@ -1558,14 +1890,182 @@ function calculateResults() {
     
     const tdee = bmr * (activityMultipliers[onboardingData.activity] || 1.2);
     
-    // Goal adjustments
-    let calories = tdee;
-    if (onboardingData.goal === 'lose') calories -= 500;
-    if (onboardingData.goal === 'gain') calories += 300;
+    // Ajustes según objetivo
+    let targetCalories = tdee;
+    let deficit = 0;
     
-    document.getElementById('bmr-result').textContent = Math.round(bmr) + ' kcal';
-    document.getElementById('tdee-result').textContent = Math.round(tdee) + ' kcal';
-    document.getElementById('calories-result').textContent = Math.round(calories) + ' kcal';
+    if (onboardingData.goal === 'lose') {
+        // Déficit de 500 kcal para perder ~0.5kg por semana
+        deficit = 500;
+        targetCalories = tdee - deficit;
+        // Mínimo seguro: no bajar de 1200 kcal (mujeres) o 1500 kcal (hombres)
+        const minCalories = onboardingData.gender === 'female' ? 1200 : 1500;
+        if (targetCalories < minCalories) {
+            targetCalories = minCalories;
+        }
+    } else if (onboardingData.goal === 'gain') {
+        // Superávit de 300-500 kcal para ganar músculo
+        targetCalories = tdee + 400;
+    }
+    
+    // Calcular macros
+    let protein, carbs, fat;
+    
+    if (onboardingData.goal === 'lose') {
+        // Alta proteína para preservar músculo en déficit
+        protein = onboardingData.weight * 2; // 2g por kg de peso
+        fat = (targetCalories * 0.25) / 9; // 25% de calorías de grasa
+        carbs = (targetCalories - (protein * 4) - (fat * 9)) / 4;
+    } else if (onboardingData.goal === 'gain') {
+        // Moderada proteína, más carbohidratos
+        protein = onboardingData.weight * 1.8;
+        fat = (targetCalories * 0.25) / 9;
+        carbs = (targetCalories - (protein * 4) - (fat * 9)) / 4;
+    } else {
+        // Mantenimiento
+        protein = onboardingData.weight * 1.6;
+        fat = (targetCalories * 0.3) / 9;
+        carbs = (targetCalories - (protein * 4) - (fat * 9)) / 4;
+    }
+    
+    return {
+        bmr: Math.round(bmr),
+        tdee: Math.round(tdee),
+        targetCalories: Math.round(targetCalories),
+        macros: {
+            protein: Math.round(protein),
+            carbs: Math.round(carbs),
+            fat: Math.round(fat)
+        },
+        deficit: deficit
+    };
+}
+
+// ==================== GENERACIÓN DE PLAN ====================
+
+async function calculateAndGeneratePlan() {
+    // Calcular calorías primero
+    const calories = calculateCalories();
+    
+    // Mostrar resultados en el UI
+    document.getElementById('bmr-result').textContent = calories.bmr + ' kcal';
+    document.getElementById('tdee-result').textContent = calories.tdee + ' kcal';
+    document.getElementById('calories-result').textContent = calories.targetCalories + ' kcal';
+    
+    // Guardar en onboardingData
+    onboardingData.calculated = calories;
+    
+    // Intentar generar el plan con el backend
+    try {
+        const response = await generateMealPlan();
+        
+        if (response && response.success) {
+            // Mostrar preview del plan
+            const planPreview = document.getElementById('plan-preview');
+            const planContent = document.getElementById('plan-content');
+            const statusEl = document.getElementById('plan-generation-status');
+            
+            if (planPreview && planContent && statusEl) {
+                statusEl.innerHTML = '<p class="text-green-500">✓ Plan generado correctamente</p>';
+                
+                // Mostrar resumen del plan
+                let previewHTML = '';
+                if (response.plan && response.plan.days) {
+                    const firstDay = response.plan.days[0];
+                    previewHTML = `
+                        <p class="mb-2"><strong>Día 1:</strong></p>
+                        ${firstDay.meals.map(meal => `
+                            <p>${meal.type}: ${meal.name || meal.recipe_name || 'Comida'} (${meal.calories || '--'} kcal)</p>
+                        `).join('')}
+                    `;
+                } else if (response.message) {
+                    previewHTML = `<p>${response.message}</p>`;
+                }
+                
+                planContent.innerHTML = previewHTML;
+                planPreview.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.log('Generación de plan en segundo plano:', error.message);
+        // El plan se generará cuando el usuario tenga más datos
+    }
+}
+
+async function generateMealPlan() {
+    if (!user || !user.token) {
+        return null;
+    }
+    
+    try {
+        const response = await fetch(API_BASE + '/generate-plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + user.token
+            },
+            body: JSON.stringify({
+                goal: onboardingData.goal,
+                weight: onboardingData.weight,
+                height: onboardingData.height,
+                age: onboardingData.age,
+                gender: onboardingData.gender,
+                activity_level: onboardingData.activity,
+                preferences: onboardingData.preferences || [],
+                allergies: onboardingData.allergies || [],
+                budget: onboardingData.budget,
+                meals_per_day: onboardingData.meals_per_day,
+                target_calories: onboardingData.calculated?.targetCalories,
+                macros: onboardingData.calculated?.macros
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            return { success: true, plan: data.plan || data, message: data.message };
+        } else {
+            console.log('Plan generation response:', data);
+            return { success: false, error: data.error };
+        }
+    } catch (error) {
+        console.log('Error generating plan:', error);
+        return null;
+    }
+}
+
+async function completeOnboarding() {
+    // Guardar datos del perfil en el backend
+    try {
+        const token = user?.token;
+        if (token) {
+            const response = await fetch(API_BASE + '/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    ...onboardingData,
+                    onboarding_completed: true
+                })
+            });
+            
+            if (response.ok) {
+                console.log('Perfil actualizado correctamente');
+            }
+        }
+    } catch (error) {
+        console.log('Error guardando perfil:', error);
+    }
+    
+    closeOnboarding();
+    showToast('✅ ¡Plan personalizado creado! Tu transformación comienza ahora.', 'success');
+    
+    // Recargar dashboard para mostrar el nuevo plan
+    setTimeout(() => {
+        loadDashboard();
+    }, 500);
 }
 
 // ==================== FOOD REGISTRATION ====================

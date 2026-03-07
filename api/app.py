@@ -37,14 +37,11 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 # ==================== LOGGING CONFIGURATION ====================
-# Configure logging for debugging
+# Configure logging for debugging (no file logging in serverless)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(os.path.join(os.path.dirname(__file__), 'app.log'), mode='a')
-    ]
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger(__name__)
 logger.info("Starting Diet Tracker API...")

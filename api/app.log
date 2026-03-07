@@ -63,3 +63,6 @@
 2026-03-07 02:17:48,081 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users "HTTP/2 201 Created"
 2026-03-07 02:17:48,153 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles "HTTP/2 409 Conflict"
 2026-03-07 02:17:48,223 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&limit=3 "HTTP/2 200 OK"
+2026-03-07 02:18:14,030 - app - INFO - Starting Diet Tracker API...
+2026-03-07 02:18:14,035 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
+2026-03-07 02:18:14,165 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"

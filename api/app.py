@@ -689,6 +689,7 @@ def get_product_by_barcode(barcode: str):
 
 # 1. POST /api/onboarding - Calcula TMB (Mifflin-St Jeor) + TDEE
 @app.route('/api/onboarding', methods=['POST'])
+@token_required
 def onboarding():
     """
     Registra usuario nuevo y calcula TMB + TDEE usando fórmula Mifflin-St Jeor.

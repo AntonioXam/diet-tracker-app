@@ -72,3 +72,4 @@ python -m pytest tests/ -v
 - Unit tests for utility functions (TMB, deficit, etc.)
 - Integration tests for Flask API endpoints (mocked Supabase)
 - E2E tests for frontend interactions (using Playwright)
+# Deploy Sat Mar  7 03:10:05 CET 2026

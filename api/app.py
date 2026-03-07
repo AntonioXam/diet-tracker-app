@@ -720,41 +720,54 @@ def onboarding():
             onboarding_data.goal_weight
         )
         
-        # Crear usuario
-        email = f"user_{secrets.token_hex(8)}@diettracker.app"
-        salt = secrets.token_hex(16)
-        user_result = supabase.table('users').insert({
-            'email': email,
-            'password_hash': 'onboarding_no_password',
-            'salt': salt,
-            'name': f'User {secrets.token_hex(4)}'
-        }).execute()
+        # Obtener user_id del token
+        user_id = request.current_user['user_id']
         
-        if not user_result.data:
-            return jsonify({'error': 'Error al crear usuario'}), 500
+        # Verificar si el usuario ya tiene perfil
+        existing_profile = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
         
-        user_id = user_result.data[0]['id']
+        if existing_profile.data and len(existing_profile.data) > 0:
+            # Actualizar perfil existente
+            profile_result = supabase.table('user_profiles').update({
+                'age': onboarding_data.age,
+                'gender': onboarding_data.gender,
+                'height_cm': onboarding_data.height,
+                'weight_kg': onboarding_data.current_weight,
+                'target_weight_kg': onboarding_data.goal_weight,
+                'goal': onboarding_data.goal_type,
+                'activity_level': onboarding_data.activity_level,
+                'meals_per_day': onboarding_data.meals_per_day,
+                'allergies': onboarding_data.allergies or '',
+                'disliked_foods': onboarding_data.disliked_foods or '',
+                'tmb': round(tmb),
+                'tdee': round(tdee),
+                'target_calories': int(target_calories),
+                'onboarding_completed': True
+            }).eq('user_id', user_id).execute()
+        else:
+            # Crear perfil nuevo
+            profile_id = str(uuid.uuid4())
+            profile_result = supabase.table('user_profiles').insert({
+                'id': profile_id,
+                'user_id': user_id,
+                'age': onboarding_data.age,
+                'gender': onboarding_data.gender,
+                'height_cm': onboarding_data.height,
+                'weight_kg': onboarding_data.current_weight,
+                'target_weight_kg': onboarding_data.goal_weight,
+                'goal': onboarding_data.goal_type,
+                'activity_level': onboarding_data.activity_level,
+                'meals_per_day': onboarding_data.meals_per_day,
+                'allergies': onboarding_data.allergies or '',
+                'disliked_foods': onboarding_data.disliked_foods or '',
+                'tmb': round(tmb),
+                'tdee': round(tdee),
+                'target_calories': int(target_calories),
+                'onboarding_completed': True
+            }).execute()
         
-        # Crear perfil
-        week_number = datetime.now().isocalendar()[1]
-        profile_id = str(uuid.uuid4())
-        profile_result = supabase.table('user_profiles').insert({
-            'id': profile_id,
-            'user_id': user_id,
-            'age': onboarding_data.age,
-            'gender': onboarding_data.gender,
-            'height_cm': onboarding_data.height,
-            'weight_kg': onboarding_data.current_weight,
-            'target_weight_kg': onboarding_data.goal_weight,
-            'goal': onboarding_data.goal_type,
-            'activity_level': onboarding_data.activity_level,
-            'meals_per_day': onboarding_data.meals_per_day,
-            'allergies': onboarding_data.allergies or '',
-            'disliked_foods': onboarding_data.disliked_foods or '',
-            'tmb': round(tmb),
-            'tdee': round(tdee),
-            'target_calories': int(target_calories)
-        }).execute()
+        if not profile_result.data:
+            return jsonify({'error': 'Error al guardar perfil'}), 500
         
         # Registrar peso inicial
         supabase.table('weight_history').insert({

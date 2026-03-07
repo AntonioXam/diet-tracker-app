@@ -66,3 +66,13 @@
 2026-03-07 02:18:14,030 - app - INFO - Starting Diet Tracker API...
 2026-03-07 02:18:14,035 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
 2026-03-07 02:18:14,165 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
+2026-03-07 02:18:32,485 - app - INFO - Starting Diet Tracker API...
+2026-03-07 02:18:32,490 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
+2026-03-07 02:18:32,615 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
+2026-03-07 02:18:32,684 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:18:32,755 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles "HTTP/2 409 Conflict"
+2026-03-07 02:19:47,662 - app - INFO - Starting Diet Tracker API...
+2026-03-07 02:19:47,667 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
+2026-03-07 02:19:47,815 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
+2026-03-07 02:19:47,889 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:19:47,961 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles "HTTP/2 201 Created"

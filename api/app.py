@@ -771,6 +771,7 @@ def onboarding():
             return jsonify({'error': 'Error al guardar perfil'}), 500
         
         # Registrar peso inicial
+        week_number = datetime.now().isocalendar()[1]
         supabase.table('weight_history').insert({
             'user_id': user_id,
             'weight_kg': onboarding_data.current_weight,

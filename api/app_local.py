@@ -405,6 +405,106 @@ def get_shopping_list():
     
     return jsonify({'items': items})
 
+@app.route('/api/search-products', methods=['GET'])
+def search_products():
+    """Busca productos en Open Food Facts"""
+    import requests
+    
+    query = request.args.get('query', '')
+    barcode = request.args.get('barcode', '')
+    
+    if barcode:
+        # Búsqueda por código de barras
+        url = f"https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
+        try:
+            response = requests.get(url, timeout=5)
+            data = response.json()
+            if data.get('status') == 1:
+                product = data.get('product', {})
+                return jsonify({
+                    'products': [{
+                        'barcode': barcode,
+                        'name': product.get('product_name', 'Unknown'),
+                        'brand': product.get('brands', ''),
+                        'calories': product.get('nutriments', {}).get('energy-kcal_100g', 0),
+                        'protein': product.get('nutriments', {}).get('proteins_100g', 0),
+                        'carbs': product.get('nutriments', {}).get('carbohydrates_100g', 0),
+                        'fat': product.get('nutriments', {}).get('fat_100g', 0),
+                        'image_url': product.get('image_url', '')
+                    }]
+                })
+        except Exception as e:
+            return jsonify({'products': [], 'error': str(e)})
+    
+    if query:
+        # Búsqueda por nombre
+        url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={query}&json=1&page_size=20"
+        try:
+            response = requests.get(url, timeout=10)
+            data = response.json()
+            products = []
+            for p in data.get('products', [])[:20]:
+                products.append({
+                    'barcode': p.get('code', ''),
+                    'name': p.get('product_name', 'Unknown'),
+                    'brand': p.get('brands', ''),
+                    'calories': p.get('nutriments', {}).get('energy-kcal_100g', 0),
+                    'protein': p.get('nutriments', {}).get('proteins_100g', 0),
+                    'carbs': p.get('nutriments', {}).get('carbohydrates_100g', 0),
+                    'fat': p.get('nutriments', {}).get('fat_100g', 0),
+                    'image_url': p.get('image_url', '')
+                })
+            return jsonify({'products': products})
+        except Exception as e:
+            return jsonify({'products': [], 'error': str(e)})
+    
+    return jsonify({'products': []})
+
+@app.route('/api/search-food', methods=['GET'])
+@token_required
+def search_food():
+    """Busca en recetas y productos"""
+    query = request.args.get('q', '').lower()
+    search_type = request.args.get('type', 'all')
+    
+    results = {'recipes': [], 'products': []}
+    
+    # Buscar en recetas locales
+    if search_type in ['all', 'recipes']:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM master_recipes 
+                WHERE LOWER(name) LIKE ? 
+                ORDER BY name
+                LIMIT 10
+            ''', (f'%{query}%',))
+            results['recipes'] = [dict(row) for row in cursor.fetchall()]
+    
+    # Buscar en Open Food Facts
+    if search_type in ['all', 'products'] and len(query) >= 3:
+        import requests
+        url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={query}&json=1&page_size=10"
+        try:
+            response = requests.get(url, timeout=10)
+            data = response.json()
+            for p in data.get('products', [])[:10]:
+                results['products'].append({
+                    'barcode': p.get('code', ''),
+                    'name': p.get('product_name', 'Unknown'),
+                    'brand': p.get('brands', ''),
+                    'calories': p.get('nutriments', {}).get('energy-kcal_100g', 0),
+                    'protein': p.get('nutriments', {}).get('proteins_100g', 0),
+                    'carbs': p.get('nutriments', {}).get('carbohydrates_100g', 0),
+                    'fat': p.get('nutriments', {}).get('fat_100g', 0),
+                    'image_url': p.get('image_url', ''),
+                    'source': 'openfoodfacts'
+                })
+        except Exception:
+            pass
+    
+    return jsonify(results)
+
 @app.route('/api/dashboard', methods=['GET'])
 @token_required
 def get_dashboard():

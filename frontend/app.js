@@ -4,6 +4,40 @@ const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api' 
     : '/api';
 
+// ==================== HELPERS DE FORMATEO ====================
+
+/**
+ * Formatea un número con decimales limpios
+ * @param {number} value - El valor a formatear
+ * @param {number} decimals - Número de decimales (default: 1)
+ * @returns {string} - Valor formateado
+ */
+function formatNumber(value, decimals = 1) {
+    if (value === null || value === undefined || isNaN(value)) return '0';
+    const num = Number(value);
+    // Redondear al número de decimales especificado
+    return num.toFixed(decimals).replace(/\.0$/, '');
+}
+
+/**
+ * Formatea calorías (sin decimales)
+ * @param {number} calories 
+ * @returns {string}
+ */
+function formatCalories(calories) {
+    if (calories === null || calories === undefined || isNaN(calories)) return '0';
+    return Math.round(Number(calories)).toString();
+}
+
+/**
+ * Formatea gramos (con 1 decimal, eliminando .0)
+ * @param {number} grams 
+ * @returns {string}
+ */
+function formatGrams(grams) {
+    return formatNumber(grams, 1);
+}
+
 // Estado global
 let user = null;
 let isDark = false;
@@ -824,9 +858,15 @@ async function handleRegister(e) {
         
         const data = await res.json();
         
-        if (res.ok) {
-            user = data.user;
+        if (res.ok && data.user && data.token) {
+            // Guardar usuario completo con token (igual que en login)
+            user = {
+                ...data.user,
+                token: data.token
+            };
             localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('token', data.token);
+            
             document.getElementById('auth-modals').innerHTML = '';
             document.body.style.overflow = '';
             showToast('✅ ¡Cuenta creada! Redirigiendo...', 'success');
@@ -1101,11 +1141,11 @@ function renderDashboard(data, history) {
                         </defs>
                     </svg>
                     <div class="absolute inset-0 flex items-center justify-center flex-col">
-                        <span class="text-2xl font-black dark:text-white">${todayCalories}</span>
-                        <span class="text-xs text-gray-500">/ ${dailyCalories}</span>
+                        <span class="text-2xl font-black dark:text-white">${formatCalories(todayCalories)}</span>
+                        <span class="text-xs text-gray-500">/ ${formatCalories(dailyCalories)}</span>
                     </div>
                 </div>
-                <p class="text-center text-sm text-gray-500 dark:text-gray-400">Quedan <span class="font-bold gradient-text">${remainingCalories}</span> kcal</p>
+                <p class="text-center text-sm text-gray-500 dark:text-gray-400">Quedan <span class="font-bold gradient-text">${formatCalories(remainingCalories)}</span> kcal</p>
             </div>
             
             <!-- Macros Card -->
@@ -1118,7 +1158,7 @@ function renderDashboard(data, history) {
                     <div>
                         <div class="flex justify-between text-sm mb-1">
                             <span class="dark:text-gray-300">Proteínas</span>
-                            <span class="font-bold dark:text-white">${todayProtein}g / ${proteinGoal}g</span>
+                            <span class="font-bold dark:text-white">${formatGrams(todayProtein)}g / ${proteinGoal}g</span>
                         </div>
                         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div class="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" style="width: ${proteinPercent}%"></div>
@@ -1127,7 +1167,7 @@ function renderDashboard(data, history) {
                     <div>
                         <div class="flex justify-between text-sm mb-1">
                             <span class="dark:text-gray-300">Carbos</span>
-                            <span class="font-bold dark:text-white">${todayCarbs}g / ${carbsGoal}g</span>
+                            <span class="font-bold dark:text-white">${formatGrams(todayCarbs)}g / ${carbsGoal}g</span>
                         </div>
                         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full" style="width: ${carbsPercent}%"></div>
@@ -1136,7 +1176,7 @@ function renderDashboard(data, history) {
                     <div>
                         <div class="flex justify-between text-sm mb-1">
                             <span class="dark:text-gray-300">Grasas</span>
-                            <span class="font-bold dark:text-white">${todayFat}g / ${fatGoal}g</span>
+                            <span class="font-bold dark:text-white">${formatGrams(todayFat)}g / ${fatGoal}g</span>
                         </div>
                         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style="width: ${fatPercent}%"></div>
@@ -1205,7 +1245,7 @@ function renderDashboard(data, history) {
                                 <span class="text-xl">${mealIcons[log.meal_type] || '🍽️'}</span>
                                 <div>
                                     <p class="font-medium dark:text-white text-sm">${log.food_name || log.recipe_name || 'Comida'}</p>
-                                    <p class="text-xs text-gray-500">${log.calories} kcal • P: ${log.protein || 0}g • C: ${log.carbs || 0}g • G: ${log.fat || 0}g</p>
+                                    <p class="text-xs text-gray-500">${formatCalories(log.calories)} kcal • P: ${formatGrams(log.protein)}g • C: ${formatGrams(log.carbs)}g • G: ${formatGrams(log.fat)}g</p>
                                 </div>
                             </div>
                             <span class="text-xs text-gray-400 capitalize">${log.meal_type}</span>
@@ -1217,12 +1257,12 @@ function renderDashboard(data, history) {
                 <div class="glass rounded-xl p-4">
                     <div class="flex justify-between items-center">
                         <span class="font-bold dark:text-white">Total</span>
-                        <span class="text-xl font-black gradient-text">${todayCalories} kcal</span>
+                        <span class="text-xl font-black gradient-text">${formatCalories(todayCalories)} kcal</span>
                     </div>
                     <div class="flex gap-6 mt-2 text-sm text-gray-500">
-                        <span>Proteína: ${todayProtein}g</span>
-                        <span>Carbos: ${todayCarbs}g</span>
-                        <span>Grasas: ${todayFat}g</span>
+                        <span>Proteína: ${formatGrams(todayProtein)}g</span>
+                        <span>Carbos: ${formatGrams(todayCarbs)}g</span>
+                        <span>Grasas: ${formatGrams(todayFat)}g</span>
                     </div>
                 </div>
             ` : `
@@ -1480,7 +1520,7 @@ function renderWeeklyPlan() {
                 <div class="text-center mb-2">
                     <h4 class="font-bold text-sm sm:text-base dark:text-white">${daysDisplay[idx]}</h4>
                     ${isToday ? '<span class="text-xs text-purple-500 font-semibold">Hoy</span>' : ''}
-                    <p class="text-xs text-gray-500">${dayCalories} kcal</p>
+                    <p class="text-xs text-gray-500">${formatCalories(dayCalories)} kcal</p>
                 </div>
                 <div class="space-y-1">
         `;
@@ -1494,7 +1534,7 @@ function renderWeeklyPlan() {
                 <div class="text-xs p-1.5 sm:p-2 bg-white/50 dark:bg-gray-800/50 rounded hover:bg-white/80 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group relative"
                      onclick="showMealDetails('${day}', '${mealType}')">
                     <p class="font-medium text-xs">${mealInfo.icon} ${mealInfo.name}</p>
-                    <p class="text-gray-500 text-xs truncate">${mealCalories > 0 ? mealCalories + ' kcal' : '--'}</p>
+                    <p class="text-gray-500 text-xs truncate">${mealCalories > 0 ? formatCalories(mealCalories) + ' kcal' : '--'}</p>
                     ${meal ? `
                         <button onclick="event.stopPropagation(); openChangeRecipeModal('${day}', '${mealType}')"
                                 class="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
@@ -1510,9 +1550,9 @@ function renderWeeklyPlan() {
                 </div>
                 <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex justify-between text-xs text-gray-500">
-                        <span>P:${dayProtein}g</span>
-                        <span>C:${dayCarbs}g</span>
-                        <span>G:${dayFat}g</span>
+                        <span>P:${formatGrams(dayProtein)}g</span>
+                        <span>C:${formatGrams(dayCarbs)}g</span>
+                        <span>G:${formatGrams(dayFat)}g</span>
                     </div>
                 </div>
             </div>
@@ -1554,13 +1594,13 @@ function renderDailySummary(dayIndex) {
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-2">
                     <span class="font-semibold dark:text-white">Calorías</span>
-                    <span class="text-sm text-gray-500">${totalCalories} / ${targetCalories} kcal</span>
+                    <span class="text-sm text-gray-500">${formatCalories(totalCalories)} / ${formatCalories(targetCalories)} kcal</span>
                 </div>
                 <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div class="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500" 
                          style="width: ${caloriesPercent}%"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">${targetCalories - totalCalories > 0 ? (targetCalories - totalCalories) + ' kcal restantes' : 'Objetivo alcanzado!'}</p>
+                <p class="text-xs text-gray-500 mt-1">${targetCalories - totalCalories > 0 ? formatCalories(targetCalories - totalCalories) + ' kcal restantes' : 'Objetivo alcanzado!'}</p>
             </div>
             
             <!-- Macros -->
@@ -1568,7 +1608,7 @@ function renderDailySummary(dayIndex) {
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-sm font-medium dark:text-white">Proteína</span>
-                        <span class="text-xs text-gray-500">${totalProtein}/${targetProtein}g</span>
+                        <span class="text-xs text-gray-500">${formatGrams(totalProtein)}/${targetProtein}g</span>
                     </div>
                     <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div class="h-full bg-red-500 rounded-full" style="width: ${proteinPercent}%"></div>
@@ -1577,7 +1617,7 @@ function renderDailySummary(dayIndex) {
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-sm font-medium dark:text-white">Carbos</span>
-                        <span class="text-xs text-gray-500">${totalCarbs}/${targetCarbs}g</span>
+                        <span class="text-xs text-gray-500">${formatGrams(totalCarbs)}/${targetCarbs}g</span>
                     </div>
                     <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div class="h-full bg-yellow-500 rounded-full" style="width: ${carbsPercent}%"></div>
@@ -1586,7 +1626,7 @@ function renderDailySummary(dayIndex) {
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-sm font-medium dark:text-white">Grasas</span>
-                        <span class="text-xs text-gray-500">${totalFat}/${targetFat}g</span>
+                        <span class="text-xs text-gray-500">${formatGrams(totalFat)}/${targetFat}g</span>
                     </div>
                     <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div class="h-full bg-green-500 rounded-full" style="width: ${fatPercent}%"></div>
@@ -1631,19 +1671,19 @@ function showMealDetails(day, mealType) {
                     
                     <div class="grid grid-cols-4 gap-3 mb-6">
                         <div class="glass rounded-xl p-3 text-center">
-                            <p class="text-lg font-bold gradient-text">${meal.calories || 0}</p>
+                            <p class="text-lg font-bold gradient-text">${formatCalories(meal.calories)}</p>
                             <p class="text-xs text-gray-500">kcal</p>
                         </div>
                         <div class="glass rounded-xl p-3 text-center">
-                            <p class="text-lg font-bold text-red-500">${meal.protein || 0}g</p>
+                            <p class="text-lg font-bold text-red-500">${formatGrams(meal.protein)}g</p>
                             <p class="text-xs text-gray-500">Proteína</p>
                         </div>
                         <div class="glass rounded-xl p-3 text-center">
-                            <p class="text-lg font-bold text-yellow-500">${meal.carbs || 0}g</p>
+                            <p class="text-lg font-bold text-yellow-500">${formatGrams(meal.carbs)}g</p>
                             <p class="text-xs text-gray-500">Carbos</p>
                         </div>
                         <div class="glass rounded-xl p-3 text-center">
-                            <p class="text-lg font-bold text-green-500">${meal.fat || 0}g</p>
+                            <p class="text-lg font-bold text-green-500">${formatGrams(meal.fat)}g</p>
                             <p class="text-xs text-gray-500">Grasa</p>
                         </div>
                     </div>
@@ -1725,7 +1765,7 @@ async function openChangeRecipeModal(day, mealType) {
                                     <div class="text-3xl">${recipe.image || '🍽️'}</div>
                                     <div class="flex-1">
                                         <p class="font-bold dark:text-white">${recipe.name}</p>
-                                        <p class="text-sm text-gray-500">${recipe.calories} kcal • P: ${recipe.protein}g • C: ${recipe.carbs}g • G: ${recipe.fat}g</p>
+                                        <p class="text-sm text-gray-500">${formatCalories(recipe.calories)} kcal • P: ${formatGrams(recipe.protein)}g • C: ${formatGrams(recipe.carbs)}g • G: ${formatGrams(recipe.fat)}g</p>
                                     </div>
                                     <button class="text-purple-500 hover:text-purple-600">
                                         <i class="fas fa-check-circle text-xl"></i>
@@ -2353,9 +2393,103 @@ function nextOnboardingStep() {
     }
 }
 
+// Definir los pasos del onboarding como variable global para acceso desde renderOnboardingStep y getOnboardingSteps
+const ONBOARDING_STEPS = [
+    // PASO 0: Bienvenida
+    {
+        title: '¡Bienvenido a Diet Tracker FIT! 🎉',
+        content: null, // Se genera dinámicamente
+        button: 'Comenzar configuración'
+    },
+    // PASO 1: Objetivo
+    {
+        title: 'Paso 1: ¿Cuál es tu objetivo? 🎯',
+        validate: () => {
+            const goal = document.querySelector('input[name="goal"]:checked');
+            if (!goal) {
+                showToast('❌ Por favor selecciona un objetivo', 'error');
+                return false;
+            }
+            return true;
+        }
+    },
+    // PASO 2: Datos personales
+    {
+        title: 'Paso 2: Tus datos personales 📊',
+        validate: () => {
+            const age = parseFloat(document.getElementById('onboarding-age')?.value);
+            const weight = parseFloat(document.getElementById('onboarding-weight')?.value);
+            const height = parseFloat(document.getElementById('onboarding-height')?.value);
+            const goalWeight = parseFloat(document.getElementById('onboarding-goal-weight')?.value);
+            
+            if (!age || age < 15 || age > 100) {
+                showToast('❌ Edad debe estar entre 15 y 100 años', 'error');
+                return false;
+            }
+            if (!weight || weight < 30 || weight > 300) {
+                showToast('❌ Peso debe estar entre 30 y 300 kg', 'error');
+                return false;
+            }
+            if (!height || height < 100 || height > 250) {
+                showToast('❌ Altura debe estar entre 100 y 250 cm', 'error');
+                return false;
+            }
+            return true;
+        }
+    },
+    // PASO 3: Actividad física
+    {
+        title: 'Paso 3: Nivel de actividad física 🏃',
+        validate: () => {
+            const activity = document.querySelector('input[name="activity"]:checked');
+            if (!activity) {
+                showToast('❌ Por favor selecciona tu nivel de actividad', 'error');
+                return false;
+            }
+            return true;
+        }
+    },
+    // PASO 4: Preferencias alimentarias
+    {
+        title: 'Paso 4: Preferencias alimentarias 🥗'
+    },
+    // PASO 5: Alergias
+    {
+        title: 'Paso 5: Alergias alimentarias ⚠️'
+    },
+    // PASO 6: Presupuesto
+    {
+        title: 'Paso 6: Presupuesto semanal 💰',
+        validate: () => {
+            const budget = document.querySelector('input[name="budget"]:checked');
+            if (!budget) {
+                showToast('❌ Por favor selecciona tu presupuesto', 'error');
+                return false;
+            }
+            return true;
+        }
+    },
+    // PASO 7: Comidas por día
+    {
+        title: 'Paso 7: Comidas por día 🍽️',
+        validate: () => {
+            const meals = document.querySelector('input[name="meals"]:checked');
+            if (!meals) {
+                showToast('❌ Por favor selecciona el número de comidas', 'error');
+                return false;
+            }
+            return true;
+        }
+    },
+    // PASO 8: Resultados
+    {
+        title: '¡Tu plan está listo! 🎉',
+        onShow: 'calculateAndGeneratePlan'
+    }
+];
+
 function getOnboardingSteps() {
-    // Retorna el array de pasos para validación
-    return Array(9).fill(null); // 9 pasos totales
+    return ONBOARDING_STEPS;
 }
 
 function saveOnboardingData() {
@@ -2724,12 +2858,12 @@ function renderTodayLogs(data) {
         <div class="glass-card rounded-xl p-4 mb-4">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-sm text-gray-500">Total consumido</span>
-                <span class="font-bold gradient-text">${totals.calories || 0} kcal</span>
+                <span class="font-bold gradient-text">${formatCalories(totals.calories || 0)} kcal</span>
             </div>
             <div class="flex gap-4 text-xs text-gray-500">
-                <span>P: ${totals.protein || 0}g</span>
-                <span>C: ${totals.carbs || 0}g</span>
-                <span>G: ${totals.fat || 0}g</span>
+                <span>P: ${formatGrams(totals.protein || 0)}g</span>
+                <span>C: ${formatGrams(totals.carbs || 0)}g</span>
+                <span>G: ${formatGrams(totals.fat || 0)}g</span>
             </div>
         </div>
         
@@ -2740,7 +2874,7 @@ function renderTodayLogs(data) {
                     <span class="text-xl">${mealIcons[log.meal_type] || '🍽️'}</span>
                     <div>
                         <p class="font-medium dark:text-white text-sm">${log.food_name || log.recipe_name || 'Comida'}</p>
-                        <p class="text-xs text-gray-500">${log.calories} kcal</p>
+                        <p class="text-xs text-gray-500">${formatCalories(log.calories)} kcal</p>
                     </div>
                 </div>
                 <button onclick="deleteFoodLog('${log.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg touch-target">
@@ -2897,7 +3031,7 @@ async function confirmPlanMeal(planId, mealType, name, calories, protein, carbs,
         const data = await res.json();
         
         if (res.ok) {
-            showToast(`✅ ${name} registrado (${calories} kcal)`, 'success');
+            showToast(`✅ ${name} registrado (${formatCalories(calories)} kcal)`, 'success');
             renderFoodModalMain();
             loadDashboard();
         } else {
@@ -3079,7 +3213,7 @@ function renderFoodResults(data) {
             <div class="glass-card rounded-xl p-4 flex items-center justify-between">
                 <div class="flex-1">
                     <p class="font-bold dark:text-white">${recipe.name}</p>
-                    <p class="text-sm text-gray-500">${recipe.calories || '--'} kcal • P: ${recipe.protein || 0}g • C: ${recipe.carbs || 0}g • G: ${recipe.fat || 0}g</p>
+                    <p class="text-sm text-gray-500">${formatCalories(recipe.calories)} kcal • P: ${formatGrams(recipe.protein)}g • C: ${formatGrams(recipe.carbs)}g • G: ${formatGrams(recipe.fat)}g</p>
                     ${recipe.meal_type ? `<span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full capitalize">${recipe.meal_type}</span>` : ''}
                 </div>
                 <button onclick="showAddFoodModal('${recipe.id}', '${recipe.name.replace(/'/g, "\\'")}', ${recipe.calories || 0}, ${recipe.protein || 0}, ${recipe.carbs || 0}, ${recipe.fat || 0}, 'recipe')"
@@ -3099,7 +3233,7 @@ function renderFoodResults(data) {
                     ${product.image ? `<img src="${product.image}" alt="${product.name}" class="w-12 h-12 rounded-lg object-cover">` : '<div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center text-xl">📦</div>'}
                     <div class="flex-1">
                         <p class="font-bold dark:text-white text-sm">${product.name || 'Unknown'}</p>
-                        <p class="text-xs text-gray-500">${product.brand || ''} • ${product.calories || 0} kcal/100g</p>
+                        <p class="text-xs text-gray-500">${product.brand || ''} • ${formatCalories(product.calories || 0)} kcal/100g</p>
                     </div>
                 </div>
                 <button onclick="showAddFoodModal('${product.barcode || ''}', '${(product.name || 'Product').replace(/'/g, "\\'")}', ${product.calories || 0}, ${product.protein || 0}, ${product.carbs || 0}, ${product.fat || 0}, 'product', '${product.serving_size || '100g'}')"
@@ -3129,19 +3263,19 @@ function showAddFoodModal(id, name, calories, protein, carbs, fat, type, serving
                     <p class="text-sm text-gray-500 mb-2">Info nutricional ${servingSize ? `(por ${servingSize})` : '(por ración)'}</p>
                     <div class="flex justify-around text-center">
                         <div>
-                            <p class="text-xl font-black gradient-text">${calories}</p>
+                            <p class="text-xl font-black gradient-text">${formatCalories(calories)}</p>
                             <p class="text-xs text-gray-500">kcal</p>
                         </div>
                         <div>
-                            <p class="text-lg font-bold dark:text-white">${protein}g</p>
+                            <p class="text-lg font-bold dark:text-white">${formatGrams(protein)}g</p>
                             <p class="text-xs text-gray-500">Proteína</p>
                         </div>
                         <div>
-                            <p class="text-lg font-bold dark:text-white">${carbs}g</p>
+                            <p class="text-lg font-bold dark:text-white">${formatGrams(carbs)}g</p>
                             <p class="text-xs text-gray-500">Carbos</p>
                         </div>
                         <div>
-                            <p class="text-lg font-bold dark:text-white">${fat}g</p>
+                            <p class="text-lg font-bold dark:text-white">${formatGrams(fat)}g</p>
                             <p class="text-xs text-gray-500">Grasa</p>
                         </div>
                     </div>
@@ -3161,7 +3295,7 @@ function showAddFoodModal(id, name, calories, protein, carbs, fat, type, serving
                 <div class="glass rounded-xl p-4 mb-4">
                     <div class="flex justify-between">
                         <span class="text-gray-500">Total:</span>
-                        <span class="font-bold gradient-text" id="total-calories">${calories} kcal</span>
+                        <span class="font-bold gradient-text" id="total-calories">${formatCalories(calories)} kcal</span>
                     </div>
                 </div>
                 
@@ -3199,7 +3333,7 @@ function updateTotalCalories(baseCalories) {
     const qty = parseFloat(document.getElementById('food-quantity').value) || 1;
     const totalEl = document.getElementById('total-calories');
     if (totalEl) {
-        totalEl.textContent = Math.round(baseCalories * qty) + ' kcal';
+        totalEl.textContent = formatCalories(baseCalories * qty) + ' kcal';
     }
 }
 
@@ -3243,7 +3377,7 @@ async function confirmAddFood(id, name, calories, protein, carbs, fat, type) {
         
         if (res.ok) {
             closeAddFoodModal();
-            showToast(`✅ ${name} añadido (${Math.round(calories * quantity)} kcal)`, 'success');
+            showToast(`✅ ${name} añadido (${formatCalories(calories * quantity)} kcal)`, 'success');
             renderFoodModalMain();
             loadDashboard();
         } else {
@@ -3338,6 +3472,13 @@ async function handleWeightSubmit(e) {
 let shoppingListData = null;
 
 async function showShoppingList() {
+    // Verificar que el usuario está logueado
+    if (!user || !user.token) {
+        showToast('❌ Debes iniciar sesión para ver la lista de compras', 'error');
+        showModal('login');
+        return;
+    }
+    
     showToast('Cargando lista de compras...', 'info');
     
     try {
@@ -3726,6 +3867,13 @@ function printShoppingList() {
 // ==================== PROFILE PAGE ====================
 
 async function showProfile() {
+    // Verificar que el usuario está logueado
+    if (!user || !user.token) {
+        showToast('❌ Debes iniciar sesión para ver tu perfil', 'error');
+        showModal('login');
+        return;
+    }
+    
     showToast('Cargando perfil...', 'info');
     
     try {

@@ -28,3 +28,12 @@
 2026-03-07 02:08:56,481 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
 2026-03-07 02:08:56,549 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/food_logs "HTTP/2 400 Bad Request"
 2026-03-07 02:08:56,615 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:10:42,905 - app - INFO - Starting Diet Tracker API...
+2026-03-07 02:10:42,910 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
+2026-03-07 02:10:43,102 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
+2026-03-07 02:10:43,187 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users "HTTP/2 201 Created"
+2026-03-07 02:10:43,265 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles "HTTP/2 400 Bad Request"
+2026-03-07 02:10:43,333 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:10:43,402 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:10:43,480 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/food_logs "HTTP/2 400 Bad Request"
+2026-03-07 02:10:43,554 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"

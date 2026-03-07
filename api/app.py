@@ -27,6 +27,7 @@ import random
 import logging
 import jwt
 import requests
+import uuid
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, request, jsonify
@@ -736,7 +737,9 @@ def onboarding():
         
         # Crear perfil
         week_number = datetime.now().isocalendar()[1]
+        profile_id = str(uuid.uuid4())
         profile_result = supabase.table('user_profiles').insert({
+            'id': profile_id,
             'user_id': user_id,
             'age': onboarding_data.age,
             'gender': onboarding_data.gender,

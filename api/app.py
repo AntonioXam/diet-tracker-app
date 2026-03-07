@@ -18,11 +18,13 @@ Endpoints:
 13. GET /api/products/:barcode - Producto por código de barras
 """
 import os
+import sys
 import hashlib
 import base64
 import secrets
 import time
 import random
+import logging
 import jwt
 import requests
 from datetime import datetime, timedelta
@@ -33,15 +35,34 @@ from supabase import create_client
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
+# ==================== LOGGING CONFIGURATION ====================
+# Configure logging for debugging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(os.path.join(os.path.dirname(__file__), 'app.log'), mode='a')
+    ]
+)
+logger = logging.getLogger(__name__)
+logger.info("Starting Diet Tracker API...")
+
 app = Flask(__name__)
 CORS(app, origins=["*"], supports_credentials=True)
 
-# Credenciales Supabase
-SUPABASE_URL = "https://kaomgwojvnncidyezdzj.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthb21nd29qdm5uY2lkeWV6ZHpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcxNzYsImV4cCI6MjA4ODI4MzE3Nn0.Ds2ICxfiahuqt2n83dwoX9tMYGf7Xz8Jjvx6lFJc4zs"
+# Credenciales Supabase desde variables de entorno
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://kaomgwojvnncidyezdzj.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthb21nd29qdm5uY2lkeWV6ZHpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcxNzYsImV4cCI6MjA4ODI4MzE3Nn0.Ds2ICxfiahuqt2n83dwoX9tMYGf7Xz8Jjvx6lFJc4zs")
 JWT_SECRET = os.getenv("JWT_SECRET", secrets.token_hex(32))
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Initialize Supabase client with error handling
+try:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    logger.info(f"Supabase client initialized successfully - URL: {SUPABASE_URL}")
+except Exception as e:
+    logger.error(f"Failed to initialize Supabase client: {e}")
+    raise
 
 # ==================== MODELOS PYDANTIC ====================
 
@@ -251,6 +272,8 @@ def select_recipes(supabase, meal_type: str, preferences: dict, target_calories:
     Returns:
         List of suitable recipe dicts
     """
+    logger.debug(f"Selecting recipes for {meal_type}, target: {target_calories} cal, limit: {limit}")
+    
     # Calorie range: +/- 20% of target
     min_cal = target_calories * 0.80
     max_cal = target_calories * 1.20
@@ -265,6 +288,7 @@ def select_recipes(supabase, meal_type: str, preferences: dict, target_calories:
         # Execute query
         result = query.limit(limit * 2).execute()  # Get extra for filtering
         recipes = result.data or []
+        logger.debug(f"Found {len(recipes)} recipes for {meal_type}")
         
         # Filter by allergies and disliked foods
         allergies = preferences.get('allergies', '').lower() if preferences else ''
@@ -292,10 +316,11 @@ def select_recipes(supabase, meal_type: str, preferences: dict, target_calories:
                 break
         
         # If not enough recipes after filtering, return what we have
+        logger.debug(f"Returning {len(filtered[:limit])} filtered recipes for {meal_type}")
         return filtered[:limit] if filtered else recipes[:limit]
         
     except Exception as e:
-        print(f"Error selecting recipes: {e}")
+        logger.error(f"Error selecting recipes for {meal_type}: {e}")
         return []
 
 def generate_weekly_plan(supabase, user_id: str, profile: dict, target_calories: int = None) -> dict:
@@ -403,6 +428,7 @@ def generate_weekly_plan(supabase, user_id: str, profile: dict, target_calories:
 
 @app.route('/api/health', methods=['GET'])
 def health():
+    logger.info("Health check requested")
     return jsonify({'status': 'ok', 'supabase_url': SUPABASE_URL})
 
 # ==================== PRODUCT SEARCH (Open Food Facts) ====================

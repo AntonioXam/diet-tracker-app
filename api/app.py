@@ -77,6 +77,8 @@ class OnboardingRequest(BaseModel):
     meals_per_day: int = Field(..., ge=3, le=5)
     allergies: Optional[str] = ""
     disliked_foods: Optional[str] = ""
+    budget: Optional[str] = "medium"
+    preferences: Optional[str] = ""  # Cambiado a string
 
 class ProfileUpdateRequest(BaseModel):
     age: Optional[int] = Field(None, ge=10, le=120)
@@ -90,7 +92,7 @@ class ProfileUpdateRequest(BaseModel):
     allergies: Optional[str] = None
     disliked_foods: Optional[str] = None
     budget: Optional[str] = Field(None, pattern="^(low|medium|high)$")
-    preferences: Optional[list] = None
+    preferences: Optional[str] = None  # Cambiado a string
     target_calories: Optional[int] = Field(None, ge=1000, le=5000)
 
 class WeightRequest(BaseModel):
@@ -869,8 +871,8 @@ def update_profile():
             elif field == 'goal_weight':
                 update_fields['target_weight_kg'] = value
             elif field == 'preferences':
-                # Convertir lista a string para almacenar
-                update_fields['preferences'] = ','.join(value) if value else ''
+                # Ya es string, guardar directamente
+                update_fields['preferences'] = value if value else ''
             else:
                 update_fields[field] = value
             

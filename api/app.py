@@ -1,6 +1,21 @@
 """
 Diet Tracker API - Backend con Supabase
-11 Endpoints principales con JWT auth y validación pydantic
+13 Endpoints principales con JWT auth y validación pydantic
+
+Endpoints:
+1. POST /api/onboarding - Registro y cálculo TMB/TDEE
+2. GET /api/profile - Perfil del usuario
+3. POST /api/profile - Actualizar perfil
+4. GET /api/recipes - Lista de recetas
+5. GET /api/plan - Plan semanal
+6. POST /api/plan/swap - Cambiar comida del plan
+7. GET /api/shopping-list - Lista de compra
+8. POST /api/weight - Registrar peso
+9. GET /api/stats - Estadísticas y progreso
+10. POST /api/food-log - Registrar comida
+11. GET /api/dashboard - Dashboard completo
+12. GET /api/search-products - Buscar productos (Open Food Facts)
+13. GET /api/products/:barcode - Producto por código de barras
 """
 import os
 import hashlib
@@ -9,6 +24,7 @@ import secrets
 import time
 import random
 import jwt
+import requests
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, request, jsonify
@@ -60,13 +76,17 @@ class WeightRequest(BaseModel):
     weight: float = Field(..., ge=30, le=300)
 
 class FoodLogRequest(BaseModel):
-    recipe_id: str  # UUID
+    recipe_id: Optional[str] = None  # UUID - optional for manual entries
+    food_name: Optional[str] = None  # For manual/Open Food Facts entries
     meal_type: str
     calories: float
-    protein: float
-    carbs: float
-    fat: float
+    protein: float = 0
+    carbs: float = 0
+    fat: float = 0
+    quantity: Optional[float] = 1.0  # Number of servings/units
     notes: Optional[str] = ""
+    source: Optional[str] = "manual"  # 'plan', 'manual', 'openfoodfacts'
+    barcode: Optional[str] = None  # For barcode-scanned products
 
 class PlanSwapRequest(BaseModel):
     plan_id: str  # UUID
@@ -385,6 +405,259 @@ def generate_weekly_plan(supabase, user_id: str, profile: dict, target_calories:
 def health():
     return jsonify({'status': 'ok', 'supabase_url': SUPABASE_URL})
 
+# ==================== PRODUCT SEARCH (Open Food Facts) ====================
+
+@app.route('/api/search-products', methods=['GET'])
+def search_products():
+    """
+    Busca productos en Open Food Facts API.
+    
+    Parámetros:
+        - query: Nombre del producto a buscar
+        - barcode: Código de barras específico
+        - supermarket: Filtrar por supermercado (mercadona/lidl/carrefour)
+    
+    Retorna productos con información nutricional.
+    """
+    try:
+        query = request.args.get('query', '').strip()
+        barcode = request.args.get('barcode', '').strip()
+        supermarket = request.args.get('supermarket', '').strip().lower()
+        
+        # Si se proporciona barcode, buscar directamente
+        if barcode:
+            return search_by_barcode(barcode)
+        
+        # Si hay query, buscar por nombre
+        if query:
+            return search_by_name(query, supermarket)
+        
+        return jsonify({
+            'products': [],
+            'error': 'Proporciona un término de búsqueda (query) o código de barras (barcode)'
+        }), 400
+        
+    except Exception as e:
+        return jsonify({'error': f'Error al buscar productos: {str(e)}'}), 500
+
+
+def search_by_barcode(barcode: str):
+    """Busca un producto específico por su código de barras."""
+    try:
+        url = f"https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        
+        if data.get('status') == 1:
+            product = data['product']
+            nutriments = product.get('nutriments', {})
+            
+            return jsonify({
+                'products': [{
+                    'barcode': barcode,
+                    'name': product.get('product_name', '') or product.get('product_name_es', ''),
+                    'brands': product.get('brands', ''),
+                    'categories': product.get('categories', ''),
+                    'calories': nutriments.get('energy-kcal_100g', 0) or nutriments.get('energy-kcal', 0) / 10 if nutriments.get('energy-kcal') else 0,
+                    'protein': nutriments.get('proteins_100g', 0),
+                    'carbs': nutriments.get('carbohydrates_100g', 0),
+                    'fat': nutriments.get('fat_100g', 0),
+                    'fiber': nutriments.get('fiber_100g', 0),
+                    'sugar': nutriments.get('sugars_100g', 0),
+                    'sodium': nutriments.get('sodium_100g', 0),
+                    'image_url': product.get('image_url', '') or product.get('image_front_url', ''),
+                    'image_small': product.get('image_small_url', ''),
+                    'quantity': product.get('quantity', ''),
+                    'serving_size': product.get('serving_size', ''),
+                    'ingredients': product.get('ingredients_text', ''),
+                    'stores': product.get('stores', ''),
+                    'countries': product.get('countries', ''),
+                    'nutriscore': product.get('nutriscore_grade', ''),
+                    'nova_group': product.get('nova_group', '')
+                }],
+                'count': 1,
+                'source': 'open_food_facts'
+            }), 200
+        
+        return jsonify({
+            'products': [],
+            'count': 0,
+            'error': 'Producto no encontrado'
+        }), 404
+        
+    except requests.Timeout:
+        return jsonify({'error': 'Timeout al conectar con Open Food Facts'}), 504
+    except requests.RequestException as e:
+        return jsonify({'error': f'Error de conexión: {str(e)}'}), 502
+
+
+def search_by_name(query: str, supermarket: str = ''):
+    """Busca productos por nombre con filtros opcionales."""
+    try:
+        # Construir URL de búsqueda
+        search_url = "https://world.openfoodfacts.org/api/v2/search"
+        
+        # Parámetros de búsqueda
+        params = {
+            'search_terms': query,
+            'search_simple': '1',
+            'action': 'process',
+            'json': '1',
+            'page_size': 20,
+            'fields': 'code,product_name,brands,categories,nutriments,image_url,image_small_url,quantity,serving_size,ingredients_text,stores,countries,nutriscore_grade,nova_group'
+        }
+        
+        # Filtrar por supermercado si se especifica
+        if supermarket:
+            supermarket_map = {
+                'mercadona': 'Mercadona',
+                'lidl': 'Lidl',
+                'carrefour': 'Carrefour'
+            }
+            if supermarket in supermarket_map:
+                params['stores_tags'] = supermarket_map[supermarket]
+        
+        response = requests.get(search_url, params=params, timeout=15)
+        data = response.json()
+        
+        products = []
+        for product in data.get('products', []):
+            nutriments = product.get('nutriments', {})
+            
+            # Solo incluir productos con datos nutricionales
+            if nutriments.get('energy-kcal_100g') or nutriments.get('energy-kcal'):
+                products.append({
+                    'barcode': product.get('code', ''),
+                    'name': product.get('product_name', ''),
+                    'brands': product.get('brands', ''),
+                    'categories': product.get('categories', ''),
+                    'calories': nutriments.get('energy-kcal_100g', 0) or (nutriments.get('energy-kcal', 0) / 10 if nutriments.get('energy-kcal') else 0),
+                    'protein': nutriments.get('proteins_100g', 0),
+                    'carbs': nutriments.get('carbohydrates_100g', 0),
+                    'fat': nutriments.get('fat_100g', 0),
+                    'fiber': nutriments.get('fiber_100g', 0),
+                    'sugar': nutriments.get('sugars_100g', 0),
+                    'image_url': product.get('image_url', ''),
+                    'image_small': product.get('image_small_url', ''),
+                    'quantity': product.get('quantity', ''),
+                    'stores': product.get('stores', ''),
+                    'nutriscore': product.get('nutriscore_grade', '')
+                })
+        
+        return jsonify({
+            'products': products,
+            'count': len(products),
+            'query': query,
+            'supermarket': supermarket if supermarket else 'all',
+            'source': 'open_food_facts'
+        }), 200
+        
+    except requests.Timeout:
+        return jsonify({'error': 'Timeout al conectar con Open Food Facts'}), 504
+    except requests.RequestException as e:
+        return jsonify({'error': f'Error de conexión: {str(e)}'}), 502
+
+
+@app.route('/api/products/<barcode>', methods=['GET'])
+def get_product_by_barcode(barcode: str):
+    """
+    Obtiene información nutricional completa de un producto por código de barras.
+    
+    Parámetros:
+        - barcode: Código de barras del producto (EAN)
+    
+    Retorna información nutricional detallada.
+    """
+    try:
+        url = f"https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        
+        if data.get('status') != 1:
+            return jsonify({
+                'error': 'Producto no encontrado',
+                'barcode': barcode
+            }), 404
+        
+        product = data['product']
+        nutriments = product.get('nutriments', {})
+        
+        return jsonify({
+            'barcode': barcode,
+            'name': product.get('product_name', '') or product.get('product_name_es', ''),
+            'name_en': product.get('product_name_en', ''),
+            'brands': product.get('brands', ''),
+            'brand_owner': product.get('brand_owner', ''),
+            'categories': product.get('categories', ''),
+            'categories_tags': product.get('categories_tags', []),
+            
+            # Información nutricional por 100g
+            'nutrition_per_100g': {
+                'calories': nutriments.get('energy-kcal_100g', 0),
+                'energy_kj': nutriments.get('energy-kj_100g', 0),
+                'protein': nutriments.get('proteins_100g', 0),
+                'carbs': nutriments.get('carbohydrates_100g', 0),
+                'fat': nutriments.get('fat_100g', 0),
+                'fiber': nutriments.get('fiber_100g', 0),
+                'sugar': nutriments.get('sugars_100g', 0),
+                'saturated_fat': nutriments.get('saturated-fat_100g', 0),
+                'sodium': nutriments.get('sodium_100g', 0),
+                'salt': nutriments.get('salt_100g', 0),
+                'cholesterol': nutriments.get('cholesterol_100g', 0),
+                'trans_fat': nutriments.get('trans-fat_100g', 0)
+            },
+            
+            # Información por porción
+            'nutrition_per_serving': {
+                'calories': nutriments.get('energy-kcal_serving', 0),
+                'protein': nutriments.get('proteins_serving', 0),
+                'carbs': nutriments.get('carbohydrates_serving', 0),
+                'fat': nutriments.get('fat_serving', 0),
+                'serving_size': product.get('serving_size', '')
+            },
+            
+            # Información del producto
+            'images': {
+                'front': product.get('image_url', ''),
+                'front_small': product.get('image_small_url', ''),
+                'ingredients': product.get('image_ingredients_url', ''),
+                'nutrition': product.get('image_nutrition_url', '')
+            },
+            
+            'quantity': product.get('quantity', ''),
+            'serving_size': product.get('serving_size', ''),
+            'ingredients': product.get('ingredients_text', ''),
+            'ingredients_list': product.get('ingredients', []),
+            'allergens': product.get('allergens', ''),
+            'allergens_tags': product.get('allergens_tags', []),
+            'traces': product.get('traces', ''),
+            
+            # Scores de calidad
+            'scores': {
+                'nutriscore': product.get('nutriscore_grade', ''),
+                'nutriscore_score': product.get('nutriscore_score', 0),
+                'nova_group': product.get('nova_group', 0),
+                'eco_score': product.get('ecoscore_grade', ''),
+                'eco_score_score': product.get('ecoscore_score', 0)
+            },
+            
+            # Disponibilidad
+            'stores': product.get('stores', ''),
+            'countries': product.get('countries', ''),
+            
+            # Metadata
+            'source': 'open_food_facts',
+            'last_modified': product.get('last_modified_t', 0)
+        }), 200
+        
+    except requests.Timeout:
+        return jsonify({'error': 'Timeout al conectar con Open Food Facts'}), 504
+    except requests.RequestException as e:
+        return jsonify({'error': f'Error de conexión: {str(e)}'}), 502
+    except Exception as e:
+        return jsonify({'error': f'Error al obtener producto: {str(e)}'}), 500
+
+
 # 1. POST /api/onboarding - Calcula TMB (Mifflin-St Jeor) + TDEE
 @app.route('/api/onboarding', methods=['POST'])
 def onboarding():
@@ -420,9 +693,11 @@ def onboarding():
         
         # Crear usuario
         email = f"user_{secrets.token_hex(8)}@diettracker.app"
+        salt = secrets.token_hex(16)
         user_result = supabase.table('users').insert({
             'email': email,
             'password_hash': 'onboarding_no_password',
+            'salt': salt,
             'name': f'User {secrets.token_hex(4)}'
         }).execute()
         
@@ -724,36 +999,354 @@ def swap_plan_meal():
 @app.route('/api/shopping-list', methods=['GET'])
 @token_required
 def get_shopping_list():
-    """Genera lista de compra basada en el plan semanal."""
+    """Genera lista de compra basada en el plan semanal con cantidades y supermercados."""
     try:
         user_id = request.current_user['user_id']
         week_number = request.args.get('week', default=datetime.now().isocalendar()[1], type=int)
         
-        # Obtener plan de la semana
-        plan_result = supabase.table('weekly_plans').select('selected_recipe_id').eq('user_id', user_id).eq('week_number', week_number).execute()
+        # Obtener plan de la semana con recetas
+        plan_result = supabase.table('weekly_plans').select('*').eq('user_id', user_id).eq('week_number', week_number).execute()
         
         if not plan_result.data:
-            return jsonify({'ingredients': [], 'message': 'No hay plan para esta semana'}), 200
+            return jsonify({
+                'week_number': week_number,
+                'ingredients': [],
+                'grouped': {},
+                'message': 'No hay plan para esta semana. Genera un plan primero.'
+            }), 200
         
-        recipe_ids = list(set(entry['selected_recipe_id'] for entry in plan_result.data))
+        # Obtener IDs únicos de recetas
+        recipe_ids = list(set(entry.get('selected_recipe_id') for entry in plan_result.data if entry.get('selected_recipe_id')))
         
-        # Obtener recetas con ingredientes
-        recipes_result = supabase.table('master_recipes').select('id, name, ingredients').in_('id', recipe_ids).execute()
+        if not recipe_ids:
+            return jsonify({
+                'week_number': week_number,
+                'ingredients': [],
+                'grouped': {},
+                'message': 'No hay recetas en el plan'
+            }), 200
         
-        # Agrupar ingredientes
+        # Obtener recetas con ingredientes completos
+        recipes_result = supabase.table('master_recipes').select('id, name, ingredients, supermarket').in_('id', recipe_ids).execute()
+        recipes_dict = {r['id']: r for r in (recipes_result.data or [])}
+        
+        # Agrupar ingredientes por nombre y supermercado
         ingredients = {}
-        for recipe in (recipes_result.data or []):
-            recipe_ingredients = recipe.get('ingredients', '')
-            if recipe_ingredients:
-                for ingredient in recipe_ingredients.split(','):
-                    ingredient = ingredient.strip()
-                    if ingredient:
-                        ingredients[ingredient.lower()] = ingredient
+        for entry in plan_result.data:
+            recipe_id = entry.get('selected_recipe_id')
+            if not recipe_id:
+                continue
+            
+            recipe = recipes_dict.get(recipe_id, {})
+            recipe_ingredients = recipe.get('ingredients', [])
+            supermarket = recipe.get('supermarket', 'generic') or 'generic'
+            
+            # Los ingredientes pueden ser string (formato antiguo) o lista (formato nuevo)
+            if isinstance(recipe_ingredients, str):
+                # Formato antiguo: string separado por comas
+                ing_list = [i.strip() for i in recipe_ingredients.split(',') if i.strip()]
+                for ing in ing_list:
+                    name = ing.lower()
+                    if name not in ingredients:
+                        ingredients[name] = {
+                            'name': ing,
+                            'amount': 1,
+                            'unit': 'unidad',
+                            'supermarket': supermarket,
+                            'recipes': [recipe.get('name', 'Receta')]
+                        }
+                    else:
+                        ingredients[name]['amount'] += 1
+                        if recipe.get('name') and recipe.get('name') not in ingredients[name]['recipes']:
+                            ingredients[name]['recipes'].append(recipe.get('name'))
+            elif isinstance(recipe_ingredients, list):
+                # Formato nuevo: lista de objetos con cantidad y unidad
+                for ing in recipe_ingredients:
+                    if isinstance(ing, dict):
+                        name = ing.get('name', '').lower()
+                        if not name:
+                            continue
+                        
+                        if name not in ingredients:
+                            ingredients[name] = {
+                                'name': ing.get('name', ''),
+                                'amount': ing.get('amount', 1),
+                                'unit': ing.get('unit', 'unidad'),
+                                'supermarket': supermarket,
+                                'recipes': [recipe.get('name', 'Receta')]
+                            }
+                        else:
+                            ingredients[name]['amount'] += ing.get('amount', 1)
+                            if recipe.get('name') and recipe.get('name') not in ingredients[name]['recipes']:
+                                ingredients[name]['recipes'].append(recipe.get('name'))
+                    elif isinstance(ing, str):
+                        # Formato mixto: string dentro de lista
+                        name = ing.lower()
+                        if name not in ingredients:
+                            ingredients[name] = {
+                                'name': ing,
+                                'amount': 1,
+                                'unit': 'unidad',
+                                'supermarket': supermarket,
+                                'recipes': [recipe.get('name', 'Receta')]
+                            }
+                        else:
+                            ingredients[name]['amount'] += 1
+                            if recipe.get('name') and recipe.get('name') not in ingredients[name]['recipes']:
+                                ingredients[name]['recipes'].append(recipe.get('name'))
+        
+        # Obtener items manuales de la lista de compras
+        manual_items = supabase.table('shopping_lists').select('*').eq('user_id', user_id).execute()
+        
+        for item in (manual_items.data or []):
+            name = item.get('ingredient', '').lower()
+            if name and name not in ingredients:
+                ingredients[name] = {
+                    'name': item.get('ingredient', ''),
+                    'amount': item.get('quantity') or 1,
+                    'unit': item.get('unit') or 'unidad',
+                    'supermarket': 'manual',
+                    'checked': item.get('checked', False),
+                    'id': item.get('id'),
+                    'recipes': []
+                }
+        
+        # Agrupar por supermercado
+        grouped = {
+            'mercadona': [],
+            'lidl': [],
+            'carrefour': [],
+            'generic': [],
+            'manual': []
+        }
+        
+        for ing in ingredients.values():
+            supermarket = ing.get('supermarket', 'generic')
+            if supermarket in grouped:
+                grouped[supermarket].append(ing)
+            else:
+                grouped['generic'].append(ing)
         
         return jsonify({
             'week_number': week_number,
             'ingredients': list(ingredients.values()),
-            'recipe_count': len(recipe_ids)
+            'grouped': grouped,
+            'recipe_count': len(recipe_ids),
+            'total_items': len(ingredients)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+
+# 7.1 POST /api/shopping-list/item - Añadir item manual
+@app.route('/api/shopping-list/item', methods=['POST'])
+@token_required
+def add_shopping_item():
+    """Añade un item manual a la lista de compras."""
+    try:
+        user_id = request.current_user['user_id']
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'JSON requerido'}), 400
+        
+        name = data.get('name') or data.get('ingredient')
+        amount = data.get('amount') or data.get('quantity', 1)
+        unit = data.get('unit', 'unidad')
+        supermarket = data.get('supermarket', 'manual')
+        
+        if not name:
+            return jsonify({'error': 'Nombre del ingrediente requerido'}), 400
+        
+        # Insertar en shopping_lists
+        result = supabase.table('shopping_lists').insert({
+            'user_id': user_id,
+            'ingredient': name,
+            'quantity': str(amount),
+            'unit': unit,
+            'checked': False
+        }).execute()
+        
+        if result.data:
+            return jsonify({
+                'message': 'Item añadido',
+                'item': {
+                    'id': result.data[0]['id'],
+                    'name': name,
+                    'amount': amount,
+                    'unit': unit,
+                    'supermarket': supermarket,
+                    'checked': False
+                }
+            }), 201
+        
+        return jsonify({'error': 'Error al añadir item'}), 500
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+
+# 7.2 PUT /api/shopping-list/item/<item_id> - Actualizar item
+@app.route('/api/shopping-list/item/<item_id>', methods=['PUT'])
+@token_required
+def update_shopping_item(item_id):
+    """Actualiza un item de la lista (cantidad, checked, etc)."""
+    try:
+        user_id = request.current_user['user_id']
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'JSON requerido'}), 400
+        
+        # Verificar que el item pertenece al usuario
+        existing = supabase.table('shopping_lists').select('*').eq('id', item_id).eq('user_id', user_id).execute()
+        if not existing.data:
+            return jsonify({'error': 'Item no encontrado'}), 404
+        
+        # Preparar actualización
+        update_fields = {}
+        if 'checked' in data:
+            update_fields['checked'] = data['checked']
+        if 'quantity' in data or 'amount' in data:
+            update_fields['quantity'] = str(data.get('quantity') or data.get('amount'))
+        if 'unit' in data:
+            update_fields['unit'] = data['unit']
+        if 'ingredient' in data or 'name' in data:
+            update_fields['ingredient'] = data.get('ingredient') or data.get('name')
+        
+        if update_fields:
+            result = supabase.table('shopping_lists').update(update_fields).eq('id', item_id).execute()
+            return jsonify({'message': 'Item actualizado', 'item': result.data[0] if result.data else {}}), 200
+        
+        return jsonify({'message': 'Sin cambios'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+
+# 7.3 DELETE /api/shopping-list/item/<item_id> - Eliminar item
+@app.route('/api/shopping-list/item/<item_id>', methods=['DELETE'])
+@token_required
+def delete_shopping_item(item_id):
+    """Elimina un item de la lista de compras."""
+    try:
+        user_id = request.current_user['user_id']
+        
+        # Verificar que el item pertenece al usuario
+        result = supabase.table('shopping_lists').delete().eq('id', item_id).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return jsonify({'message': 'Item eliminado'}), 200
+        
+        return jsonify({'error': 'Item no encontrado'}), 404
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+
+# 7.4 DELETE /api/shopping-list/clear - Limpiar lista manual
+@app.route('/api/shopping-list/clear', methods=['DELETE'])
+@token_required
+def clear_shopping_list():
+    """Elimina todos los items manuales de la lista."""
+    try:
+        user_id = request.current_user['user_id']
+        
+        result = supabase.table('shopping_lists').delete().eq('user_id', user_id).execute()
+        
+        return jsonify({'message': 'Lista limpiada'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+
+# 7.5 GET /api/shopping-list/export - Exportar lista
+@app.route('/api/shopping-list/export', methods=['GET'])
+@token_required
+def export_shopping_list():
+    """Exporta la lista de compras en formato texto o WhatsApp."""
+    try:
+        user_id = request.current_user['user_id']
+        week_number = request.args.get('week', default=datetime.now().isocalendar()[1], type=int)
+        format_type = request.args.get('format', 'text')  # text, whatsapp
+        
+        # Obtener lista completa
+        plan_result = supabase.table('weekly_plans').select('*').eq('user_id', user_id).eq('week_number', week_number).execute()
+        
+        if not plan_result.data:
+            return jsonify({'error': 'No hay plan para esta semana'}), 404
+        
+        recipe_ids = list(set(entry.get('selected_recipe_id') for entry in plan_result.data if entry.get('selected_recipe_id')))
+        recipes_result = supabase.table('master_recipes').select('id, name, ingredients, supermarket').in_('id', recipe_ids).execute()
+        recipes_dict = {r['id']: r for r in (recipes_result.data or [])}
+        
+        # Agrupar por supermercado
+        grouped = {'mercadona': [], 'lidl': [], 'carrefour': [], 'generic': [], 'manual': []}
+        
+        for entry in plan_result.data:
+            recipe_id = entry.get('selected_recipe_id')
+            if not recipe_id:
+                continue
+            
+            recipe = recipes_dict.get(recipe_id, {})
+            supermarket = recipe.get('supermarket', 'generic') or 'generic'
+            
+            if supermarket not in grouped:
+                supermarket = 'generic'
+            
+            recipe_ingredients = recipe.get('ingredients', [])
+            if isinstance(recipe_ingredients, str):
+                for ing in recipe_ingredients.split(','):
+                    ing = ing.strip()
+                    if ing:
+                        grouped[supermarket].append(ing)
+            elif isinstance(recipe_ingredients, list):
+                for ing in recipe_ingredients:
+                    if isinstance(ing, dict):
+                        grouped[supermarket].append(f"{ing.get('amount', '')} {ing.get('unit', '')} {ing.get('name', '')}".strip())
+                    elif isinstance(ing, str):
+                        grouped[supermarket].append(ing)
+        
+        # Añadir items manuales
+        manual_items = supabase.table('shopping_lists').select('*').eq('user_id', user_id).execute()
+        for item in (manual_items.data or []):
+            grouped['manual'].append(f"{item.get('quantity', '')} {item.get('unit', '')} {item.get('ingredient', '')}".strip())
+        
+        # Generar texto según formato
+        supermarket_names = {
+            'mercadona': '🛒 MERCADONA',
+            'lidl': '🛒 LIDL',
+            'carrefour': '🛒 CARREFOUR',
+            'generic': '📦 OTROS',
+            'manual': '✍️ MANUAL'
+        }
+        
+        lines = []
+        for key, items in grouped.items():
+            if items:
+                # Eliminar duplicados y ordenar
+                unique_items = sorted(set(items))
+                lines.append(f"\n{supermarket_names.get(key, key)}")
+                lines.append("=" * 30)
+                for item in unique_items:
+                    if format_type == 'whatsapp':
+                        lines.append(f"☐ {item}")
+                    else:
+                        lines.append(f"□ {item}")
+        
+        if format_type == 'whatsapp':
+            header = f"🛒 *LISTA DE COMPRA - Semana {week_number}*\n\n"
+            export_text = header + "\n".join(lines)
+        else:
+            header = f"LISTA DE COMPRA - Semana {week_number}\n"
+            export_text = header + "\n".join(lines)
+        
+        return jsonify({
+            'format': format_type,
+            'text': export_text,
+            'week_number': week_number,
+            'total_items': sum(len(items) for items in grouped.values())
         }), 200
         
     except Exception as e:
@@ -883,29 +1476,109 @@ def log_food():
         week_number = datetime.now().isocalendar()[1]
         day_of_week = datetime.now().weekday()
         
-        # Registrar food log
-        result = supabase.table('food_logs').insert({
+        # Build food log entry
+        log_entry = {
             'user_id': user_id,
-            'recipe_id': log_data.recipe_id,
             'meal_type': log_data.meal_type,
-            'calories': log_data.calories,
-            'protein': log_data.protein,
-            'carbs': log_data.carbs,
-            'fat': log_data.fat,
+            'calories': log_data.calories * (log_data.quantity or 1),
+            'protein': log_data.protein * (log_data.quantity or 1),
+            'carbs': log_data.carbs * (log_data.quantity or 1),
+            'fat': log_data.fat * (log_data.quantity or 1),
             'notes': log_data.notes or '',
             'week_number': week_number,
             'day_of_week': day_of_week,
-            'logged_at': datetime.now().isoformat()
-        }).execute()
+            'logged_at': datetime.now().isoformat(),
+            'source': log_data.source or 'manual',
+            'quantity': log_data.quantity or 1
+        }
+        
+        # Add optional fields
+        if log_data.recipe_id:
+            log_entry['recipe_id'] = log_data.recipe_id
+        if log_data.food_name:
+            log_entry['food_name'] = log_data.food_name
+        if log_data.barcode:
+            log_entry['barcode'] = log_data.barcode
+        
+        # Registrar food log
+        result = supabase.table('food_logs').insert(log_entry).execute()
         
         return jsonify({
             'message': 'Comida registrada',
             'log_id': result.data[0]['id'] if result.data else None,
-            'calories': log_data.calories,
-            'protein': log_data.protein,
-            'carbs': log_data.carbs,
-            'fat': log_data.fat
+            'calories': log_entry['calories'],
+            'protein': log_entry['protein'],
+            'carbs': log_entry['carbs'],
+            'fat': log_entry['fat'],
+            'meal_type': log_data.meal_type,
+            'source': log_data.source
         }), 201
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+# 10b. GET /api/food-log/today - Obtiene comidas del día
+@app.route('/api/food-log/today', methods=['GET'])
+@token_required
+def get_today_food_log():
+    """Obtiene todas las comidas registradas hoy."""
+    try:
+        user_id = request.current_user['user_id']
+        week_number = datetime.now().isocalendar()[1]
+        day_of_week = datetime.now().weekday()
+        
+        # Get today's food logs
+        result = supabase.table('food_logs').select('*').eq('user_id', user_id).eq('week_number', week_number).eq('day_of_week', day_of_week).order('logged_at').execute()
+        
+        logs = result.data or []
+        
+        # Calculate totals
+        total_calories = sum(log.get('calories', 0) for log in logs)
+        total_protein = sum(log.get('protein', 0) for log in logs)
+        total_carbs = sum(log.get('carbs', 0) for log in logs)
+        total_fat = sum(log.get('fat', 0) for log in logs)
+        
+        # Group by meal type
+        by_meal = {}
+        for log in logs:
+            meal = log.get('meal_type', 'other')
+            if meal not in by_meal:
+                by_meal[meal] = []
+            by_meal[meal].append(log)
+        
+        return jsonify({
+            'date': datetime.now().date().isoformat(),
+            'logs': logs,
+            'by_meal': by_meal,
+            'totals': {
+                'calories': total_calories,
+                'protein': total_protein,
+                'carbs': total_carbs,
+                'fat': total_fat
+            },
+            'count': len(logs)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+# 10c. DELETE /api/food-log/<id> - Elimina una comida registrada
+@app.route('/api/food-log/<log_id>', methods=['DELETE'])
+@token_required
+def delete_food_log(log_id):
+    """Elimina una comida del registro."""
+    try:
+        user_id = request.current_user['user_id']
+        
+        # Verify ownership
+        check = supabase.table('food_logs').select('id').eq('id', log_id).eq('user_id', user_id).execute()
+        if not check.data:
+            return jsonify({'error': 'Registro no encontrado'}), 404
+        
+        # Delete
+        supabase.table('food_logs').delete().eq('id', log_id).execute()
+        
+        return jsonify({'message': 'Comida eliminada del registro'}), 200
         
     except Exception as e:
         return jsonify({'error': f'Error interno: {str(e)}'}), 500
@@ -1151,6 +1824,71 @@ def reset_password():
         
     except Exception as e:
         return jsonify({'error': f'Error al resetear contraseña: {str(e)}'}), 500
+
+# 11b. GET /api/search-food - Busca alimentos (recetas y Open Food Facts)
+@app.route('/api/search-food', methods=['GET'])
+@token_required
+def search_food():
+    """Busca alimentos en recetas y Open Food Facts."""
+    try:
+        import urllib.request
+        import json as json_module
+        
+        query = request.args.get('q', '').strip().lower()
+        search_type = request.args.get('type', 'all')  # 'recipes', 'products', 'all'
+        limit = request.args.get('limit', default=20, type=int)
+        
+        if not query or len(query) < 2:
+            return jsonify({'error': 'Búsqueda muy corta (mínimo 2 caracteres)'}), 400
+        
+        results = {
+            'recipes': [],
+            'products': [],
+            'total': 0
+        }
+        
+        # Search in master_recipes
+        if search_type in ['all', 'recipes']:
+            try:
+                recipe_result = supabase.table('master_recipes').select('id, name, calories, protein, carbs, fat, meal_type, image_url').ilike('name', f'%{query}%').limit(limit).execute()
+                results['recipes'] = recipe_result.data or []
+            except Exception as e:
+                print(f"Error searching recipes: {e}")
+        
+        # Search in Open Food Facts
+        if search_type in ['all', 'products']:
+            try:
+                # Open Food Facts API
+                off_url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={query}&json=1&page_size={min(limit, 20)}&fields=code,product_name,nutriments,image_small_url,brands,serving_size"
+                
+                req = urllib.request.Request(off_url, headers={'User-Agent': 'DietTrackerApp/1.0'})
+                response = urllib.request.urlopen(req, timeout=10)
+                off_data = json_module.loads(response.read().decode())
+                
+                if off_data.get('products'):
+                    for product in off_data['products']:
+                        nutriments = product.get('nutriments', {})
+                        results['products'].append({
+                            'barcode': product.get('code'),
+                            'name': product.get('product_name', 'Unknown'),
+                            'brand': product.get('brands', ''),
+                            'image': product.get('image_small_url'),
+                            'serving_size': product.get('serving_size', '100g'),
+                            'calories': nutriments.get('energy-kcal_100g', nutriments.get('energy-kcal', 0)),
+                            'protein': nutriments.get('proteins_100g', nutriments.get('proteins', 0)),
+                            'carbs': nutriments.get('carbohydrates_100g', nutriments.get('carbohydrates', 0)),
+                            'fat': nutriments.get('fat_100g', nutriments.get('fat', 0)),
+                            'source': 'openfoodfacts'
+                        })
+            except Exception as e:
+                print(f"Error searching Open Food Facts: {e}")
+        
+        results['total'] = len(results['recipes']) + len(results['products'])
+        
+        return jsonify(results), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
 
 # 12. POST /api/generate-plan - Genera plan semanal automático
 @app.route('/api/generate-plan', methods=['POST'])

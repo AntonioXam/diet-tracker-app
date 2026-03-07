@@ -943,6 +943,7 @@ async function loadDashboard() {
         
         let dashboardData = null;
         let weightHistory = [];
+        let todayLogs = [];
         
         if (dashboardRes.ok) {
             dashboardData = await dashboardRes.json();
@@ -959,6 +960,20 @@ async function loadDashboard() {
             }
         } catch (weightErr) {
             console.warn('Could not load weight history:', weightErr);
+        }
+        
+        // Load weekly plan
+        await loadWeeklyPlan();
+        
+        // Load today's food logs
+        try {
+            const foodLogRes = await fetch(API_BASE + '/food-log/today', { headers });
+            if (foodLogRes.ok) {
+                const foodData = await foodLogRes.json();
+                todayLogs = foodData.logs || [];
+            }
+        } catch (foodErr) {
+            console.warn('Could not load food logs:', foodErr);
         }
         
         // Use dashboard data or fallback to plan endpoint
@@ -988,6 +1003,22 @@ async function loadDashboard() {
             }
         }
         
+        // Merge today's logs into dashboard data
+        if (dashboardData && todayLogs.length > 0) {
+            const totals = todayLogs.reduce((acc, log) => ({
+                calories: acc.calories + (log.calories || 0),
+                protein: acc.protein + (log.protein || 0),
+                carbs: acc.carbs + (log.carbs || 0),
+                fat: acc.fat + (log.fat || 0)
+            }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+            
+            dashboardData.today = {
+                ...dashboardData.today,
+                ...totals,
+                logs: todayLogs
+            };
+        }
+        
         // Render with data or defaults
         renderDashboard(dashboardData, weightHistory);
         
@@ -1005,6 +1036,7 @@ function renderDashboard(data, history) {
     const metrics = data?.metrics || {};
     const today = data?.today || {};
     const profile = data?.profile || {};
+    const todayLogs = today?.logs || [];
     
     const dailyCalories = metrics.target_calories || 2000;
     const currentWeight = metrics.current_weight || 70;
@@ -1027,6 +1059,20 @@ function renderDashboard(data, history) {
     // Calcular dashoffset para el círculo de calorías (283 es la circunferencia)
     const circumference = 283;
     const dashOffset = circumference - (caloriesPercent / 100) * circumference;
+    
+    // Calorías restantes
+    const remainingCalories = Math.max(0, dailyCalories - todayCalories);
+    
+    // Iconos para tipos de comida
+    const mealIcons = {
+        'desayuno': '🌅',
+        'comida': '☀️',
+        'almuerzo': '🥪',
+        'merienda': '🍎',
+        'cena': '🌙',
+        'snack': '🥨',
+        'other': '🍽️'
+    };
     
     dashboard.innerHTML = `
         <!-- Welcome Header -->
@@ -1059,7 +1105,7 @@ function renderDashboard(data, history) {
                         <span class="text-xs text-gray-500">/ ${dailyCalories}</span>
                     </div>
                 </div>
-                <p class="text-center text-sm text-gray-500 dark:text-gray-400">kcal consumidas</p>
+                <p class="text-center text-sm text-gray-500 dark:text-gray-400">Quedan <span class="font-bold gradient-text">${remainingCalories}</span> kcal</p>
             </div>
             
             <!-- Macros Card -->
@@ -1141,32 +1187,83 @@ function renderDashboard(data, history) {
             </div>
         </div>
         
+        <!-- Today's Food Log Section -->
+        <div class="glass-card rounded-2xl p-4 sm:p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-black dark:text-white">🍽️ Comidas de hoy</h2>
+                <button onclick="openFoodModal()" class="btn-primary text-white px-4 py-2 rounded-xl font-bold text-sm touch-target">
+                    <i class="fas fa-plus mr-2"></i> Añadir
+                </button>
+            </div>
+            
+            ${todayLogs.length > 0 ? `
+                <!-- Food log entries -->
+                <div class="space-y-3 mb-4">
+                    ${todayLogs.map(log => `
+                        <div class="glass rounded-xl p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">${mealIcons[log.meal_type] || '🍽️'}</span>
+                                <div>
+                                    <p class="font-medium dark:text-white text-sm">${log.food_name || log.recipe_name || 'Comida'}</p>
+                                    <p class="text-xs text-gray-500">${log.calories} kcal • P: ${log.protein || 0}g • C: ${log.carbs || 0}g • G: ${log.fat || 0}g</p>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-400 capitalize">${log.meal_type}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Totals -->
+                <div class="glass rounded-xl p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold dark:text-white">Total</span>
+                        <span class="text-xl font-black gradient-text">${todayCalories} kcal</span>
+                    </div>
+                    <div class="flex gap-6 mt-2 text-sm text-gray-500">
+                        <span>Proteína: ${todayProtein}g</span>
+                        <span>Carbos: ${todayCarbs}g</span>
+                        <span>Grasas: ${todayFat}g</span>
+                    </div>
+                </div>
+            ` : `
+                <div class="text-center py-8">
+                    <div class="text-4xl mb-2">🍽️</div>
+                    <p class="text-gray-500 mb-4">Aún no has registrado comidas hoy</p>
+                    <button onclick="openFoodModal()" class="btn-primary text-white px-6 py-3 rounded-xl font-bold touch-target">
+                        <i class="fas fa-utensils mr-2"></i> Registrar primera comida
+                    </button>
+                </div>
+            `}
+        </div>
+        
         <!-- Weekly Plan Section -->
-        <div class="glass-card rounded-2xl p-6 mb-8">
-            <div class="flex items-center justify-between mb-6">
+        <div class="glass-card rounded-2xl p-4 sm:p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-black dark:text-white">📅 Plan Semanal</h2>
-                <div class="flex gap-2">
-                    <button onclick="changeDay(-1)" class="touch-target w-10 h-10 rounded-xl glass flex items-center justify-center dark:text-white">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button onclick="changeDay(1)" class="touch-target w-10 h-10 rounded-xl glass flex items-center justify-center dark:text-white">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+            </div>
+            
+            <!-- Weekly Plan Grid -->
+            <div id="plan-container" class="mb-4">
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-gray-500">Cargando plan...</p>
                 </div>
             </div>
             
-            <div class="flex gap-2 overflow-x-auto pb-4 mb-6" id="day-selector">
-                ${renderDaySelector()}
-            </div>
-            
-            <div id="meals-container" class="space-y-4">
-                ${renderMealsPlaceholder()}
-            </div>
+            <!-- Daily Summary -->
+            <div id="daily-summary"></div>
         </div>
     `;
     
     // Initialize weight chart
     initWeightChart(history);
+    
+    // Render weekly plan
+    renderWeeklyPlan();
+    
+    // Render daily summary for today
+    const todayIndex = new Date().getDay();
+    renderDailySummary(todayIndex === 0 ? 6 : todayIndex - 1);
 }
 
 function renderDaySelector() {
@@ -1313,6 +1410,435 @@ function renderDashboardWithFallback() {
     
     showToast('Mostrando datos de ejemplo (API no disponible)', 'info');
     renderDashboard(fallbackData, fallbackHistory);
+}
+
+// ==================== WEEKLY PLAN FUNCTIONS ====================
+
+async function loadWeeklyPlan() {
+    try {
+        const response = await fetch(API_BASE + '/plan', {
+            headers: { 'Authorization': 'Bearer ' + user.token }
+        });
+        const data = await response.json();
+        if (response.ok) {
+            currentPlan = data;
+            return data;
+        }
+    } catch (error) {
+        console.error('Error loading plan:', error);
+    }
+    return null;
+}
+
+function renderWeeklyPlan() {
+    const container = document.getElementById('plan-container');
+    if (!container) return;
+    
+    if (!currentPlan || !currentPlan.days) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-5xl mb-4">🍽️</div>
+                <p class="text-gray-500 dark:text-gray-400 mb-4">No hay plan generado aún</p>
+                <button onclick="startOnboarding()" class="btn-primary text-white px-6 py-3 rounded-xl font-bold">
+                    Crear mi plan
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    const days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+    const daysDisplay = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const mealTypes = {
+        'desayuno': { name: 'Desayuno', icon: '🌅', time: '7:00 - 9:00' },
+        'comida': { name: 'Comida', icon: '☀️', time: '12:00 - 14:00' },
+        'merienda': { name: 'Merienda', icon: '🍎', time: '16:00 - 18:00' },
+        'cena': { name: 'Cena', icon: '🌙', time: '19:00 - 21:00' }
+    };
+    
+    let html = `
+        <div class="mb-4 flex items-center justify-between">
+            <h3 class="text-lg font-bold dark:text-white">Tu plan nutricional</h3>
+            <button onclick="regeneratePlan()" class="text-sm text-purple-500 hover:text-purple-600 font-semibold flex items-center gap-1">
+                <i class="fas fa-sync-alt"></i> Regenerar plan
+            </button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 sm:gap-2 overflow-x-auto">
+    `;
+    
+    days.forEach((day, idx) => {
+        const dayMeals = currentPlan.days[day] || [];
+        const dayCalories = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
+        const dayProtein = dayMeals.reduce((sum, m) => sum + (m.protein || 0), 0);
+        const dayCarbs = dayMeals.reduce((sum, m) => sum + (m.carbs || 0), 0);
+        const dayFat = dayMeals.reduce((sum, m) => sum + (m.fat || 0), 0);
+        
+        const isToday = new Date().getDay() === (idx === 6 ? 0 : idx + 1);
+        
+        html += `
+            <div class="glass rounded-xl p-2 sm:p-3 min-w-[100px] sm:min-w-0 ${isToday ? 'ring-2 ring-purple-500' : ''}">
+                <div class="text-center mb-2">
+                    <h4 class="font-bold text-sm sm:text-base dark:text-white">${daysDisplay[idx]}</h4>
+                    ${isToday ? '<span class="text-xs text-purple-500 font-semibold">Hoy</span>' : ''}
+                    <p class="text-xs text-gray-500">${dayCalories} kcal</p>
+                </div>
+                <div class="space-y-1">
+        `;
+        
+        Object.entries(mealTypes).forEach(([mealType, mealInfo]) => {
+            const meal = dayMeals.find(m => (m.meal_type || m.type || '').toLowerCase() === mealType);
+            const mealName = meal ? (meal.name || meal.recipe_name || 'Comida') : 'Sin asignar';
+            const mealCalories = meal ? (meal.calories || 0) : 0;
+            
+            html += `
+                <div class="text-xs p-1.5 sm:p-2 bg-white/50 dark:bg-gray-800/50 rounded hover:bg-white/80 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group relative"
+                     onclick="showMealDetails('${day}', '${mealType}')">
+                    <p class="font-medium text-xs">${mealInfo.icon} ${mealInfo.name}</p>
+                    <p class="text-gray-500 text-xs truncate">${mealCalories > 0 ? mealCalories + ' kcal' : '--'}</p>
+                    ${meal ? `
+                        <button onclick="event.stopPropagation(); openChangeRecipeModal('${day}', '${mealType}')"
+                                class="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                title="Cambiar receta">
+                            <i class="fas fa-sync-alt text-xs"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+                <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>P:${dayProtein}g</span>
+                        <span>C:${dayCarbs}g</span>
+                        <span>G:${dayFat}g</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function renderDailySummary(dayIndex) {
+    const container = document.getElementById('daily-summary');
+    if (!container || !currentPlan || !currentPlan.days) return;
+    
+    const days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+    const day = days[dayIndex];
+    const dayMeals = currentPlan.days[day] || [];
+    
+    const totalCalories = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
+    const totalProtein = dayMeals.reduce((sum, m) => sum + (m.protein || 0), 0);
+    const totalCarbs = dayMeals.reduce((sum, m) => sum + (m.carbs || 0), 0);
+    const totalFat = dayMeals.reduce((sum, m) => sum + (m.fat || 0), 0);
+    
+    const targetCalories = currentPlan.target_calories || 2000;
+    const targetProtein = currentPlan.target_protein || 150;
+    const targetCarbs = currentPlan.target_carbs || 200;
+    const targetFat = currentPlan.target_fat || 65;
+    
+    const caloriesPercent = Math.min(100, (totalCalories / targetCalories) * 100);
+    const proteinPercent = Math.min(100, (totalProtein / targetProtein) * 100);
+    const carbsPercent = Math.min(100, (totalCarbs / targetCarbs) * 100);
+    const fatPercent = Math.min(100, (totalFat / targetFat) * 100);
+    
+    container.innerHTML = `
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-xl font-bold dark:text-white mb-4">📊 Resumen del Día</h3>
+            
+            <!-- Calorías -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-semibold dark:text-white">Calorías</span>
+                    <span class="text-sm text-gray-500">${totalCalories} / ${targetCalories} kcal</span>
+                </div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500" 
+                         style="width: ${caloriesPercent}%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">${targetCalories - totalCalories > 0 ? (targetCalories - totalCalories) + ' kcal restantes' : 'Objetivo alcanzado!'}</p>
+            </div>
+            
+            <!-- Macros -->
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium dark:text-white">Proteína</span>
+                        <span class="text-xs text-gray-500">${totalProtein}/${targetProtein}g</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-red-500 rounded-full" style="width: ${proteinPercent}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium dark:text-white">Carbos</span>
+                        <span class="text-xs text-gray-500">${totalCarbs}/${targetCarbs}g</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-yellow-500 rounded-full" style="width: ${carbsPercent}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium dark:text-white">Grasas</span>
+                        <span class="text-xs text-gray-500">${totalFat}/${targetFat}g</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-green-500 rounded-full" style="width: ${fatPercent}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function showMealDetails(day, mealType) {
+    if (!currentPlan || !currentPlan.days) return;
+    
+    const dayMeals = currentPlan.days[day] || [];
+    const meal = dayMeals.find(m => (m.meal_type || m.type || '').toLowerCase() === mealType);
+    
+    if (!meal) {
+        showToast('No hay detalles disponibles para esta comida', 'info');
+        return;
+    }
+    
+    const mealNames = {
+        'desayuno': 'Desayuno',
+        'comida': 'Comida',
+        'merienda': 'Merienda',
+        'cena': 'Cena'
+    };
+    
+    const container = document.getElementById('auth-modals');
+    container.innerHTML = `
+        <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeMealDetails(event)">
+            <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full overflow-hidden" onclick="event.stopPropagation()">
+                <div class="relative h-40 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                    <div class="text-6xl">${meal.image || '🍽️'}</div>
+                    <button onclick="closeMealDetails()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <h2 class="text-2xl font-black dark:text-white mb-2">${meal.name || meal.recipe_name || 'Comida'}</h2>
+                    <p class="text-sm text-gray-500 mb-4">${mealNames[mealType] || mealType}</p>
+                    
+                    <div class="grid grid-cols-4 gap-3 mb-6">
+                        <div class="glass rounded-xl p-3 text-center">
+                            <p class="text-lg font-bold gradient-text">${meal.calories || 0}</p>
+                            <p class="text-xs text-gray-500">kcal</p>
+                        </div>
+                        <div class="glass rounded-xl p-3 text-center">
+                            <p class="text-lg font-bold text-red-500">${meal.protein || 0}g</p>
+                            <p class="text-xs text-gray-500">Proteína</p>
+                        </div>
+                        <div class="glass rounded-xl p-3 text-center">
+                            <p class="text-lg font-bold text-yellow-500">${meal.carbs || 0}g</p>
+                            <p class="text-xs text-gray-500">Carbos</p>
+                        </div>
+                        <div class="glass rounded-xl p-3 text-center">
+                            <p class="text-lg font-bold text-green-500">${meal.fat || 0}g</p>
+                            <p class="text-xs text-gray-500">Grasa</p>
+                        </div>
+                    </div>
+                    
+                    ${meal.ingredients ? `
+                        <div class="mb-4">
+                            <h3 class="font-bold dark:text-white mb-2">Ingredientes:</h3>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                ${meal.ingredients.map(ing => `<li>• ${ing}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex gap-3">
+                        <button onclick="closeMealDetails()" class="flex-1 glass py-3 rounded-xl font-bold dark:text-white">
+                            Cerrar
+                        </button>
+                        <button onclick="closeMealDetails(); openChangeRecipeModal('${day}', '${mealType}')" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold">
+                            Cambiar receta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMealDetails(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+async function openChangeRecipeModal(day, mealType) {
+    showToast('Cargando recetas alternativas...', 'info');
+    
+    try {
+        const response = await fetch(API_BASE + '/recipes?meal_type=' + mealType, {
+            headers: { 'Authorization': 'Bearer ' + user.token }
+        });
+        
+        let recipes = [];
+        if (response.ok) {
+            const data = await response.json();
+            recipes = data.recipes || data || [];
+        }
+        
+        // Fallback con recetas de ejemplo si no hay datos
+        if (recipes.length === 0) {
+            recipes = [
+                { id: 1, name: 'Ensalada César', calories: 350, protein: 20, carbs: 15, fat: 22, image: '🥗' },
+                { id: 2, name: 'Pechuga de pollo con arroz', calories: 450, protein: 35, carbs: 40, fat: 12, image: '🍗' },
+                { id: 3, name: 'Salmón al horno', calories: 380, protein: 32, carbs: 5, fat: 24, image: '🐟' },
+                { id: 4, name: 'Bowl de quinoa', calories: 420, protein: 18, carbs: 55, fat: 14, image: '🥣' },
+                { id: 5, name: 'Tortilla de claras', calories: 180, protein: 22, carbs: 2, fat: 8, image: '🍳' },
+                { id: 6, name: 'Yogur con frutos rojos', calories: 200, protein: 15, carbs: 25, fat: 5, image: '🫐' }
+            ];
+        }
+        
+        const container = document.getElementById('auth-modals');
+        container.innerHTML = `
+            <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeChangeRecipeModal(event)">
+                <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-black dark:text-white">Cambiar Receta</h2>
+                            <button onclick="closeChangeRecipeModal()" class="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Selecciona una nueva receta para ${mealType}</p>
+                    </div>
+                    <div class="p-4 overflow-y-auto flex-1">
+                        <div class="space-y-3">
+                            ${recipes.map(recipe => `
+                                <div class="glass rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                                     onclick="selectRecipe('${day}', '${mealType}', ${recipe.id}, '${recipe.name}', ${recipe.calories})">
+                                    <div class="text-3xl">${recipe.image || '🍽️'}</div>
+                                    <div class="flex-1">
+                                        <p class="font-bold dark:text-white">${recipe.name}</p>
+                                        <p class="text-sm text-gray-500">${recipe.calories} kcal • P: ${recipe.protein}g • C: ${recipe.carbs}g • G: ${recipe.fat}g</p>
+                                    </div>
+                                    <button class="text-purple-500 hover:text-purple-600">
+                                        <i class="fas fa-check-circle text-xl"></i>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        console.error('Error loading recipes:', error);
+        showToast('Error al cargar recetas', 'error');
+    }
+}
+
+function closeChangeRecipeModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+async function selectRecipe(day, mealType, recipeId, recipeName, calories) {
+    showToast('Actualizando plan...', 'info');
+    
+    try {
+        const response = await fetch(API_BASE + '/plan/meal', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + user.token
+            },
+            body: JSON.stringify({
+                day: day,
+                meal_type: mealType,
+                recipe_id: recipeId
+            })
+        });
+        
+        if (response.ok) {
+            // Update local plan
+            if (currentPlan && currentPlan.days && currentPlan.days[day]) {
+                const mealIndex = currentPlan.days[day].findIndex(m => (m.meal_type || m.type || '').toLowerCase() === mealType);
+                if (mealIndex !== -1) {
+                    currentPlan.days[day][mealIndex] = {
+                        ...currentPlan.days[day][mealIndex],
+                        recipe_id: recipeId,
+                        name: recipeName,
+                        calories: calories
+                    };
+                }
+            }
+            
+            closeChangeRecipeModal();
+            renderWeeklyPlan();
+            showToast('✅ Receta actualizada: ' + recipeName, 'success');
+        } else {
+            // Update locally even if API fails
+            if (currentPlan && currentPlan.days && currentPlan.days[day]) {
+                const mealIndex = currentPlan.days[day].findIndex(m => (m.meal_type || m.type || '').toLowerCase() === mealType);
+                if (mealIndex !== -1) {
+                    currentPlan.days[day][mealIndex] = {
+                        ...currentPlan.days[day][mealIndex],
+                        recipe_id: recipeId,
+                        name: recipeName,
+                        calories: calories
+                    };
+                }
+            }
+            
+            closeChangeRecipeModal();
+            renderWeeklyPlan();
+            showToast('✅ Receta actualizada localmente: ' + recipeName, 'success');
+        }
+    } catch (error) {
+        console.error('Error updating recipe:', error);
+        showToast('Error al actualizar la receta', 'error');
+    }
+}
+
+async function regeneratePlan() {
+    if (!user || !user.token) {
+        showToast('Debes iniciar sesión para regenerar el plan', 'error');
+        return;
+    }
+    
+    showToast('Regenerando plan...', 'info');
+    
+    try {
+        const response = await fetch(API_BASE + '/generate-plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + user.token
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentPlan = data.plan || data;
+            renderWeeklyPlan();
+            showToast('✅ Nuevo plan generado', 'success');
+        } else {
+            showToast('❌ ' + (data.error || 'Error al regenerar el plan'), 'error');
+        }
+    } catch (error) {
+        console.error('Error regenerating plan:', error);
+        showToast('Error de conexión', 'error');
+    }
 }
 
 // ==================== ONBOARDING FLOW COMPLETO ====================
@@ -2062,6 +2588,9 @@ async function completeOnboarding() {
     closeOnboarding();
     showToast('✅ ¡Plan personalizado creado! Tu transformación comienza ahora.', 'success');
     
+    // Reload plan after onboarding
+    await loadWeeklyPlan();
+    
     // Recargar dashboard para mostrar el nuevo plan
     setTimeout(() => {
         loadDashboard();
@@ -2070,10 +2599,15 @@ async function completeOnboarding() {
 
 // ==================== FOOD REGISTRATION ====================
 
+let currentFoodSearch = null;
+let selectedMealType = null;
+let todayFoodLogs = [];
+
 function openFoodModal() {
     document.getElementById('food-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    renderFoodSearch();
+    renderFoodModalMain();
+    loadTodayFoodLogs();
 }
 
 function closeFoodModal() {
@@ -2081,117 +2615,647 @@ function closeFoodModal() {
     document.body.style.overflow = '';
 }
 
-function renderFoodSearch() {
+function renderFoodModalMain() {
     const container = document.getElementById('food-content');
     
     container.innerHTML = `
         <div class="fade-in">
             <h2 class="text-2xl font-black dark:text-white mb-6">🍽️ Registrar comida</h2>
             
-            <!-- Search -->
-            <div class="mb-6">
-                <div class="relative">
-                    <input type="text" id="food-search" placeholder="Buscar alimento o receta..." 
-                           class="w-full px-4 py-3 pl-12 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target"
-                           oninput="searchFood(this.value)">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                </div>
+            <!-- Opciones principales -->
+            <div class="space-y-4 mb-6">
+                <button onclick="showPlanMealSelection()" class="w-full glass p-6 rounded-xl flex items-center gap-4 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors touch-target">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center text-2xl">✓</div>
+                    <div class="text-left flex-1">
+                        <p class="font-bold dark:text-white text-lg">Comí lo del plan</p>
+                        <p class="text-sm text-gray-500">Registrar una comida planificada</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </button>
+                
+                <button onclick="showFoodSearch()" class="w-full glass p-6 rounded-xl flex items-center gap-4 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-2xl">🔍</div>
+                    <div class="text-left flex-1">
+                        <p class="font-bold dark:text-white text-lg">Comí otra cosa</p>
+                        <p class="text-sm text-gray-500">Buscar en recetas o productos</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </button>
+                
+                <button onclick="showBarcodeScanner()" class="w-full glass p-6 rounded-xl flex items-center gap-4 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors touch-target opacity-50" disabled>
+                    <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl">📷</div>
+                    <div class="text-left flex-1">
+                        <p class="font-bold dark:text-white text-lg">Escanear código</p>
+                        <p class="text-sm text-gray-500">Próximamente</p>
+                    </div>
+                    <span class="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full">Soon</span>
+                </button>
             </div>
             
-            <!-- Quick Add -->
-            <div class="mb-6">
-                <h3 class="font-bold dark:text-white mb-3">Añadir rápido</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <button onclick="quickAdd('Desayuno', 400)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <div class="text-2xl mb-1">🌅</div>
-                        <p class="text-sm font-semibold dark:text-white">Desayuno</p>
-                        <p class="text-xs text-gray-500">~400 kcal</p>
-                    </button>
-                    <button onclick="quickAdd('Comida', 600)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <div class="text-2xl mb-1">☀️</div>
-                        <p class="text-sm font-semibold dark:text-white">Comida</p>
-                        <p class="text-xs text-gray-500">~600 kcal</p>
-                    </button>
-                    <button onclick="quickAdd('Merienda', 200)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <div class="text-2xl mb-1">🍎</div>
-                        <p class="text-sm font-semibold dark:text-white">Merienda</p>
-                        <p class="text-xs text-gray-500">~200 kcal</p>
-                    </button>
-                    <button onclick="quickAdd('Cena', 500)" class="glass p-4 rounded-xl text-center hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors touch-target">
-                        <div class="text-2xl mb-1">🌙</div>
-                        <p class="text-sm font-semibold dark:text-white">Cena</p>
-                        <p class="text-xs text-gray-500">~500 kcal</p>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Search Results -->
-            <div id="food-results" class="space-y-3">
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-search text-3xl mb-2"></i>
-                    <p>Busca alimentos para ver resultados</p>
+            <!-- Historial del día -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 class="font-bold dark:text-white mb-4 flex items-center gap-2">
+                    <span>📊</span> Historial de hoy
+                </h3>
+                <div id="today-log-container" class="space-y-2">
+                    <div class="text-center py-4 text-gray-500">
+                        <div class="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                        <p class="text-sm">Cargando...</p>
+                    </div>
                 </div>
             </div>
         </div>
     `;
 }
 
-function searchFood(query) {
+async function loadTodayFoodLogs() {
+    const container = document.getElementById('today-log-container');
+    if (!container) return;
+    
+    try {
+        const token = user?.token;
+        const res = await fetch(API_BASE + '/food-log/today', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            todayFoodLogs = data.logs || [];
+            renderTodayLogs(data);
+        } else {
+            container.innerHTML = `<p class="text-center py-4 text-gray-500">Error al cargar historial</p>`;
+        }
+    } catch (err) {
+        console.error('Error loading food logs:', err);
+        container.innerHTML = `<p class="text-center py-4 text-gray-500">No hay registros todavía</p>`;
+    }
+}
+
+function renderTodayLogs(data) {
+    const container = document.getElementById('today-log-container');
+    if (!container) return;
+    
+    const logs = data.logs || [];
+    const totals = data.totors || {};
+    
+    if (logs.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-6 text-gray-500">
+                <div class="text-4xl mb-2">🍽️</div>
+                <p>Aún no has registrado comidas hoy</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const mealIcons = {
+        'desayuno': '🌅',
+        'comida': '☀️',
+        'almuerzo': '🥪',
+        'merienda': '🍎',
+        'cena': '🌙',
+        'snack': '🥨',
+        'other': '🍽️'
+    };
+    
+    container.innerHTML = `
+        <!-- Totales del día -->
+        <div class="glass-card rounded-xl p-4 mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-500">Total consumido</span>
+                <span class="font-bold gradient-text">${totals.calories || 0} kcal</span>
+            </div>
+            <div class="flex gap-4 text-xs text-gray-500">
+                <span>P: ${totals.protein || 0}g</span>
+                <span>C: ${totals.carbs || 0}g</span>
+                <span>G: ${totals.fat || 0}g</span>
+            </div>
+        </div>
+        
+        <!-- Lista de comidas -->
+        ${logs.map(log => `
+            <div class="glass rounded-xl p-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">${mealIcons[log.meal_type] || '🍽️'}</span>
+                    <div>
+                        <p class="font-medium dark:text-white text-sm">${log.food_name || log.recipe_name || 'Comida'}</p>
+                        <p class="text-xs text-gray-500">${log.calories} kcal</p>
+                    </div>
+                </div>
+                <button onclick="deleteFoodLog('${log.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg touch-target">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function deleteFoodLog(logId) {
+    if (!confirm('¿Eliminar esta comida del registro?')) return;
+    
+    try {
+        const token = user?.token;
+        const res = await fetch(API_BASE + '/food-log/' + logId, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (res.ok) {
+            showToast('✅ Comida eliminada', 'success');
+            loadTodayFoodLogs();
+            loadDashboard();
+        } else {
+            showToast('❌ Error al eliminar', 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+    }
+}
+
+// ==================== PLAN MEAL SELECTION ====================
+
+async function showPlanMealSelection() {
+    const container = document.getElementById('food-content');
+    
+    container.innerHTML = `
+        <div class="fade-in">
+            <button onclick="renderFoodModalMain()" class="flex items-center gap-2 text-purple-500 font-semibold mb-4 touch-target">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <h2 class="text-2xl font-black dark:text-white mb-2">📋 Comí lo del plan</h2>
+            <p class="text-gray-500 mb-6">Selecciona qué comida del día consumiste</p>
+            
+            <div id="plan-meals-container" class="space-y-3">
+                <div class="text-center py-8">
+                    <div class="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p class="text-gray-500">Cargando tu plan...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Load today's plan
+    try {
+        const token = user?.token;
+        const today = new Date().getDay();
+        const dayIndex = today === 0 ? 6 : today - 1; // Sunday = 6, Monday = 0
+        
+        const res = await fetch(API_BASE + '/plan', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.plan_entries) {
+            const todayPlan = data.plan_entries.filter(entry => entry.day_of_week === dayIndex);
+            renderPlanMeals(todayPlan);
+        } else {
+            document.getElementById('plan-meals-container').innerHTML = `
+                <div class="text-center py-8">
+                    <div class="text-4xl mb-4">📭</div>
+                    <p class="text-gray-500 mb-4">No hay plan para hoy</p>
+                    <button onclick="showFoodSearch()" class="btn-primary text-white px-6 py-2 rounded-xl font-bold touch-target">
+                        Buscar otra comida
+                    </button>
+                </div>
+            `;
+        }
+    } catch (err) {
+        document.getElementById('plan-meals-container').innerHTML = `
+            <div class="text-center py-8 text-red-500">
+                <p>Error al cargar el plan</p>
+            </div>
+        `;
+    }
+}
+
+function renderPlanMeals(meals) {
+    const container = document.getElementById('plan-meals-container');
+    
+    if (!meals || meals.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-4xl mb-4">📭</div>
+                <p class="text-gray-500 mb-4">No hay comidas planificadas para hoy</p>
+                <button onclick="showFoodSearch()" class="btn-primary text-white px-6 py-2 rounded-xl font-bold touch-target">
+                    Buscar otra comida
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    const mealIcons = {
+        'desayuno': '🌅',
+        'comida': '☀️',
+        'almuerzo': '🥪',
+        'merienda': '🍎',
+        'cena': '🌙'
+    };
+    
+    container.innerHTML = meals.map(meal => `
+        <div class="glass-card rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-xl">
+                    ${mealIcons[meal.meal_type] || '🍽️'}
+                </div>
+                <div>
+                    <p class="font-bold dark:text-white">${meal.recipe_name || 'Plan meal'}</p>
+                    <p class="text-sm text-gray-500 capitalize">${meal.meal_type} • ${meal.calories || '--'} kcal</p>
+                </div>
+            </div>
+            <button onclick="confirmPlanMeal('${meal.id}', '${meal.meal_type}', '${meal.recipe_name || 'Plan meal'}', ${meal.calories || 0}, ${meal.protein || 0}, ${meal.carbs || 0}, ${meal.fat || 0})"
+                    class="btn-primary text-white px-4 py-2 rounded-xl font-bold text-sm touch-target">
+                Comí esto
+            </button>
+        </div>
+    `).join('');
+}
+
+async function confirmPlanMeal(planId, mealType, name, calories, protein, carbs, fat) {
+    try {
+        const token = user?.token;
+        const res = await fetch(API_BASE + '/food-log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                recipe_id: planId,
+                food_name: name,
+                meal_type: mealType,
+                calories: calories,
+                protein: protein,
+                carbs: carbs,
+                fat: fat,
+                source: 'plan'
+            })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast(`✅ ${name} registrado (${calories} kcal)`, 'success');
+            renderFoodModalMain();
+            loadDashboard();
+        } else {
+            showToast('❌ ' + (data.error || 'Error al registrar'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+    }
+}
+
+// ==================== FOOD SEARCH ====================
+
+function showFoodSearch() {
+    const container = document.getElementById('food-content');
+    
+    container.innerHTML = `
+        <div class="fade-in">
+            <button onclick="renderFoodModalMain()" class="flex items-center gap-2 text-purple-500 font-semibold mb-4 touch-target">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <h2 class="text-2xl font-black dark:text-white mb-2">🔍 Buscar comida</h2>
+            <p class="text-gray-500 mb-6">Busca en recetas o productos (Open Food Facts)</p>
+            
+            <!-- Selector de tipo de comida -->
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Tipo de comida</label>
+                <div class="flex flex-wrap gap-2">
+                    ${['desayuno', 'comida', 'merienda', 'cena', 'snack'].map(meal => `
+                        <button onclick="selectMealType('${meal}')" 
+                                class="meal-type-btn px-4 py-2 rounded-xl font-semibold text-sm touch-target transition-all ${selectedMealType === meal ? 'btn-primary text-white' : 'glass dark:text-white'}">
+                            ${meal === 'desayuno' ? '🌅' : meal === 'comida' ? '☀️' : meal === 'merienda' ? '🍎' : meal === 'cena' ? '🌙' : '🥨'} ${meal.charAt(0).toUpperCase() + meal.slice(1)}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Buscador -->
+            <div class="relative mb-4">
+                <input type="text" id="food-search-input" 
+                       placeholder="Buscar alimento o producto..." 
+                       class="w-full px-4 py-3 pl-12 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target"
+                       oninput="debounceFoodSearch(this.value)">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-4">
+                <button onclick="setSearchType('all')" id="tab-all" class="flex-1 py-2 rounded-xl font-semibold text-sm btn-primary text-white touch-target">
+                    Todos
+                </button>
+                <button onclick="setSearchType('recipes')" id="tab-recipes" class="flex-1 py-2 rounded-xl font-semibold text-sm glass dark:text-white touch-target">
+                    🥗 Recetas
+                </button>
+                <button onclick="setSearchType('products')" id="tab-products" class="flex-1 py-2 rounded-xl font-semibold text-sm glass dark:text-white touch-target">
+                    📦 Productos
+                </button>
+            </div>
+            
+            <!-- Resultados -->
+            <div id="food-results" class="space-y-3 max-h-[50vh] overflow-y-auto">
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-search text-3xl mb-2"></i>
+                    <p>Escribe para buscar</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+let searchType = 'all';
+let searchTimeout = null;
+
+function selectMealType(meal) {
+    selectedMealType = meal;
+    document.querySelectorAll('.meal-type-btn').forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(meal)) {
+            btn.className = 'meal-type-btn px-4 py-2 rounded-xl font-semibold text-sm touch-target transition-all btn-primary text-white';
+        } else {
+            btn.className = 'meal-type-btn px-4 py-2 rounded-xl font-semibold text-sm touch-target transition-all glass dark:text-white';
+        }
+    });
+}
+
+function setSearchType(type) {
+    searchType = type;
+    ['all', 'recipes', 'products'].forEach(t => {
+        const tab = document.getElementById('tab-' + t);
+        if (tab) {
+            if (t === type) {
+                tab.className = 'flex-1 py-2 rounded-xl font-semibold text-sm btn-primary text-white touch-target';
+            } else {
+                tab.className = 'flex-1 py-2 rounded-xl font-semibold text-sm glass dark:text-white touch-target';
+            }
+        }
+    });
+    
+    // Re-search with new type
+    const input = document.getElementById('food-search-input');
+    if (input && input.value.length >= 2) {
+        searchFoodItems(input.value);
+    }
+}
+
+function debounceFoodSearch(query) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        searchFoodItems(query);
+    }, 300);
+}
+
+async function searchFoodItems(query) {
     const resultsContainer = document.getElementById('food-results');
     
     if (!query || query.length < 2) {
         resultsContainer.innerHTML = `
             <div class="text-center py-8 text-gray-500">
                 <i class="fas fa-search text-3xl mb-2"></i>
-                <p>Busca alimentos para ver resultados</p>
+                <p>Escribe al menos 2 caracteres</p>
             </div>
         `;
         return;
     }
     
-    // Mock results (in real app, fetch from API)
-    const mockFoods = [
-        { name: 'Pechuga de pollo', calories: 165, protein: 31, carbs: 0, fat: 3.6 },
-        { name: 'Arroz blanco', calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
-        { name: 'Brócoli', calories: 34, protein: 2.8, carbs: 7, fat: 0.4 },
-        { name: 'Salmón', calories: 208, protein: 20, carbs: 0, fat: 13 },
-        { name: 'Huevo', calories: 155, protein: 13, carbs: 1.1, fat: 11 },
-        { name: 'Avena', calories: 389, protein: 17, carbs: 66, fat: 7 },
-        { name: 'Plátano', calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
-        { name: 'Aguacate', calories: 160, protein: 2, carbs: 9, fat: 15 }
-    ];
+    resultsContainer.innerHTML = `
+        <div class="text-center py-8">
+            <div class="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p class="text-gray-500">Buscando...</p>
+        </div>
+    `;
     
-    const filtered = mockFoods.filter(f => f.name.toLowerCase().includes(query.toLowerCase()));
-    
-    if (filtered.length === 0) {
+    try {
+        const token = user?.token;
+        const res = await fetch(API_BASE + '/search-food?q=' + encodeURIComponent(query) + '&type=' + searchType + '&limit=20', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            renderFoodResults(data);
+        } else {
+            resultsContainer.innerHTML = `
+                <div class="text-center py-8 text-red-500">
+                    <p>${data.error || 'Error al buscar'}</p>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error('Search error:', err);
         resultsContainer.innerHTML = `
+            <div class="text-center py-8 text-red-500">
+                <p>Error de conexión</p>
+            </div>
+        `;
+    }
+}
+
+function renderFoodResults(data) {
+    const container = document.getElementById('food-results');
+    const recipes = data.recipes || [];
+    const products = data.products || [];
+    
+    if (recipes.length === 0 && products.length === 0) {
+        container.innerHTML = `
             <div class="text-center py-8 text-gray-500">
-                <i class="fas fa-utensils text-3xl mb-2"></i>
+                <div class="text-4xl mb-2">🔍</div>
                 <p>No se encontraron resultados</p>
             </div>
         `;
         return;
     }
     
-    resultsContainer.innerHTML = filtered.map(food => `
-        <div class="glass-card rounded-xl p-4 flex items-center justify-between">
-            <div>
-                <p class="font-bold dark:text-white">${food.name}</p>
-                <p class="text-sm text-gray-500">${food.calories} kcal • P: ${food.protein}g • C: ${food.carbs}g • G: ${food.fat}g</p>
+    let html = '';
+    
+    // Recetas
+    if (recipes.length > 0) {
+        html += `<h4 class="font-bold dark:text-white text-sm mb-2">🥗 Recetas</h4>`;
+        html += recipes.map(recipe => `
+            <div class="glass-card rounded-xl p-4 flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="font-bold dark:text-white">${recipe.name}</p>
+                    <p class="text-sm text-gray-500">${recipe.calories || '--'} kcal • P: ${recipe.protein || 0}g • C: ${recipe.carbs || 0}g • G: ${recipe.fat || 0}g</p>
+                    ${recipe.meal_type ? `<span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full capitalize">${recipe.meal_type}</span>` : ''}
+                </div>
+                <button onclick="showAddFoodModal('${recipe.id}', '${recipe.name.replace(/'/g, "\\'")}', ${recipe.calories || 0}, ${recipe.protein || 0}, ${recipe.carbs || 0}, ${recipe.fat || 0}, 'recipe')"
+                        class="btn-primary text-white px-4 py-2 rounded-xl font-bold text-sm touch-target ml-3">
+                    Añadir
+                </button>
             </div>
-            <button onclick="addFood('${food.name}', ${food.calories})" class="btn-primary text-white px-4 py-2 rounded-xl font-bold text-sm touch-target">
-                Añadir
-            </button>
+        `).join('');
+    }
+    
+    // Productos Open Food Facts
+    if (products.length > 0) {
+        html += `<h4 class="font-bold dark:text-white text-sm mb-2 mt-4">📦 Productos (Open Food Facts)</h4>`;
+        html += products.map(product => `
+            <div class="glass-card rounded-xl p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3 flex-1">
+                    ${product.image ? `<img src="${product.image}" alt="${product.name}" class="w-12 h-12 rounded-lg object-cover">` : '<div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center text-xl">📦</div>'}
+                    <div class="flex-1">
+                        <p class="font-bold dark:text-white text-sm">${product.name || 'Unknown'}</p>
+                        <p class="text-xs text-gray-500">${product.brand || ''} • ${product.calories || 0} kcal/100g</p>
+                    </div>
+                </div>
+                <button onclick="showAddFoodModal('${product.barcode || ''}', '${(product.name || 'Product').replace(/'/g, "\\'")}', ${product.calories || 0}, ${product.protein || 0}, ${product.carbs || 0}, ${product.fat || 0}, 'product', '${product.serving_size || '100g'}')"
+                        class="btn-primary text-white px-4 py-2 rounded-xl font-bold text-sm touch-target ml-3">
+                    Añadir
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    container.innerHTML = html;
+}
+
+function showAddFoodModal(id, name, calories, protein, carbs, fat, type, servingSize = null) {
+    if (!selectedMealType) {
+        showToast('⚠️ Selecciona el tipo de comida primero', 'warning');
+        return;
+    }
+    
+    const container = document.getElementById('auth-modals');
+    container.innerHTML = `
+        <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeAddFoodModal(event)">
+            <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-6" onclick="event.stopPropagation()">
+                <h3 class="text-xl font-bold dark:text-white mb-4">Añadir ${name}</h3>
+                
+                <div class="glass rounded-xl p-4 mb-4">
+                    <p class="text-sm text-gray-500 mb-2">Info nutricional ${servingSize ? `(por ${servingSize})` : '(por ración)'}</p>
+                    <div class="flex justify-around text-center">
+                        <div>
+                            <p class="text-xl font-black gradient-text">${calories}</p>
+                            <p class="text-xs text-gray-500">kcal</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold dark:text-white">${protein}g</p>
+                            <p class="text-xs text-gray-500">Proteína</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold dark:text-white">${carbs}g</p>
+                            <p class="text-xs text-gray-500">Carbos</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold dark:text-white">${fat}g</p>
+                            <p class="text-xs text-gray-500">Grasa</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Cantidad</label>
+                    <div class="flex items-center gap-3">
+                        <button onclick="adjustQuantity(-0.5)" class="w-10 h-10 glass rounded-xl font-bold dark:text-white touch-target">-</button>
+                        <input type="number" id="food-quantity" value="1" min="0.5" max="10" step="0.5"
+                               class="flex-1 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white text-center font-bold touch-target">
+                        <button onclick="adjustQuantity(0.5)" class="w-10 h-10 glass rounded-xl font-bold dark:text-white touch-target">+</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1 text-center" id="quantity-preview">${servingSize || '1 ración'}</p>
+                </div>
+                
+                <div class="glass rounded-xl p-4 mb-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Total:</span>
+                        <span class="font-bold gradient-text" id="total-calories">${calories} kcal</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="closeAddFoodModal()" class="flex-1 glass py-3 rounded-xl font-bold dark:text-white touch-target">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmAddFood('${id}', '${name.replace(/'/g, "\\'")}', ${calories}, ${protein}, ${carbs}, ${fat}, '${type}')"
+                            class="flex-1 btn-primary text-white py-3 rounded-xl font-bold touch-target">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
         </div>
-    `).join('');
+    `;
+    
+    // Setup quantity change listener
+    const qtyInput = document.getElementById('food-quantity');
+    if (qtyInput) {
+        qtyInput.addEventListener('input', () => updateTotalCalories(calories));
+    }
 }
 
-function quickAdd(meal, calories) {
-    showToast(`✓ ${meal} añadido (${calories} kcal)`, 'success');
+function adjustQuantity(delta) {
+    const input = document.getElementById('food-quantity');
+    if (input) {
+        let value = parseFloat(input.value) || 1;
+        value = Math.max(0.5, Math.min(10, value + delta));
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+    }
 }
 
-function addFood(name, calories) {
-    showToast(`✓ ${name} añadido (${calories} kcal)`, 'success');
+function updateTotalCalories(baseCalories) {
+    const qty = parseFloat(document.getElementById('food-quantity').value) || 1;
+    const totalEl = document.getElementById('total-calories');
+    if (totalEl) {
+        totalEl.textContent = Math.round(baseCalories * qty) + ' kcal';
+    }
+}
+
+function closeAddFoodModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('auth-modals').innerHTML = '';
+}
+
+async function confirmAddFood(id, name, calories, protein, carbs, fat, type) {
+    const quantity = parseFloat(document.getElementById('food-quantity').value) || 1;
+    
+    try {
+        const token = user?.token;
+        const payload = {
+            food_name: name,
+            meal_type: selectedMealType || 'other',
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            quantity: quantity,
+            source: type === 'recipe' ? 'manual' : 'openfoodfacts'
+        };
+        
+        if (type === 'recipe') {
+            payload.recipe_id = id;
+        } else if (type === 'product') {
+            payload.barcode = id;
+        }
+        
+        const res = await fetch(API_BASE + '/food-log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            closeAddFoodModal();
+            showToast(`✅ ${name} añadido (${Math.round(calories * quantity)} kcal)`, 'success');
+            renderFoodModalMain();
+            loadDashboard();
+        } else {
+            showToast('❌ ' + (data.error || 'Error al registrar'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+    }
+}
+
+function showBarcodeScanner() {
+    showToast('📷 Escáner de códigos próximamente', 'info');
 }
 
 // ==================== WEIGHT MODAL ====================
@@ -2271,6 +3335,8 @@ async function handleWeightSubmit(e) {
 
 // ==================== SHOPPING LIST ====================
 
+let shoppingListData = null;
+
 async function showShoppingList() {
     showToast('Cargando lista de compras...', 'info');
     
@@ -2285,66 +3351,8 @@ async function showShoppingList() {
         const data = await res.json();
         
         if (res.ok) {
-            const container = document.getElementById('auth-modals');
-            const ingredients = data.ingredients || [];
-            
-            if (ingredients.length === 0) {
-                showToast('📋 No hay ingredientes para esta semana', 'info');
-                return;
-            }
-            
-            // Group ingredients by category (simple implementation)
-            const grouped = {};
-            ingredients.forEach(ing => {
-                const firstLetter = ing.charAt(0).toUpperCase();
-                if (!grouped[firstLetter]) grouped[firstLetter] = [];
-                grouped[firstLetter].push(ing);
-            });
-            
-            container.innerHTML = `
-                <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeShoppingList(event)">
-                    <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
-                        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl">🛒</div>
-                                <div>
-                                    <h2 class="text-xl font-black dark:text-white">Lista de Compras</h2>
-                                    <p class="text-sm text-gray-500">Semana ${data.week_number || '--'} • ${ingredients.length} ingredientes</p>
-                                </div>
-                            </div>
-                            <button onclick="closeShoppingList()" class="touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="p-6 overflow-y-auto flex-1">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                ${Object.entries(grouped).map(([letter, items]) => `
-                                    <div class="glass rounded-xl p-4">
-                                        <h3 class="font-bold text-purple-500 mb-2">${letter}</h3>
-                                        <ul class="space-y-1">
-                                            ${items.map(item => `
-                                                <li class="flex items-center gap-2 text-sm dark:text-gray-300">
-                                                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-purple-500 focus:ring-purple-500">
-                                                    ${item}
-                                                </li>
-                                            `).join('')}
-                                        </ul>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
-                            <button onclick="printShoppingList()" class="flex-1 glass py-3 rounded-xl font-bold dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-target">
-                                <i class="fas fa-print mr-2"></i> Imprimir
-                            </button>
-                            <button onclick="closeShoppingList()" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold touch-target">
-                                Hecho
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.style.overflow = 'hidden';
+            shoppingListData = data;
+            renderShoppingListUI(data);
         } else {
             showToast('❌ ' + (data.error || 'Error al cargar lista'), 'error');
         }
@@ -2354,10 +3362,361 @@ async function showShoppingList() {
     }
 }
 
+function renderShoppingListUI(data) {
+    const container = document.getElementById('auth-modals');
+    const grouped = data.grouped || {};
+    const totalItems = data.total_items || 0;
+    
+    const supermarketIcons = {
+        'mercadona': '🟢',
+        'lidl': '🔵',
+        'carrefour': '🔴',
+        'generic': '📦',
+        'manual': '✍️'
+    };
+    
+    const supermarketColors = {
+        'mercadona': 'from-green-500 to-emerald-600',
+        'lidl': 'from-blue-500 to-blue-600',
+        'carrefour': 'from-red-500 to-red-600',
+        'generic': 'from-gray-500 to-gray-600',
+        'manual': 'from-purple-500 to-purple-600'
+    };
+    
+    container.innerHTML = `
+        <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeShoppingList(event)">
+            <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                <!-- Header -->
+                <div class="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl">🛒</div>
+                            <div>
+                                <h2 class="text-xl font-black dark:text-white">Lista de Compras</h2>
+                                <p class="text-sm text-gray-500">Semana ${data.week_number || '--'} • ${totalItems} ingredientes</p>
+                            </div>
+                        </div>
+                        <button onclick="closeShoppingList()" class="touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Action buttons -->
+                    <div class="flex gap-2 mt-4 overflow-x-auto pb-2">
+                        <button onclick="showAddItemModal()" class="flex-shrink-0 btn-primary text-white px-4 py-2 rounded-xl font-bold text-sm touch-target flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Añadir
+                        </button>
+                        <button onclick="exportList('text')" class="flex-shrink-0 glass px-4 py-2 rounded-xl font-bold text-sm dark:text-white touch-target flex items-center gap-2">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                        <button onclick="exportList('whatsapp')" class="flex-shrink-0 glass px-4 py-2 rounded-xl font-bold text-sm dark:text-white touch-target flex items-center gap-2">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                        <button onclick="confirmClearList()" class="flex-shrink-0 glass px-4 py-2 rounded-xl font-bold text-sm text-red-500 touch-target flex items-center gap-2">
+                            <i class="fas fa-trash"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+                    ${totalItems === 0 ? `
+                        <div class="text-center py-12">
+                            <div class="text-6xl mb-4">🛒</div>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">No hay ingredientes para esta semana</p>
+                            <p class="text-sm text-gray-500">Genera un plan semanal primero</p>
+                        </div>
+                    ` : `
+                        <div class="space-y-6">
+                            ${Object.entries(grouped).filter(([_, items]) => items.length > 0).map(([supermarket, items]) => `
+                                <div class="glass rounded-2xl overflow-hidden">
+                                    <div class="bg-gradient-to-r ${supermarketColors[supermarket] || 'from-gray-500 to-gray-600'} px-4 py-3 flex items-center justify-between">
+                                        <div class="flex items-center gap-2 text-white">
+                                            <span class="text-xl">${supermarketIcons[supermarket] || '📦'}</span>
+                                            <span class="font-bold capitalize">${supermarket}</span>
+                                        </div>
+                                        <span class="bg-white/20 px-2 py-1 rounded-lg text-sm text-white font-medium">${items.length} items</span>
+                                    </div>
+                                    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+                                        ${items.map((item, idx) => `
+                                            <li class="flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" data-item-idx="${idx}" data-supermarket="${supermarket}">
+                                                <input type="checkbox" 
+                                                       id="item-${supermarket}-${idx}"
+                                                       ${item.checked ? 'checked' : ''}
+                                                       onchange="toggleItemChecked('${supermarket}', ${idx}, this.checked)"
+                                                       class="w-5 h-5 rounded border-gray-300 text-purple-500 focus:ring-purple-500 cursor-pointer">
+                                                <label for="item-${supermarket}-${idx}" class="flex-1 cursor-pointer">
+                                                    <span class="dark:text-white ${item.checked ? 'line-through text-gray-400' : ''}">${item.name || item}</span>
+                                                    ${item.amount && item.unit ? `<span class="text-sm text-gray-500 ml-2">(${item.amount} ${item.unit})</span>` : ''}
+                                                    ${item.recipes && item.recipes.length > 0 ? `<span class="block text-xs text-gray-400 mt-1">📌 ${item.recipes.join(', ')}</span>` : ''}
+                                                </label>
+                                                ${item.id ? `
+                                                    <button onclick="deleteShoppingItem('${item.id}')" class="text-red-400 hover:text-red-600 p-2 touch-target">
+                                                        <i class="fas fa-trash text-sm"></i>
+                                                    </button>
+                                                ` : ''}
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+                
+                <!-- Footer summary -->
+                ${totalItems > 0 ? `
+                    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                        <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                            <span>Total ingredientes: ${totalItems}</span>
+                            <span>Recetas: ${data.recipe_count || 0}</span>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    document.body.style.overflow = 'hidden';
+}
+
 function closeShoppingList(event) {
     if (event && event.target !== event.currentTarget) return;
     document.getElementById('auth-modals').innerHTML = '';
     document.body.style.overflow = '';
+}
+
+function showAddItemModal() {
+    const container = document.getElementById('auth-modals');
+    const existingContent = container.innerHTML;
+    
+    container.innerHTML = `
+        <div class="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="glass-card bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-6 slide-enter">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-black dark:text-white">Añadir ingrediente</h3>
+                    <button onclick="renderShoppingListUI(shoppingListData)" class="touch-target w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form onsubmit="addShoppingItem(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Ingrediente *</label>
+                            <input type="text" id="new-item-name" required placeholder="Ej: Leche entera"
+                                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Cantidad</label>
+                                <input type="number" id="new-item-amount" placeholder="1" min="0.1" step="0.1"
+                                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Unidad</label>
+                                <select id="new-item-unit" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                                    <option value="unidad">unidad</option>
+                                    <option value="kg">kg</option>
+                                    <option value="g">g</option>
+                                    <option value="l">litro</option>
+                                    <option value="ml">ml</option>
+                                    <option value="docena">docena</option>
+                                    <option value="bote">bote</option>
+                                    <option value="lata">lata</option>
+                                    <option value="paquete">paquete</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 dark:text-gray-200">Supermercado</label>
+                            <select id="new-item-supermarket" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:border-purple-500 focus:outline-none touch-target">
+                                <option value="manual">Manual</option>
+                                <option value="mercadona">Mercadona</option>
+                                <option value="lidl">Lidl</option>
+                                <option value="carrefour">Carrefour</option>
+                                <option value="generic">Otros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mt-6">
+                        <button type="button" onclick="renderShoppingListUI(shoppingListData)" class="flex-1 py-3 rounded-xl font-bold border-2 border-gray-200 dark:border-gray-700 dark:text-white touch-target">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold touch-target">
+                            Añadir
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+}
+
+async function addShoppingItem(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('new-item-name').value.trim();
+    const amount = document.getElementById('new-item-amount').value || 1;
+    const unit = document.getElementById('new-item-unit').value;
+    const supermarket = document.getElementById('new-item-supermarket').value;
+    
+    if (!name) {
+        showToast('❌ Ingresa el nombre del ingrediente', 'error');
+        return;
+    }
+    
+    showToast('Añadiendo...', 'info');
+    
+    try {
+        const token = user.token;
+        const res = await fetch(API_BASE + '/shopping-list/item', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                name: name,
+                amount: parseFloat(amount),
+                unit: unit,
+                supermarket: supermarket
+            })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast('✅ Ingrediente añadido', 'success');
+            // Reload list
+            showShoppingList();
+        } else {
+            showToast('❌ ' + (data.error || 'Error al añadir'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+        console.error('Add item error:', err);
+    }
+}
+
+function toggleItemChecked(supermarket, idx, checked) {
+    // Visual feedback
+    const item = document.querySelector(`[data-item-idx="${idx}"][data-supermarket="${supermarket}"] label span`);
+    if (item) {
+        if (checked) {
+            item.classList.add('line-through', 'text-gray-400');
+        } else {
+            item.classList.remove('line-through', 'text-gray-400');
+        }
+    }
+    
+    // If has ID, update in backend
+    const items = shoppingListData?.grouped?.[supermarket] || [];
+    if (items[idx] && items[idx].id) {
+        updateShoppingItem(items[idx].id, { checked: checked });
+    }
+}
+
+async function updateShoppingItem(itemId, updates) {
+    try {
+        const token = user.token;
+        await fetch(API_BASE + '/shopping-list/item/' + itemId, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(updates)
+        });
+    } catch (err) {
+        console.error('Update item error:', err);
+    }
+}
+
+async function deleteShoppingItem(itemId) {
+    if (!confirm('¿Eliminar este ingrediente?')) return;
+    
+    showToast('Eliminando...', 'info');
+    
+    try {
+        const token = user.token;
+        const res = await fetch(API_BASE + '/shopping-list/item/' + itemId, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        if (res.ok) {
+            showToast('✅ Ingrediente eliminado', 'success');
+            showShoppingList();
+        } else {
+            const data = await res.json();
+            showToast('❌ ' + (data.error || 'Error al eliminar'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+        console.error('Delete item error:', err);
+    }
+}
+
+function confirmClearList() {
+    if (!confirm('¿Eliminar todos los ingredientes manuales de la lista?')) return;
+    clearShoppingList();
+}
+
+async function clearShoppingList() {
+    showToast('Limpiando lista...', 'info');
+    
+    try {
+        const token = user.token;
+        const res = await fetch(API_BASE + '/shopping-list/clear', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        if (res.ok) {
+            showToast('✅ Lista limpiada', 'success');
+            showShoppingList();
+        } else {
+            const data = await res.json();
+            showToast('❌ ' + (data.error || 'Error al limpiar'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+        console.error('Clear list error:', err);
+    }
+}
+
+async function exportList(format) {
+    showToast('Generando lista...', 'info');
+    
+    try {
+        const token = user.token;
+        const res = await fetch(API_BASE + '/shopping-list/export?format=' + format, {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            // Copy to clipboard
+            await navigator.clipboard.writeText(data.text);
+            
+            if (format === 'whatsapp') {
+                showToast('✅ Lista copiada (formato WhatsApp)', 'success');
+            } else {
+                showToast('✅ Lista copiada al portapapeles', 'success');
+            }
+        } else {
+            showToast('❌ ' + (data.error || 'Error al exportar'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Error de conexión', 'error');
+        console.error('Export list error:', err);
+    }
 }
 
 function printShoppingList() {

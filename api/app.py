@@ -1479,7 +1479,7 @@ def get_stats():
         
         # Food log de esta semana
         week_number = datetime.now().isocalendar()[1]
-        log_result = supabase.table('food_logs').select('calories, protein as protein_g, carbs as carbs_g, fat as fat_g').eq('user_id', user_id).eq('week_number', week_number).execute()
+        log_result = supabase.table('food_logs').select('calories, protein, carbs, fat').eq('user_id', user_id).eq('week_number', week_number).execute()
         logs = log_result.data or []
         
         total_calories = sum(log['calories'] or 0 for log in logs)

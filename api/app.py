@@ -94,7 +94,11 @@ class ProfileUpdateRequest(BaseModel):
     target_calories: Optional[int] = Field(None, ge=1000, le=5000)
 
 class WeightRequest(BaseModel):
-    weight: float = Field(..., ge=30, le=300)
+    weight: Optional[float] = Field(None, ge=30, le=300)
+    weight_kg: Optional[float] = Field(None, ge=30, le=300)
+    
+    def get_weight(self):
+        return self.weight or self.weight_kg
 
 class FoodLogRequest(BaseModel):
     recipe_id: Optional[str] = None  # UUID - optional for manual entries
@@ -1418,20 +1422,20 @@ def register_weight():
         # Registrar peso
         supabase.table('weight_history').insert({
             'user_id': user_id,
-            'weight_kg': weight_data.weight,
+            'weight_kg': weight_data.get_weight(),
             'week_number': week_number
         }).execute()
         
         # Actualizar peso en perfil
         supabase.table('user_profiles').update({
-            'weight_kg': weight_data.weight
+            'weight_kg': weight_data.get_weight()
         }).eq('user_id', user_id).execute()
         
         # Recalcular calorías objetivo
         profile_result = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
         if profile_result.data:
             profile = profile_result.data[0]
-            tmb = calculate_tmb(profile['age'], profile['gender'], profile['height_cm'], weight_data.weight)
+            tmb = calculate_tmb(profile['age'], profile['gender'], profile['height_cm'], weight_data.get_weight())
             tdee = calculate_tdee(tmb, profile['activity_level'])
             target = calculate_target_calories(tdee, profile['goal'], weight_data.weight, profile['target_weight_kg'])
             

@@ -278,8 +278,8 @@ def select_recipes(supabase, meal_type: str, preferences: dict, target_calories:
     logger.debug(f"Selecting recipes for {meal_type}, target: {target_calories} cal, limit: {limit}")
     
     # Calorie range: +/- 20% of target
-    min_cal = target_calories * 0.80
-    max_cal = target_calories * 1.20
+    min_cal = int(target_calories * 0.80)
+    max_cal = int(target_calories * 1.20)
     
     try:
         # Base query for meal type
@@ -721,8 +721,9 @@ def onboarding():
             onboarding_data.goal_weight
         )
         
-        # Obtener user_id del token
+        # Obtener user_id y email del token
         user_id = request.current_user['user_id']
+        email = request.current_user.get('email', f'user_{user_id[:8]}@diettracker.app')
         
         # Verificar si el usuario ya tiene perfil
         existing_profile = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
@@ -1477,7 +1478,7 @@ def get_stats():
         
         # Food log de esta semana
         week_number = datetime.now().isocalendar()[1]
-        log_result = supabase.table('food_logs').select('calories, protein, carbs, fat').eq('user_id', user_id).gte('week_number', week_number).execute()
+        log_result = supabase.table('food_logs').select('calories, protein as protein_g, carbs as carbs_g, fat as fat_g').eq('user_id', user_id).eq('week_number', week_number).execute()
         logs = log_result.data or []
         
         total_calories = sum(log['calories'] or 0 for log in logs)

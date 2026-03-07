@@ -76,3 +76,87 @@
 2026-03-07 02:19:47,815 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
 2026-03-07 02:19:47,889 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
 2026-03-07 02:19:47,961 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles "HTTP/2 201 Created"
+2026-03-07 02:20:40,954 - app - INFO - Starting Diet Tracker API...
+2026-03-07 02:20:40,959 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
+2026-03-07 02:20:41,107 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
+2026-03-07 02:20:41,195 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:20:41,278 - httpx - INFO - HTTP Request: PATCH https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:20:41,354 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/weight_history "HTTP/2 400 Bad Request"
+2026-03-07 02:26:47,790 - app - INFO - Starting Diet Tracker API...
+2026-03-07 02:26:47,795 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
+2026-03-07 02:26:47,996 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
+2026-03-07 02:26:48,101 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:26:48,241 - httpx - INFO - HTTP Request: PATCH https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:26:48,317 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/weight_history "HTTP/2 409 Conflict"
+2026-03-07 02:27:13,646 - app - INFO - Starting Diet Tracker API...
+2026-03-07 02:27:13,651 - app - INFO - Supabase client initialized successfully - URL: https://kaomgwojvnncidyezdzj.supabase.co
+2026-03-07 02:27:13,811 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/users?select=%2A&email=eq.testfinal%40test.com "HTTP/2 200 OK"
+2026-03-07 02:27:13,897 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:27:13,987 - httpx - INFO - HTTP Request: PATCH https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:27:14,069 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/weight_history "HTTP/2 201 Created"
+2026-03-07 02:27:14,146 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:27:14,241 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:27:14,324 - httpx - INFO - HTTP Request: DELETE https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/weekly_plans?user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647&week_number=eq.10 "HTTP/2 200 OK"
+2026-03-07 02:27:14,411 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.desayuno&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,412 - app - ERROR - Error selecting recipes for desayuno: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:14,491 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.comida&calories=gte.560.0&calories=lte.840.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,492 - app - ERROR - Error selecting recipes for comida: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "560.0"'}
+2026-03-07 02:27:14,570 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.merienda&calories=gte.240.0&calories=lte.360.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,571 - app - ERROR - Error selecting recipes for merienda: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "240.0"'}
+2026-03-07 02:27:14,645 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.cena&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,646 - app - ERROR - Error selecting recipes for cena: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:14,730 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.desayuno&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,731 - app - ERROR - Error selecting recipes for desayuno: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:14,804 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.comida&calories=gte.560.0&calories=lte.840.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,805 - app - ERROR - Error selecting recipes for comida: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "560.0"'}
+2026-03-07 02:27:14,886 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.merienda&calories=gte.240.0&calories=lte.360.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,887 - app - ERROR - Error selecting recipes for merienda: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "240.0"'}
+2026-03-07 02:27:14,963 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.cena&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:14,964 - app - ERROR - Error selecting recipes for cena: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:15,055 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.desayuno&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,056 - app - ERROR - Error selecting recipes for desayuno: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:15,130 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.comida&calories=gte.560.0&calories=lte.840.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,132 - app - ERROR - Error selecting recipes for comida: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "560.0"'}
+2026-03-07 02:27:15,233 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.merienda&calories=gte.240.0&calories=lte.360.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,234 - app - ERROR - Error selecting recipes for merienda: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "240.0"'}
+2026-03-07 02:27:15,313 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.cena&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,314 - app - ERROR - Error selecting recipes for cena: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:15,414 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.desayuno&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,415 - app - ERROR - Error selecting recipes for desayuno: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:15,489 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.comida&calories=gte.560.0&calories=lte.840.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,490 - app - ERROR - Error selecting recipes for comida: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "560.0"'}
+2026-03-07 02:27:15,627 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.merienda&calories=gte.240.0&calories=lte.360.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,628 - app - ERROR - Error selecting recipes for merienda: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "240.0"'}
+2026-03-07 02:27:15,729 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.cena&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,731 - app - ERROR - Error selecting recipes for cena: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:15,805 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.desayuno&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,806 - app - ERROR - Error selecting recipes for desayuno: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:15,888 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.comida&calories=gte.560.0&calories=lte.840.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,889 - app - ERROR - Error selecting recipes for comida: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "560.0"'}
+2026-03-07 02:27:15,970 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.merienda&calories=gte.240.0&calories=lte.360.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:15,971 - app - ERROR - Error selecting recipes for merienda: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "240.0"'}
+2026-03-07 02:27:16,046 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.cena&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,047 - app - ERROR - Error selecting recipes for cena: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:16,119 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.desayuno&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,120 - app - ERROR - Error selecting recipes for desayuno: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:16,194 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.comida&calories=gte.560.0&calories=lte.840.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,195 - app - ERROR - Error selecting recipes for comida: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "560.0"'}
+2026-03-07 02:27:16,271 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.merienda&calories=gte.240.0&calories=lte.360.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,272 - app - ERROR - Error selecting recipes for merienda: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "240.0"'}
+2026-03-07 02:27:16,344 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.cena&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,346 - app - ERROR - Error selecting recipes for cena: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:16,420 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.desayuno&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,421 - app - ERROR - Error selecting recipes for desayuno: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:16,604 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.comida&calories=gte.560.0&calories=lte.840.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,605 - app - ERROR - Error selecting recipes for comida: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "560.0"'}
+2026-03-07 02:27:16,677 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.merienda&calories=gte.240.0&calories=lte.360.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,679 - app - ERROR - Error selecting recipes for merienda: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "240.0"'}
+2026-03-07 02:27:16,758 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&meal_type=eq.cena&calories=gte.400.0&calories=lte.600.0&limit=20 "HTTP/2 400 Bad Request"
+2026-03-07 02:27:16,759 - app - ERROR - Error selecting recipes for cena: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "400.0"'}
+2026-03-07 02:27:16,840 - httpx - INFO - HTTP Request: POST https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/food_logs "HTTP/2 201 Created"
+2026-03-07 02:27:16,918 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/user_profiles?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647 "HTTP/2 200 OK"
+2026-03-07 02:27:16,996 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/weekly_plans?select=%2A&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647&week_number=eq.10 "HTTP/2 200 OK"
+2026-03-07 02:27:17,075 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/food_logs?select=calories%2C%20protein%2C%20carbs%2C%20fat&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647&week_number=eq.10&day_of_week=eq.5 "HTTP/2 200 OK"
+2026-03-07 02:27:17,152 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/weight_history?select=weight_kg%2C%20created_at&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647&order=created_at.desc&limit=1 "HTTP/2 200 OK"
+2026-03-07 02:27:17,229 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/weight_history?select=weight_kg&user_id=eq.2eaf6e61-d78c-497c-b215-f9ab459bd647&order=created_at "HTTP/2 200 OK"
+2026-03-07 02:27:17,320 - httpx - INFO - HTTP Request: GET https://kaomgwojvnncidyezdzj.supabase.co/rest/v1/master_recipes?select=%2A&limit=5 "HTTP/2 200 OK"

@@ -1871,9 +1871,8 @@ def reset_password():
 
 # 11b. GET /api/search-food - Busca alimentos (recetas y Open Food Facts)
 @app.route('/api/search-food', methods=['GET'])
-@token_required
 def search_food():
-    """Busca alimentos en recetas y Open Food Facts."""
+    """Busca alimentos en recetas y Open Food Facts (no requiere autenticación)."""
     try:
         import urllib.request
         import json as json_module
